@@ -1,11 +1,32 @@
-<!-- <nav>
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Contador</a>
-    <a [routerLink]="['/hero']" [routerLinkActive]="'active'">Hero</a>
-    <a [routerLink]="['/dragonball']" [routerLinkActive]="'active'">DragonBall</a>
-    <a [routerLink]="['/dragonball-super']" [routerLinkActive]="'active'">DragonBall-super</a>
-</nav> -->
+<nav class="navbar">
+  <!-- Logo/Brand -->
+  <div class="navbar-brand">
+    <span class="logo-icon">💪</span>
+    <h1>MUSCLE RPG</h1>
+  </div>
 
-<nav>
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-    <a [routerLink]="['/ejercicios']" [routerLinkActive]="'active'">Ejercicios</a>
+  <!-- Navigation Links -->
+  <div class="nav-links">
+    <a routerLink="/home" routerLinkActive="active" class="nav-link">ROUTINE</a>
+    <a routerLink="/ejercicios" routerLinkActive="active" class="nav-link">SKILL TREE</a>
+    <a routerLink="/character" routerLinkActive="active" class="nav-link">CHARACTER</a>
+  </div>
+
+  <!-- User Info -->
+  <div class="user-info">
+    <div class="xp-section">
+      <span class="xp-label">XP</span>
+      <div class="xp-bar">
+        <div class="xp-progress" [style.width.%]="xpPercentage"></div>
+      </div>
+      <span class="xp-text">{{ currentXP }} / {{ maxXP }}</span>
+    </div>
+    
+    <div class="level-badge">
+      <span class="level-label">LVL</span>
+      <span class="level-number">{{ level }}</span>
+    </div>
+    
+    <img [src]="avatarUrl" alt="User Avatar" class="avatar">
+  </div>
 </nav>
