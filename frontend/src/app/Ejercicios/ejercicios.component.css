@@ -1,0 +1,411 @@
+.ejercicios-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ========== VISTA DE GRUPOS MUSCULARES ========== */
+.muscle-groups-view {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  color: white;
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+}
+
+.muscle-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.muscle-group-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.muscle-group-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.group-icon {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.group-name {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.group-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* ========== VISTA DE ÁRBOL DE HABILIDADES ========== */
+.exercise-tree-view {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.back-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+.back-button:hover {
+  background: white;
+  color: #667eea;
+}
+
+.tree-header {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  border: 3px solid;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tree-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.tree-title {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0;
+}
+
+.skill-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skill-node-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.skill-connector {
+  width: 4px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.skill-connector.completed {
+  background: #2ecc71;
+}
+
+.skill-node {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem 2rem;
+  min-width: 300px;
+  max-width: 500px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.skill-node.unlocked:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.skill-node.locked {
+  opacity: 0.5;
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.skill-node.completed {
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+}
+
+.skill-level {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.skill-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.skill-xp {
+  font-size: 1rem;
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.completed-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #2ecc71;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.locked-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+}
+
+/* ========== VISTA DE DETALLE ========== */
+.exercise-detail-view {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.exercise-detail-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.detail-header {
+  padding: 2rem;
+  color: white;
+  text-align: center;
+}
+
+.detail-header h1 {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+}
+
+.level-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.detail-body {
+  padding: 2rem;
+}
+
+.detail-section {
+  margin-bottom: 2rem;
+}
+
+.detail-section h3 {
+  color: #333;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.detail-section p {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.detail-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.stat-icon {
+  font-size: 2rem;
+}
+
+.stat-name {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.stat-number {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.prerequisites-list {
+  list-style: none;
+  padding: 0;
+}
+
+.prerequisites-list li {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.prerequisites-list li.completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.check {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.complete-button {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.complete-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.completed-message {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+  border-radius: 10px;
+}
+
+.trophy {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.completed-message p {
+  font-size: 1.2rem;
+  color: #155724;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .ejercicios-container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .muscle-groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-node {
+    min-width: 250px;
+  }
+}

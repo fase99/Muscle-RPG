@@ -1,0 +1,168 @@
+<div class="ejercicios-container">
+  <!-- Vista de Grupos Musculares -->
+  @if (!selectedGroup()) {
+    <div class="muscle-groups-view">
+      <h1 class="title">🎮 Árbol de Habilidades</h1>
+      <p class="subtitle">Selecciona un grupo muscular para comenzar tu entrenamiento</p>
+      
+      <div class="muscle-groups-grid">
+        @for (group of muscleGroups(); track group.group) {
+          <div 
+            class="muscle-group-card"
+            [style.border-color]="group.color"
+            (click)="selectGroup(group)">
+            <div class="group-icon" [style.color]="group.color">{{ group.icon }}</div>
+            <h2 class="group-name">{{ group.name }}</h2>
+            <div class="group-stats">
+              <div class="stat">
+                <span class="stat-label">Ejercicios</span>
+                <span class="stat-value">{{ group.completedExercises }}/{{ group.exercises.length }}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">XP Total</span>
+                <span class="stat-value">{{ group.totalXP }}</span>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div 
+                class="progress-fill"
+                [style.width.%]="(group.completedExercises / group.exercises.length) * 100"
+                [style.background-color]="group.color">
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Vista del Árbol de Ejercicios -->
+  @if (selectedGroup() && !selectedExercise()) {
+    <div class="exercise-tree-view">
+      <button class="back-button" (click)="backToGroups()">← Volver a Grupos</button>
+      
+      <div class="tree-header" [style.border-color]="selectedGroup()!.color">
+        <span class="tree-icon">{{ selectedGroup()!.icon }}</span>
+        <h1 class="tree-title">{{ selectedGroup()!.name }}</h1>
+      </div>
+
+      <div class="skill-tree">
+        @for (exercise of selectedGroup()!.exercises; track exercise.id; let i = $index) {
+          <div class="skill-node-wrapper">
+            @if (i > 0) {
+              <div class="skill-connector" 
+                   [class.completed]="selectedGroup()!.exercises[i-1].completed">
+              </div>
+            }
+            
+            <div 
+              class="skill-node"
+              [class.unlocked]="exercise.unlocked"
+              [class.locked]="!exercise.unlocked"
+              [class.completed]="exercise.completed"
+              [style.border-color]="selectedGroup()!.color"
+              (click)="selectExercise(exercise)">
+              
+              <div class="skill-level">Nivel {{ exercise.level }}</div>
+              <div class="skill-name">{{ exercise.name }}</div>
+              <div class="skill-xp">+{{ exercise.xpReward }} XP</div>
+              
+              @if (exercise.completed) {
+                <div class="completed-badge">✓</div>
+              }
+              @if (!exercise.unlocked) {
+                <div class="locked-overlay">🔒</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Vista de Detalle del Ejercicio -->
+  @if (selectedExercise()) {
+    <div class="exercise-detail-view">
+      <button class="back-button" (click)="backToTree()">← Volver al Árbol</button>
+      
+      <div class="exercise-detail-card">
+        <div class="detail-header" [style.background-color]="selectedGroup()!.color">
+          <h1>{{ selectedExercise()!.name }}</h1>
+          <span class="level-badge">{{ getExerciseLevel(selectedExercise()!.level) }}</span>
+        </div>
+
+        <div class="detail-body">
+          <div class="detail-section">
+            <h3>📝 Descripción</h3>
+            <p>{{ selectedExercise()!.description }}</p>
+          </div>
+
+          <div class="detail-stats">
+            <div class="stat-item">
+              <span class="stat-icon">💪</span>
+              <div>
+                <div class="stat-name">Series</div>
+                <div class="stat-number">{{ selectedExercise()!.sets }}</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🔢</span>
+              <div>
+                <div class="stat-name">Repeticiones</div>
+                <div class="stat-number">{{ selectedExercise()!.reps }}</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <div>
+                <div class="stat-name">Descanso</div>
+                <div class="stat-number">{{ selectedExercise()!.restTime }}s</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⭐</span>
+              <div>
+                <div class="stat-name">Recompensa</div>
+                <div class="stat-number">{{ selectedExercise()!.xpReward }} XP</div>
+              </div>
+            </div>
+          </div>
+
+          @if (selectedExercise()!.prerequisites && selectedExercise()!.prerequisites!.length > 0) {
+            <div class="detail-section">
+              <h3>🔓 Requisitos Previos</h3>
+              <ul class="prerequisites-list">
+                @for (prereqId of selectedExercise()!.prerequisites!; track prereqId) {
+                  @for (ex of selectedGroup()!.exercises; track ex.id) {
+                    @if (ex.id === prereqId) {
+                      <li [class.completed]="ex.completed">
+                        {{ ex.name }} 
+                        @if (ex.completed) {
+                          <span class="check">✓</span>
+                        }
+                      </li>
+                    }
+                  }
+                }
+              </ul>
+            </div>
+          }
+
+          @if (!selectedExercise()!.completed) {
+            <button 
+              class="complete-button"
+              [style.background-color]="selectedGroup()!.color"
+              (click)="completeExercise(selectedExercise()!)">
+              ✓ Marcar como Completado
+            </button>
+          } @else {
+            <div class="completed-message">
+              <span class="trophy">🏆</span>
+              <p>¡Ejercicio completado! Has ganado {{ selectedExercise()!.xpReward }} XP</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
