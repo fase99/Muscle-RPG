@@ -1,51 +1,92 @@
 .ejercicios-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f23 100%);
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* ========== VISTA DE GRUPOS MUSCULARES ========== */
-.muscle-groups-view {
-  max-width: 1200px;
+.ejercicios-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(30, 144, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ejercicios-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== VISTA DE TODOS LOS ÁRBOLES ========== */
+.all-trees-view {
+  max-width: 100%;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
-.title {
+.main-title {
   color: white;
   text-align: center;
   font-size: 3rem;
   margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
-.subtitle {
-  color: rgba(255, 255, 255, 0.9);
+.main-subtitle {
+  color: rgba(255, 255, 255, 0.7);
   text-align: center;
   font-size: 1.2rem;
   margin-bottom: 3rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.muscle-groups-grid {
+.trees-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 2rem;
   margin-top: 2rem;
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tree-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .muscle-group-card {
-  background: white;
-  border-radius: 15px;
+  background: rgba(20, 20, 40, 0.8);
+  border-radius: 12px;
   padding: 2rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid transparent;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(100, 200, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .muscle-group-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  border-color: rgba(100, 200, 255, 0.6);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(100, 200, 255, 0.3),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
 }
 
 .group-icon {
@@ -58,7 +99,9 @@
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .group-stats {
@@ -75,27 +118,29 @@
 
 .stat-label {
   font-size: 0.85rem;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 0.25rem;
 }
 
 .stat-value {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #333;
+  color: rgba(100, 200, 255, 0.9);
 }
 
 .progress-bar {
   height: 8px;
-  background: #e0e0e0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   overflow: hidden;
   margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .progress-fill {
   height: 100%;
   transition: width 0.3s ease;
+  box-shadow: 0 0 10px currentColor;
 }
 
 /* ========== VISTA DE ÁRBOL DE HABILIDADES ========== */
@@ -105,50 +150,79 @@
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
+  background: rgba(30, 30, 50, 0.8);
+  color: rgba(100, 200, 255, 0.9);
+  border: 2px solid rgba(100, 200, 255, 0.5);
   padding: 0.75rem 1.5rem;
-  border-radius: 25px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: bold;
   transition: all 0.3s ease;
   margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
 }
 
 .back-button:hover {
-  background: white;
-  color: #667eea;
+  background: rgba(100, 200, 255, 0.2);
+  border-color: rgba(100, 200, 255, 1);
+  box-shadow: 0 0 20px rgba(100, 200, 255, 0.4);
+  color: white;
 }
 
 .tree-header {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
+  background: rgba(20, 20, 40, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
   text-align: center;
-  margin-bottom: 3rem;
-  border: 3px solid;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  border: 2px solid;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 200px;
 }
 
 .tree-icon {
-  font-size: 4rem;
+  font-size: 2.5rem;
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0 10px currentColor);
 }
 
 .tree-title {
-  font-size: 2.5rem;
-  color: #333;
-  margin: 0;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px currentColor;
+}
+
+.tree-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.75rem;
+}
+
+.stat-divider {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .skill-tree {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0;
+  padding: 1rem 0 2rem 0;
+  min-height: auto;
+  width: 100%;
 }
 
 .skill-node-wrapper {
@@ -156,80 +230,170 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  position: relative;
 }
 
 .skill-connector {
-  width: 4px;
+  width: 3px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(to bottom, transparent 0%, rgba(100, 200, 255, 0.3) 20%, rgba(100, 200, 255, 0.5) 50%, rgba(100, 200, 255, 0.3) 80%, transparent 100%);
   position: relative;
+  margin: -3px 0;
 }
 
 .skill-connector.completed {
-  background: #2ecc71;
+  background: linear-gradient(to bottom, transparent 0%, rgba(46, 204, 113, 0.5) 20%, rgba(46, 204, 113, 0.8) 50%, rgba(46, 204, 113, 0.5) 80%, transparent 100%);
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+}
+
+.skill-connector::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: rgba(100, 200, 255, 0.6);
+  border-radius: 50%;
+}
+
+.skill-connector.completed::before {
+  background: rgba(46, 204, 113, 0.8);
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.8);
 }
 
 .skill-node {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem 2rem;
-  min-width: 300px;
-  max-width: 500px;
+  width: 100px;
+  height: 100px;
+  position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+
+/* Hexágono usando clip-path */
+.skill-node::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(30, 30, 50, 0.95) 100%);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+  border: 3px solid rgba(100, 200, 255, 0.4);
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(100, 200, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.skill-node.unlocked::before {
+  border-color: rgba(100, 200, 255, 0.8);
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(100, 200, 255, 0.4),
+    0 0 30px rgba(100, 200, 255, 0.2);
 }
 
 .skill-node.unlocked:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
 }
 
-.skill-node.locked {
-  opacity: 0.5;
-  background: #f0f0f0;
-  cursor: not-allowed;
+.skill-node.unlocked:hover::before {
+  border-color: rgba(100, 200, 255, 1);
+  box-shadow: 
+    inset 0 0 20px rgba(100, 200, 255, 0.2),
+    0 0 30px rgba(100, 200, 255, 0.6),
+    0 0 50px rgba(100, 200, 255, 0.4);
 }
 
-.skill-node.completed {
-  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+.skill-node.locked::before {
+  background: linear-gradient(135deg, rgba(40, 40, 40, 0.8) 0%, rgba(50, 50, 50, 0.8) 100%);
+  border-color: rgba(100, 100, 100, 0.3);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.skill-node.completed::before {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.3) 0%, rgba(39, 174, 96, 0.5) 100%);
+  border-color: rgba(46, 204, 113, 1);
+  box-shadow: 
+    inset 0 0 20px rgba(46, 204, 113, 0.3),
+    0 0 25px rgba(46, 204, 113, 0.6),
+    0 0 40px rgba(46, 204, 113, 0.4);
 }
 
 .skill-level {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.6);
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.15rem;
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.skill-node.unlocked .skill-level {
+  color: rgba(100, 200, 255, 0.9);
+}
+
+.skill-node.completed .skill-level {
+  color: rgba(46, 204, 113, 1);
 }
 
 .skill-name {
-  font-size: 1.3rem;
+  font-size: 0.65rem;
   font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.15rem;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  line-height: 1.1;
+  max-width: 75px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .skill-xp {
-  font-size: 1rem;
-  color: #f39c12;
+  font-size: 0.55rem;
+  color: rgba(243, 156, 18, 0.9);
   font-weight: bold;
+  position: relative;
+  z-index: 2;
+}
+
+.skill-node.unlocked .skill-xp {
+  color: rgba(255, 193, 7, 1);
+  text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
 }
 
 .completed-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #2ecc71;
+  top: -3px;
+  right: -3px;
+  background: rgba(46, 204, 113, 1);
   color: white;
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
+  z-index: 3;
+  border: 2px solid rgba(39, 174, 96, 1);
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.8);
 }
 
 .locked-overlay {
@@ -237,7 +401,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3rem;
+  font-size: 1.5rem;
+  z-index: 3;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));
 }
 
 /* ========== VISTA DE DETALLE ========== */
@@ -247,10 +414,14 @@
 }
 
 .exercise-detail-card {
-  background: white;
-  border-radius: 15px;
+  background: rgba(20, 20, 40, 0.9);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(100, 200, 255, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .detail-header {
@@ -281,13 +452,15 @@
 }
 
 .detail-section h3 {
-  color: #333;
+  color: rgba(100, 200, 255, 0.9);
   font-size: 1.3rem;
   margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .detail-section p {
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
   line-height: 1.6;
 }
@@ -304,8 +477,9 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 10px;
+  background: rgba(10, 10, 20, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(100, 200, 255, 0.2);
 }
 
 .stat-icon {
@@ -314,14 +488,16 @@
 
 .stat-name {
   font-size: 0.9rem;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .stat-number {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #333;
+  color: rgba(100, 200, 255, 0.9);
 }
 
 .prerequisites-list {
@@ -332,16 +508,19 @@
 .prerequisites-list li {
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
-  background: #f8f9fa;
+  background: rgba(10, 10, 20, 0.5);
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .prerequisites-list li.completed {
-  background: #d4edda;
-  color: #155724;
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.5);
+  color: rgba(46, 204, 113, 1);
 }
 
 .check {
@@ -388,17 +567,46 @@
 }
 
 /* ========== RESPONSIVE ========== */
+@media (max-width: 1400px) {
+  .trees-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .trees-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  
+  .skill-node {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .skill-name {
+    font-size: 0.6rem;
+    max-width: 65px;
+  }
+}
+
 @media (max-width: 768px) {
   .ejercicios-container {
     padding: 1rem;
   }
 
-  .title {
-    font-size: 2rem;
+  .main-title {
+    font-size: 1.8rem;
   }
 
-  .muscle-groups-grid {
-    grid-template-columns: 1fr;
+  .main-subtitle {
+    font-size: 1rem;
+  }
+
+  .trees-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 
   .detail-stats {
@@ -406,6 +614,20 @@
   }
 
   .skill-node {
-    min-width: 250px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .tree-header {
+    max-width: 150px;
+    padding: 1rem 0.5rem;
+  }
+
+  .tree-icon {
+    font-size: 2rem;
+  }
+
+  .tree-title {
+    font-size: 1rem;
   }
 }

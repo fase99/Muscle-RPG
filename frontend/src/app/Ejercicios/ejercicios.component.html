@@ -1,77 +1,62 @@
 <div class="ejercicios-container">
-  <!-- Vista de Grupos Musculares -->
-  @if (!selectedGroup()) {
-    <div class="muscle-groups-view">
-      <h1 class="title">🎮 Árbol de Habilidades</h1>
-      <p class="subtitle">Selecciona un grupo muscular para comenzar tu entrenamiento</p>
+  <!-- Vista de todos los árboles -->
+  @if (!selectedExercise()) {
+    <div class="all-trees-view">
+      <h1 class="main-title">🎮 Árbol de Habilidades - Muscle RPG</h1>
+      <p class="main-subtitle">Desbloquea ejercicios completando los niveles anteriores</p>
       
-      <div class="muscle-groups-grid">
+      <div class="trees-grid">
         @for (group of muscleGroups(); track group.group) {
-          <div 
-            class="muscle-group-card"
-            [style.border-color]="group.color"
-            (click)="selectGroup(group)">
-            <div class="group-icon" [style.color]="group.color">{{ group.icon }}</div>
-            <h2 class="group-name">{{ group.name }}</h2>
-            <div class="group-stats">
-              <div class="stat">
-                <span class="stat-label">Ejercicios</span>
-                <span class="stat-value">{{ group.completedExercises }}/{{ group.exercises.length }}</span>
+          <div class="tree-column">
+            <div class="tree-header" [style.border-color]="group.color">
+              <span class="tree-icon" [style.color]="group.color">{{ group.icon }}</span>
+              <h2 class="tree-title" [style.color]="group.color">{{ group.name }}</h2>
+              <div class="tree-stats">
+                <span class="stat-item">{{ group.completedExercises }}/{{ group.exercises.length }}</span>
+                <span class="stat-divider">•</span>
+                <span class="stat-item">{{ group.totalXP }} XP</span>
               </div>
-              <div class="stat">
-                <span class="stat-label">XP Total</span>
-                <span class="stat-value">{{ group.totalXP }}</span>
-              </div>
-            </div>
-            <div class="progress-bar">
-              <div 
-                class="progress-fill"
-                [style.width.%]="(group.completedExercises / group.exercises.length) * 100"
-                [style.background-color]="group.color">
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill"
+                  [style.width.%]="(group.completedExercises / group.exercises.length) * 100"
+                  [style.background-color]="group.color">
+                </div>
               </div>
             </div>
-          </div>
-        }
-      </div>
-    </div>
-  }
 
-  <!-- Vista del Árbol de Ejercicios -->
-  @if (selectedGroup() && !selectedExercise()) {
-    <div class="exercise-tree-view">
-      <button class="back-button" (click)="backToGroups()">← Volver a Grupos</button>
-      
-      <div class="tree-header" [style.border-color]="selectedGroup()!.color">
-        <span class="tree-icon">{{ selectedGroup()!.icon }}</span>
-        <h1 class="tree-title">{{ selectedGroup()!.name }}</h1>
-      </div>
-
-      <div class="skill-tree">
-        @for (exercise of selectedGroup()!.exercises; track exercise.id; let i = $index) {
-          <div class="skill-node-wrapper">
-            @if (i > 0) {
-              <div class="skill-connector" 
-                   [class.completed]="selectedGroup()!.exercises[i-1].completed">
-              </div>
-            }
-            
-            <div 
-              class="skill-node"
-              [class.unlocked]="exercise.unlocked"
-              [class.locked]="!exercise.unlocked"
-              [class.completed]="exercise.completed"
-              [style.border-color]="selectedGroup()!.color"
-              (click)="selectExercise(exercise)">
-              
-              <div class="skill-level">Nivel {{ exercise.level }}</div>
-              <div class="skill-name">{{ exercise.name }}</div>
-              <div class="skill-xp">+{{ exercise.xpReward }} XP</div>
-              
-              @if (exercise.completed) {
-                <div class="completed-badge">✓</div>
-              }
-              @if (!exercise.unlocked) {
-                <div class="locked-overlay">🔒</div>
+            <div class="skill-tree">
+              @for (exercise of group.exercises; track exercise.id; let i = $index) {
+                <div class="skill-node-wrapper">
+                  @if (i > 0) {
+                    <div class="skill-connector" 
+                         [class.completed]="group.exercises[i-1].completed"
+                         [style.background]="group.exercises[i-1].completed ? 
+                           'linear-gradient(to bottom, transparent 0%, rgba(46, 204, 113, 0.5) 20%, rgba(46, 204, 113, 0.8) 50%, rgba(46, 204, 113, 0.5) 80%, transparent 100%)' : 
+                           'linear-gradient(to bottom, transparent 0%, ' + hexToRgba(group.color, 0.3) + ' 20%, ' + hexToRgba(group.color, 0.5) + ' 50%, ' + hexToRgba(group.color, 0.3) + ' 80%, transparent 100%)'">
+                    </div>
+                  }
+                  
+                  <div 
+                    class="skill-node"
+                    [class.unlocked]="exercise.unlocked"
+                    [class.locked]="!exercise.unlocked"
+                    [class.completed]="exercise.completed"
+                    [attr.data-group-color]="group.color"
+                    (click)="selectExercise(exercise, group)">
+                    
+                    <div class="skill-level">Nivel {{ exercise.level }}</div>
+                    <div class="skill-name">{{ exercise.name }}</div>
+                    <div class="skill-xp">+{{ exercise.xpReward }} XP</div>
+                    
+                    @if (exercise.completed) {
+                      <div class="completed-badge">✓</div>
+                    }
+                    @if (!exercise.unlocked) {
+                      <div class="locked-overlay">🔒</div>
+                    }
+                  </div>
+                </div>
               }
             </div>
           </div>
@@ -83,7 +68,7 @@
   <!-- Vista de Detalle del Ejercicio -->
   @if (selectedExercise()) {
     <div class="exercise-detail-view">
-      <button class="back-button" (click)="backToTree()">← Volver al Árbol</button>
+      <button class="back-button" (click)="backToTree()">← Volver a los Árboles</button>
       
       <div class="exercise-detail-card">
         <div class="detail-header" [style.background-color]="selectedGroup()!.color">
