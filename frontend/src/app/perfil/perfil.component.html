@@ -1,0 +1,138 @@
+<div class="profile-container">
+    <div class="header">
+        <div class="system-info">
+            <span class="indicator"></span>
+            SECURE CONNECTION ESTABLISHED
+        </div>
+        <div class="title">
+            <span class="highlight">PROFILE</span>
+        </div>
+        <div class="status">
+            <span class="status-indicator"></span>
+            STATUS: <span class="online">ONLINE</span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="left-panel">
+            <div class="user-card">
+                <div class="avatar-container">
+                    <div class="avatar"></div>
+                    <div class="level-badge">LVL 1</div>
+                </div>
+                <div class="user-name">{{ name }}</div>
+                <div class="user-class">CLASS: {{ clazz }}</div>
+            </div>
+
+            <div class="level-section">
+                <div class="section-label">TOTAL LEVEL</div>
+                <div class="level-number">{{ level }}</div>
+            </div>
+
+            <div class="xp-section">
+                <div class="xp-label">XP PROGRESS</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" [style.width.%]="xpPercent"></div>
+                </div>
+                <div class="xp-text">
+                    <span>{{ xpCurrent }} / {{ xpMax }}</span>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon fire">🔥</div>
+                    <div class="stat-value">{{ dayStreak }}</div>
+                    <div class="stat-label">DAY STREAK</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon trophy">🏆</div>
+                    <div class="stat-value">{{ achievements }}</div>
+                    <div class="stat-label">ACHIEVEMENTS</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="radar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span class="icon">📊</span>
+                        ATTRIBUTE RADAR
+                    </div>
+                    <div class="live-data">LIVE DATA</div>
+                </div>
+
+                <div class="radar-content">
+                    <div class="radar-chart">
+                        <svg viewBox="0 0 200 200" class="radar-svg">
+                            <polygon points="100,20 160,55 160,145 100,180 40,145 40,55" class="radar-grid"
+                                opacity="0.2" />
+                            <polygon points="100,40 140,65 140,135 100,160 60,135 60,65" class="radar-grid"
+                                opacity="0.3" />
+                            <polygon points="100,60 120,75 120,125 100,140 80,125 80,75" class="radar-grid"
+                                opacity="0.4" />
+
+                            <polygon points="100,28 148,58 148,138 100,168 52,138 52,58" class="radar-data" />
+
+                            <line x1="100" y1="100" x2="100" y2="20" class="radar-axis" />
+                            <line x1="100" y1="100" x2="160" y2="55" class="radar-axis" />
+                            <line x1="100" y1="100" x2="160" y2="145" class="radar-axis" />
+                            <line x1="100" y1="100" x2="100" y2="180" class="radar-axis" />
+                            <line x1="100" y1="100" x2="40" y2="145" class="radar-axis" />
+                            <line x1="100" y1="100" x2="40" y2="55" class="radar-axis" />
+
+                            <text x="100" y="15" class="radar-label">STR</text>
+                            <text x="165" y="50" class="radar-label">AGI</text>
+                            <text x="165" y="150" class="radar-label">STA</text>
+                            <text x="100" y="195" class="radar-label">END</text>
+                            <text x="25" y="150" class="radar-label">INT</text>
+                            <text x="25" y="50" class="radar-label">DEX</text>
+                        </svg>
+                    </div>
+
+                    <div class="attributes-info">
+                        <div class="focus-badge">STRENGTH FOCUSED</div>
+                        <p class="focus-desc">
+                            Your profile indicates a Tank/Warrior build.
+                            Strength and durability are your primary
+                            attributes, exceeding 85% of the user base.
+                        </p>
+                        <div class="attributes-list">
+                            <div *ngFor="let attr of attributes" class="attr-row">
+                                <span class="attr-key">{{ attr.key }}</span>
+                                <span class="attr-value">{{ attr.value }}/{{ attr.max }}</span>
+                                <span class="attr-bar-bg">
+                                    <span class="attr-bar-fill" [style.width.%]="attr.value"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-section">
+                <div class="section-header">
+                    <div class="section-title">PERFORMANCE METRICS</div>
+                    <button class="view-all-btn">VIEW ALL DATA</button>
+                </div>
+
+                <div class="metrics-cards">
+                    <div *ngFor="let metric of metrics" class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">{{ metric.icon }}</div>
+                            <div class="metric-info">
+                                <div class="metric-type">{{ metric.label }}</div>
+                                <div class="metric-subtitle">{{ metric.subLabel }}</div>
+                            </div>
+                        </div>
+                        <div class="metric-value">
+                            {{ metric.value }} <span class="metric-unit">{{ metric.unit }}</span>
+                        </div>
+                        <div class="metric-trend">{{ metric.trend }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
