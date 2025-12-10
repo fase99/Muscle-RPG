@@ -10,7 +10,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
+
+
+
 export class Navbar {
+
+//ESTATICCOS -> SE DEBEN CAMBIAR 
   // Nivel del usuario
   level = 5;
   
@@ -23,6 +28,5 @@ export class Navbar {
     return (this.currentXP / this.maxXP) * 100;
   }
   
-  // URL del avatar (puedes cambiar por una imagen real)
   avatarUrl = 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=Blank&clotheType=Hoodie&clotheColor=Gray01&eyeType=Happy&eyebrowType=FlatNatural&mouthType=Default&skinColor=Pale';
 }
