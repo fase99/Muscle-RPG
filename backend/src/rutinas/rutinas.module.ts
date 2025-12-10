@@ -5,11 +5,11 @@ import { RutinasController } from './rutinas.controller';
 import { Rutina, RutinaSchema } from '../schemas/rutina.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Rutina.name, schema: RutinaSchema }]),
-  ],
-  controllers: [RutinasController],
-  providers: [RutinasService],
-  exports: [RutinasService],
+    imports: [
+        MongooseModule.forFeature([{ name: Rutina.name, schema: RutinaSchema }]),
+    ],
+    controllers: [RutinasController],
+    providers: [RutinasService],
+    exports: [RutinasService],
 })
-export class RutinasModule {}
+export class RutinasModule { }
