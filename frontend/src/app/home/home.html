@@ -1,1 +1,139 @@
-<p>home works!</p>
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">WELCOME BACK, <span class="highlight">WARRIOR</span></h1>
+      <p class="hero-subtitle">Your fitness journey continues. Every rep counts.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card primary">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-info">
+          <span class="stat-label">STREAK</span>
+          <span class="stat-value">{{ userStats.streak }} days</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Dashboard -->
+  <div class="dashboard-grid">
+    <!-- Progress Overview -->
+    <div class="card progress-card">
+      <div class="card-header">
+        <h2 class="card-title">PROGRESS OVERVIEW</h2>
+        <span class="card-badge">LVL {{ userStats.level }}</span>
+      </div>
+      <div class="card-content">
+        <div class="xp-container">
+          <div class="xp-info">
+            <span class="xp-label">EXPERIENCE POINTS</span>
+            <span class="xp-numbers">{{ userStats.currentXP }} / {{ userStats.maxXP }} XP</span>
+          </div>
+          <div class="xp-bar-large">
+            <div class="xp-fill" [style.width.%]="userStats.xpPercentage"></div>
+          </div>
+        </div>
+        <div class="level-info">
+          <span class="next-level">{{ userStats.xpToNextLevel }} XP to level {{ userStats.level + 1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Workout -->
+    <div class="card workout-card">
+      <div class="card-header">
+        <h2 class="card-title">TODAY'S MISSION</h2>
+        <span class="status-badge active">ACTIVE</span>
+      </div>
+      <div class="card-content">
+        <div class="workout-item" *ngFor="let exercise of todayWorkout">
+          <div class="exercise-icon">💪</div>
+          <div class="exercise-info">
+            <span class="exercise-name">{{ exercise.name }}</span>
+            <span class="exercise-details">{{ exercise.sets }} sets × {{ exercise.reps }} reps</span>
+          </div>
+          <div class="exercise-status">
+            <input type="checkbox" [checked]="exercise.completed" class="checkbox">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="card stats-card">
+      <div class="card-header">
+        <h2 class="card-title">YOUR STATS</h2>
+      </div>
+      <div class="card-content">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon-small">🏋️</div>
+            <div class="stat-data">
+              <span class="stat-value-large">{{ userStats.totalWorkouts }}</span>
+              <span class="stat-label-small">Workouts</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-small">⏱️</div>
+            <div class="stat-data">
+              <span class="stat-value-large">{{ userStats.totalMinutes }}</span>
+              <span class="stat-label-small">Minutes</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-small">📈</div>
+            <div class="stat-data">
+              <span class="stat-value-large">{{ userStats.personalRecords }}</span>
+              <span class="stat-label-small">PRs</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-small">🎯</div>
+            <div class="stat-data">
+              <span class="stat-value-large">{{ userStats.goalsCompleted }}</span>
+              <span class="stat-label-small">Goals</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Achievements -->
+    <div class="card achievements-card">
+      <div class="card-header">
+        <h2 class="card-title">RECENT ACHIEVEMENTS</h2>
+      </div>
+      <div class="card-content">
+        <div class="achievement-item" *ngFor="let achievement of recentAchievements">
+          <div class="achievement-icon">{{ achievement.icon }}</div>
+          <div class="achievement-info">
+            <span class="achievement-name">{{ achievement.name }}</span>
+            <span class="achievement-date">{{ achievement.date }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card actions-card">
+      <div class="card-header">
+        <h2 class="card-title">QUICK ACTIONS</h2>
+      </div>
+      <div class="card-content">
+        <button class="action-btn primary">
+          <span class="btn-icon">▶️</span>
+          START WORKOUT
+        </button>
+        <button class="action-btn secondary">
+          <span class="btn-icon">📊</span>
+          VIEW PROGRESS
+        </button>
+        <button class="action-btn secondary">
+          <span class="btn-icon">⚙️</span>
+          SETTINGS
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
