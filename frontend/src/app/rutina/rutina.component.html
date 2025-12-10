@@ -1,0 +1,71 @@
+<div class="page">
+  <header class="header">
+    <h1>Muscle RPG</h1>
+    <div class="cronometro">
+      <strong>{{ minutosReales() }}</strong> min reales
+    </div>
+  </header>
+
+  <main class="main">
+    <h2>{{ rutina.dia }}</h2>
+    <p class="ventana">Ventana disponible hoy: <strong>120 minutos</strong></p>
+
+    <!-- Controles de sesión -->
+    <div class="controles" *ngIf="!sesionActiva && tiempoRealSegundos === 0">
+      <button class="btn-iniciar" (click)="iniciarSesion()">
+        Iniciar entrenamiento
+      </button>
+    </div>
+
+    <div class="controles" *ngIf="sesionActiva">
+      <button class="btn-finalizar" (click)="finalizarSesion()">
+        Finalizar sesión ({{ minutosReales() }} min)
+      </button>
+    </div>
+
+    <!-- Resumen final (solo después de terminar) -->
+    <div class="resumen" *ngIf="!sesionActiva && tiempoRealSegundos > 0">
+      <div class="tarjeta">
+        <div class="titulo">Tiempo real dedicado</div>
+        <div class="grande">{{ minutosReales() }} minutos</div>
+      </div>
+
+      <div class="tarjeta">
+        <div class="titulo">Ejercicios completados</div>
+        <div class="grande">{{ porcentajeEjercicios() }}%</div>
+        <div class="barra"><div class="progreso" [style.width.%]="porcentajeEjercicios()"></div></div>
+      </div>
+
+      <div class="tarjeta beta">
+        <div class="titulo">Cumplimiento de la sesión (β)</div>
+        <div class="grande">{{ (beta() * 100).toFixed(0) }}%</div>
+      </div>
+    </div>
+
+    <!-- Lista de ejercicios -->
+    <div class="ejercicios">
+      <div
+        *ngFor="let ej of rutina.ejercicios; let i = index"
+        class="ejercicio"
+        [class.hecho]="ej.hecho"
+        (click)="marcarEjercicio(ej)"
+        [style.cursor]="(sesionActiva || tiempoRealSegundos > 0) ? 'pointer' : 'not-allowed'"
+        [style.opacity]="(sesionActiva || tiempoRealSegundos > 0) ? 1 : 0.5">
+        <div class="numero">{{ i + 1 }}</div>
+        <div class="detalles">
+          <div class="nombre">{{ ej.nombre }}</div>
+          <div class="info">
+            {{ ej.sets }} series × {{ ej.reps }} • {{ ej.intensidad }}% intensidad • ≈{{ ej.tiempo }} min
+          </div>
+        </div>
+        <div class="estado">
+          {{ ej.hecho ? 'Hecho' : 'Toca para marcar' }}
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-nueva" (click)="nuevaRutina()">
+      Generar otra rutina
+    </button>
+  </main>
+</div>
