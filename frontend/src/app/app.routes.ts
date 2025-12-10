@@ -18,6 +18,9 @@ export const routes: Routes = [
   path: 'rutina',
   loadComponent: () =>
     import('./rutina/rutina.component').then(m => m.RutinaComponent)
+  },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./perfil/perfil.component').then(m => m.PerfilComponent)
   }
-
 ];
