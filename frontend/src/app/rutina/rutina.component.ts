@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RutinaService, Rutina } from './rutina.service';
+import { AuthService } from '../auth/auth.service';
+import { UserFromDB } from '../services/user-http.service';
 
 @Component({
   selector: 'app-rutina',
@@ -9,16 +11,34 @@ import { RutinaService, Rutina } from './rutina.service';
   templateUrl: './rutina.component.html',
   styleUrls: ['./rutina.component.css']
 })
-export class RutinaComponent {
+export class RutinaComponent implements OnInit {
   rutina!: Rutina;
   tiempoInicio = 0;
   tiempoRealSegundos = 0;     // tiempo definitivo al finalizar
   sesionActiva = false;
   sesionFinalizada = false;   // ← NUEVA bandera
   energiaGastada = 0;
+  user: UserFromDB | null = null;
 
-  constructor(private servicio: RutinaService) {
+  constructor(
+    private servicio: RutinaService,
+    public authService: AuthService
+  ) {
     this.nuevaRutina();
+  }
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+    });
+  }
+
+  get userName(): string {
+    return this.user?.nombre || 'Invitado';
+  }
+
+  get userLevel(): number {
+    return this.user?.nivel || 1;
   }
 
   nuevaRutina() {
