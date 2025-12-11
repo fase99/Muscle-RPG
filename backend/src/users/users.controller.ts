@@ -1,9 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateProfileDto } from './dto/create-profile.dto';
+import { profilingService } from './profiling.services';
+
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly profilingService: profilingService,
+    ) { }
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
@@ -74,4 +80,9 @@ export class UsersController {
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
+
+    @Post('profile')
+    createProfile(@Body() createProfileDto: CreateProfileDto) {
+    return this.profilingService.calcularNivelUsuario(createProfileDto);
+}   
 }
