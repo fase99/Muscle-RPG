@@ -146,6 +146,28 @@ export class UsersService {
         return user.ejerciciosCompletados;
     }
 
+    async updateMetrics(id: string, metricas: any[]): Promise<User> {
+        const updatedUser = await this.userModel
+            .findByIdAndUpdate(
+                id,
+                { 
+                    metricas: metricas.map(m => ({
+                        ...m,
+                        updatedAt: new Date()
+                    }))
+                },
+                { new: true }
+            )
+            .select('-password')
+            .exec();
+
+        if (!updatedUser) {
+            throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+        }
+
+        return updatedUser;
+    }
+
     async remove(id: string): Promise<void> {
         const result = await this.userModel
             .findByIdAndUpdate(id, { activo: false }, { new: true })
