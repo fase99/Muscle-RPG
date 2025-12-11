@@ -19,19 +19,19 @@ export class Footer {
     },
     {
       nombre: 'Pipeemendez',
-      rol: 'Frontend Dev',
+      rol: 'Full Stack Dev',
       github: 'https://github.com/Pipeemendez',
       linkedin: 'https://www.linkedin.com/in/felipe-mendezr/'
     },
     {
       nombre: 'tiagomedi',
-      rol: 'Backend Dev',
+      rol: 'Full Stack Dev',
       github: 'https://github.com/tiagomedi',
       linkedin: 'https://www.linkedin.com/in/santiagomedinad/'
     },
     {
       nombre: 'robinnn20',
-      rol: 'UI/UX Designer',
+      rol: 'Full Stack Dev',
       github: 'https://github.com/robinnn20',
       linkedin: 'https://www.linkedin.com/in/robinson-garcia-83b40121a/'
     },
