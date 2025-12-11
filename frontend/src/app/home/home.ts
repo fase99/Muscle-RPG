@@ -28,8 +28,8 @@ export class Home {
 
   // Today's Workout
   todayWorkout = [
-    { name: 'Push-ups', sets: 3, reps: 15, completed: true },
-    { name: 'Squats', sets: 4, reps: 12, completed: true },
+    { name: 'Push-ups', sets: 3, reps: 15, completed: false },
+    { name: 'Squats', sets: 4, reps: 12, completed: false },
     { name: 'Plank', sets: 3, reps: 30, completed: false },
     { name: 'Pull-ups', sets: 3, reps: 8, completed: false }
   ];
