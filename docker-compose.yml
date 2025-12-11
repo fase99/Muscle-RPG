@@ -1,26 +1,8 @@
 version: '3.8'
 
-services:
-  mongodb:
-    image: mongo:7.0
-    container_name: muscle-rpg-mongodb
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: muscleRPG2025
-      MONGO_INITDB_DATABASE: muscle_rpg
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - muscle-rpg-network
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 10s
-      retries: 5
+# Ahora usando MongoDB Atlas - servicios locales de MongoDB removidos
 
+services:
   backend:
     build:
       context: ./backend
@@ -29,12 +11,10 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:muscleRPG2025@mongodb:27017/muscle_rpg?authSource=admin
-    depends_on:
-      mongodb:
-        condition: service_healthy
     networks:
       - muscle-rpg-network
 
@@ -50,26 +30,6 @@ services:
       - backend
     networks:
       - muscle-rpg-network
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: muscle-rpg-mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: muscleRPG2025
-      ME_CONFIG_MONGODB_URL: mongodb://admin:muscleRPG2025@mongodb:27017/
-      ME_CONFIG_BASICAUTH: false
-    depends_on:
-      - mongodb
-    networks:
-      - muscle-rpg-network
-
-volumes:
-  mongodb_data:
-    driver: local
 
 networks:
   muscle-rpg-network:
