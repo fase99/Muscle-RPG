@@ -16,7 +16,7 @@ export class UsersService {
         edad: number;
         email: string;
         password: string;
-    }): Promise<User> {
+    }): Promise<UserDocument> {
         const existingUser = await this.userModel.findOne({ email: createUserDto.email });
         if (existingUser) {
             throw new ConflictException('El email ya está registrado');
