@@ -289,6 +289,34 @@
     letter-spacing: 1px;
 }
 
+.toggle-mode {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.mode-toggle-btn {
+    background: transparent;
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    color: #00d4ff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.mode-toggle-btn:hover {
+    background: rgba(0, 123, 255, 0.1);
+    border-color: #00d4ff;
+    transform: translateY(-2px);
+}
+
+.login-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 @media (max-width: 500px) {
     .login-box {
         padding: 30px 20px;
