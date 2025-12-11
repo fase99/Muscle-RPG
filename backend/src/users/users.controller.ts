@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
+import { UpdateMetricsDto } from './dto/update-metrics.dto';
 import { profilingService } from './profiling.services';
 
 
@@ -73,6 +74,14 @@ export class UsersController {
     @Get(':id/completed-exercises')
     getCompletedExercises(@Param('id') id: string) {
         return this.usersService.getCompletedExercises(id);
+    }
+
+    @Patch(':id/metricas')
+    updateMetrics(
+        @Param('id') id: string,
+        @Body() updateMetricsDto: UpdateMetricsDto,
+    ) {
+        return this.usersService.updateMetrics(id, updateMetricsDto.metricas);
     }
 
     @Delete(':id')
