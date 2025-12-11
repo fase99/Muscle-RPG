@@ -11,7 +11,7 @@ import { Connection } from 'mongoose';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://admin:muscleRPG2025@localhost:27017/muscle_rpg?authSource=admin'),
+    MongooseModule.forRoot(process.env.MONGODB_URI),
     UsersModule,
     RutinasModule,
     ExercisesModule,
@@ -21,8 +21,12 @@ export class AppModule implements OnModuleInit {
   constructor(@InjectConnection() private connection: Connection) {}
 
   onModuleInit() {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://admin:muscleRPG2025@localhost:27017/muscle_rpg?authSource=admin';
-    console.log('🔗 MongoDB URI:', mongoUri.replace(/:[^:@]+@/, ':****@')); // Hide password
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ ERROR: MONGODB_URI no está configurado en .env');
+      process.exit(1);
+    }
+    const mongoUri = process.env.MONGODB_URI;
+    console.log('🔗 MongoDB Atlas URI:', mongoUri.replace(/:[^:@]+@/, ':****@')); // Hide password
     
     this.connection.on('connected', () => {
       console.log('✅ MongoDB connected successfully');
