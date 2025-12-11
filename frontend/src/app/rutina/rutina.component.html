@@ -1,72 +1,97 @@
-<div class="page">
-  <header class="header">
-    <h1>Rutina de Hoy - {{ userName }} (Nivel {{ userLevel }})</h1>
-    <div class="cronometro">
-      <strong>{{ minutosReales() }}</strong> min reales
+<div class="container">
+
+  <!-- HEADER DEL DÍA + ENERGÍA -->
+  <header class="header-dia">
+    <h1>{{ rutina.dia }}</h1>
+
+    <div class="energia">
+      Energía: <strong>{{ energiaRestante() }} / {{ rutina.energiaMax }}</strong>
+    </div>
+
+    <div class="usuario-info">
+      <p>Usuario: <strong>{{ userName }}</strong></p>
+      <p>Nivel: <strong>{{ userLevel }}</strong></p>
     </div>
   </header>
 
-  <main class="main">
-    <h2>{{ rutina.dia }}</h2>
-    <p class="ventana">Ventana disponible hoy: <strong>120 minutos</strong></p>
+  <!-- ESTADO INICIAL -->
+  <div class="estado-inicial" *ngIf="!sesionActiva && !sesionFinalizada">
+    <div class="card-inicial">
 
-    <!-- Controles de sesión -->
-    <div class="controles" *ngIf="!sesionActiva && tiempoRealSegundos === 0">
-      <button class="btn-iniciar" (click)="iniciarSesion()">
-        Iniciar entrenamiento
+      <h2>Rutina lista para hoy</h2>
+      <p>Entrenamiento generado en base a tu progreso.</p>
+
+      <div class="info-energia">
+        <strong>Energía disponible:</strong>
+        <span class="valor-energia" [class.baja]="energiaRestante() < 30">
+          {{ energiaRestante() }} / {{ rutina.energiaMax }}
+        </span>
+      </div>
+
+      <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
+        COMENZAR ENTRENAMIENTO
       </button>
-    </div>
 
-    <div class="controles" *ngIf="sesionActiva">
-      <button class="btn-finalizar" (click)="finalizarSesion()">
-        Finalizar sesión ({{ minutosReales() }} min)
-      </button>
-    </div>
-
-    <!-- Resumen final (solo después de terminar) -->
-    <div class="resumen" *ngIf="!sesionActiva && tiempoRealSegundos > 0">
-      <div class="tarjeta">
-        <div class="titulo">Tiempo real dedicado</div>
-        <div class="grande">{{ minutosReales() }} minutos</div>
-      </div>
-
-      <div class="tarjeta">
-        <div class="titulo">Ejercicios completados</div>
-        <div class="grande">{{ porcentajeEjercicios() }}%</div>
-        <div class="barra"><div class="progreso" [style.width.%]="porcentajeEjercicios()"></div></div>
-      </div>
-
-      <div class="tarjeta beta">
-        <div class="titulo">Cumplimiento de la sesión (β)</div>
-        <div class="grande">{{ (beta() * 100).toFixed(0) }}%</div>
+      <div class="tiempo-disponible">
+        Tienes 120 minutos disponibles
       </div>
     </div>
+  </div>
 
-    <!-- Lista de ejercicios -->
-    <div class="ejercicios">
-      <div
-        *ngFor="let ej of rutina.ejercicios; let i = index"
-        class="ejercicio"
-        [class.hecho]="ej.hecho"
-        (click)="marcarEjercicio(ej)"
-        [style.cursor]="(sesionActiva || tiempoRealSegundos > 0) ? 'pointer' : 'not-allowed'"
-        [style.opacity]="(sesionActiva || tiempoRealSegundos > 0) ? 1 : 0.5">
-        <div class="numero">{{ i + 1 }}</div>
-        <div class="detalles">
-          <div class="nombre">{{ ej.nombre }}</div>
-          <div class="info">
-            {{ ej.sets }} series × {{ ej.reps }} • {{ ej.intensidad }}% intensidad • ≈{{ ej.tiempo }} min
-          </div>
-        </div>
-        <div class="estado">
-          {{ ej.hecho ? 'Hecho' : 'Toca para marcar' }}
-        </div>
-      </div>
+  <!-- DURANTE EL ENTRENAMIENTO -->
+  <div class="durante" *ngIf="sesionActiva">
+    <div class="cronometro">
+      Tiempo transcurrido: <strong>{{ tiempoTranscurrido() }}</strong> minutos
     </div>
 
-    <button class="btn-nueva" (click)="nuevaRutina()">
-      Generar otra rutina
+    <button class="btn-finalizar" (click)="finalizarEntrenamiento()">
+      Finalizar entrenamiento
     </button>
-  </main>
+  </div>
+
+  <!-- LISTA DE EJERCICIOS -->
+  <div class="ejercicios" *ngIf="sesionActiva || sesionFinalizada">
+    <div
+      *ngFor="let ej of rutina.ejercicios; let i = index"
+      class="ejercicio"
+      [class.hecho]="ej.hecho"
+      (click)="marcarEjercicio(ej)"
+      [style.cursor]="sesionFinalizada ? 'default' : 'pointer'"
+      [style.opacity]="sesionFinalizada && !ej.hecho ? 0.5 : 1">
+
+      <div class="izq">
+        <div class="num">{{ i + 1 }}</div>
+      </div>
+
+      <div class="centro">
+        <div class="nombre">{{ ej.nombre }}</div>
+        <div class="detalle">
+          {{ ej.sets }}×{{ ej.reps }} • {{ ej.intensidad }}% • ≈{{ ej.tiempo }} min • Coste {{ ej.energia }}
+
+        </div>
+      </div>
+
+      <div class="check" *ngIf="ej.hecho">✓</div>
+    </div>
+  </div>
+
+  <!-- RESUMEN FINAL -->
+  <div class="resumen" *ngIf="sesionFinalizada">
+    <h3>Entrenamiento completado</h3>
+
+    <p>Tiempo dedicado: <strong>{{ tiempoRealMinutos }} min</strong></p>
+
+    <p>Ejercicios completados:
+      <strong>{{ ejerciciosCompletados() }} / {{ rutina.ejercicios.length }}</strong>
+    </p>
+
+    <p>Energía consumida:
+      <strong>{{ energiaGastada }}</strong>
+    </p>
+
+    <p>Energía restante:
+      <strong>{{ energiaRestante() }}</strong>
+    </p>
+  </div>
 
 </div>
