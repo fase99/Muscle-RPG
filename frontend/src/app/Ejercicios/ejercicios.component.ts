@@ -2,6 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MuscleGroup, MuscleGroupNode, Exercise } from '../models/exercise.model';
 import { EXERCISE_TREE } from './exercise-data';
+import { AuthService } from '../auth/auth.service';
+import { UserFromDB } from '../services/user-http.service';
 
 @Component({
   selector: 'app-ejercicios',
@@ -14,9 +16,23 @@ export class EjerciciosComponent implements OnInit {
   protected muscleGroups = signal<MuscleGroupNode[]>([]);
   protected selectedGroup = signal<MuscleGroupNode | null>(null);
   protected selectedExercise = signal<Exercise | null>(null);
+  user: UserFromDB | null = null;
+
+  constructor(public authService: AuthService) {}
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+    });
     this.loadMuscleGroups();
+  }
+
+  get userName(): string {
+    return this.user?.nombre || 'Invitado';
+  }
+
+  get userLevel(): number {
+    return this.user?.nivel || 1;
   }
 
   hexToRgba(hex: string, alpha: number): string {
