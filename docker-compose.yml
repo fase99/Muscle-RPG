@@ -1,7 +1,4 @@
 version: '3.8'
-
-# Ahora usando MongoDB Atlas - servicios locales de MongoDB removidos
-
 services:
   backend:
     build:
