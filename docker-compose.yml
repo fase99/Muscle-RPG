@@ -13,7 +13,41 @@ services:
       MONGO_INITDB_DATABASE: muscle_rpg
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - muscle-rpg-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: muscle-rpg-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:muscleRPG2025@mongodb:27017/muscle_rpg?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - muscle-rpg-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: muscle-rpg-frontend
+    restart: always
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
     networks:
       - muscle-rpg-network
 

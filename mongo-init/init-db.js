@@ -8,3 +8,4 @@ db.rutinas.createIndex({ "activa": 1 });
 
 print('✅ Base de datos muscle_rpg inicializada correctamente');
 print('✅ Índices creados para optimizar consultas');
+    
