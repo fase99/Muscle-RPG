@@ -12,7 +12,9 @@ import { Connection } from 'mongoose';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI!),
+    MongooseModule.forRoot(process.env.MONGODB_URI!, {
+      dbName: 'muscleRPG',
+    }),
     AuthModule,
     UsersModule,
     RutinasModule,
