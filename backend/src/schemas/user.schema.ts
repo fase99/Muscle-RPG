@@ -67,6 +67,28 @@ export class User {
     @Prop({ type: [String], default: [] })
     rutinas: string[];
 
+    @Prop({
+        type: [{
+            icon: String,
+            label: String,
+            subLabel: String,
+            value: String,
+            unit: String,
+            trend: String,
+            updatedAt: { type: Date, default: Date.now }
+        }],
+        default: []
+    })
+    metricas: {
+        icon: string;
+        label: string;
+        subLabel: string;
+        value: string;
+        unit: string;
+        trend: string;
+        updatedAt: Date;
+    }[];
+
     @Prop({ default: true })
     activo: boolean;
 }
