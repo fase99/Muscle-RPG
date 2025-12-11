@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
+import { UserFromDB } from '../../services/user-http.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,16 +13,32 @@ import { AuthService } from '../../auth/auth.service';
   styleUrl: './navbar.css',
 })
 
-export class Navbar {
+export class Navbar implements OnInit {
+  user: UserFromDB | null = null;
 
   constructor(public authService: AuthService) { }
 
-  level = 5;
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+    });
+  }
 
-  currentXP = 1200;
-  maxXP = 2000;
+  get level(): number {
+    return this.user?.nivel || 1;
+  }
+
+  get currentXP(): number {
+    return this.user?.experiencia || 0;
+  }
+
+  get maxXP(): number {
+    return this.user?.experienciaMaxima || 100;
+  }
+
   get xpPercentage(): number {
     return (this.currentXP / this.maxXP) * 100;
   }
+
   avatarUrl = 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=Blank&clotheType=Hoodie&clotheColor=Gray01&eyeType=Happy&eyebrowType=FlatNatural&mouthType=Default&skinColor=Pale';
 }
