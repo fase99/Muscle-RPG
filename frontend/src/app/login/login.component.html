@@ -1,0 +1,57 @@
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <div class="logo">💪</div>
+            <h1>MUSCLE RPG</h1>
+            <p class="subtitle">OPERATIVE PROFILE ACCESS</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="login-form">
+            <div class="form-group">
+                <label for="username">USERNAME</label>
+                <input type="text" id="username" name="username" [(ngModel)]="username" placeholder="Enter username"
+                    autocomplete="username" required />
+            </div>
+
+            <div class="form-group">
+                <label for="password">PASSWORD</label>
+                <div class="password-input">
+                    <input [type]="showPassword ? 'text' : 'password'" id="password" name="password"
+                        [(ngModel)]="password" placeholder="Enter password" autocomplete="current-password" required />
+                    <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" tabindex="-1">
+                        {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="error-message" *ngIf="errorMessage">
+                ⚠️ {{ errorMessage }}
+            </div>
+
+            <button type="submit" class="login-button">
+                ACCESS SYSTEM
+            </button>
+        </form>
+
+        <div class="credentials-info">
+            <p class="info-title">🔑 CREDENCIALES DE PRUEBA:</p>
+            <div class="credential-item">
+                <span class="credential-label">Admin:</span>
+                <code>admin / admin123</code>
+            </div>
+            <div class="credential-item">
+                <span class="credential-label">Usuario:</span>
+                <code>iron / warrior123</code>
+            </div>
+            <div class="credential-item">
+                <span class="credential-label">Demo:</span>
+                <code>demo / demo123</code>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM READY</span>
+        </div>
+    </div>
+</div>
