@@ -61,11 +61,24 @@ export class PerfilComponent implements OnInit {
         ];
     }
 
-    metrics = [
-        { icon: '🏋️', label: '1RM Bench Press', subLabel: 'Last updated: 2 days ago', value: '105', unit: 'KG', trend: '+2.6% vs last month' },
-        { icon: '📊', label: 'Total Volume Lifted', subLabel: 'Weekly accumulation', value: '12,450', unit: 'KG', trend: '+18% vs last week' },
-        { icon: '⚡', label: 'Max Sprint Speed', subLabel: 'Treadmill data', value: '24', unit: 'KM/H', trend: 'No change' },
-    ];
+    get metrics() {
+        if (this.user?.metricas && this.user.metricas.length > 0) {
+            return this.user.metricas.map(m => ({
+                icon: m.icon,
+                label: m.label,
+                subLabel: m.subLabel,
+                value: m.value,
+                unit: m.unit,
+                trend: m.trend
+            }));
+        }
+        // Métricas por defecto si el usuario no tiene ninguna
+        return [
+            { icon: '🏋️', label: '1RM Bench Press', subLabel: 'Sin datos registrados', value: '-', unit: 'KG', trend: 'Registra tu primera marca' },
+            { icon: '📊', label: 'Total Volume Lifted', subLabel: 'Acumulación semanal', value: '0', unit: 'KG', trend: 'Comienza a entrenar' },
+            { icon: '⚡', label: 'Max Sprint Speed', subLabel: 'Datos de cinta', value: '-', unit: 'KM/H', trend: 'Sin datos' },
+        ];
+    }
 
     get xpPercent(): number {
         return (this.xpCurrent / this.xpMax) * 100;
