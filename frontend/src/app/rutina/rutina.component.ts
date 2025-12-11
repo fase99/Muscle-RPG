@@ -13,10 +13,14 @@ import { UserFromDB } from '../services/user-http.service';
 })
 export class RutinaComponent implements OnInit {
   rutina!: Rutina;
+
+  // === Variables del PRIMER componente ===
   tiempoInicio = 0;
-  tiempoRealSegundos = 0;     // tiempo definitivo al finalizar
+  tiempoRealMinutos = 0;
   sesionActiva = false;
-  sesionFinalizada = false;   // ← NUEVA bandera
+  sesionFinalizada = false;
+
+  // === Variables del SEGUNDO componente ===
   energiaGastada = 0;
   user: UserFromDB | null = null;
 
@@ -24,7 +28,7 @@ export class RutinaComponent implements OnInit {
     private servicio: RutinaService,
     public authService: AuthService
   ) {
-    this.nuevaRutina();
+    this.cargarRutina();
   }
 
   ngOnInit() {
@@ -33,6 +37,7 @@ export class RutinaComponent implements OnInit {
     });
   }
 
+  // === Getters del usuario ===
   get userName(): string {
     return this.user?.nombre || 'Invitado';
   }
@@ -41,59 +46,60 @@ export class RutinaComponent implements OnInit {
     return this.user?.nivel || 1;
   }
 
-  nuevaRutina() {
+  // === Cargar rutina (mezcla de ambos componentes) ===
+  cargarRutina() {
     this.rutina = this.servicio.obtenerRutinaMock();
-    this.tiempoRealSegundos = 0;
-    this.energiaGastada = 0;
     this.sesionActiva = false;
     this.sesionFinalizada = false;
+    this.tiempoRealMinutos = 0;
+    this.energiaGastada = 0;
+
+    // Reiniciar flags de ejercicios
+    this.rutina.ejercicios.forEach(e => e.hecho = false);
   }
 
-  iniciarSesion() {
+  // === Comenzar sesión (del primer componente) ===
+  comenzarEntrenamiento() {
     this.sesionActiva = true;
     this.sesionFinalizada = false;
     this.tiempoInicio = Date.now();
   }
 
-  finalizarSesion() {
+  // === Finalizar sesión (mantiene lógica del primero) ===
+  finalizarEntrenamiento() {
     if (!this.sesionActiva) return;
 
     this.sesionActiva = false;
-    this.sesionFinalizada = true;                    // ← Aquí se bloquea todo
-    this.tiempoRealSegundos = Math.round((Date.now() - this.tiempoInicio) / 1000);
+    this.sesionFinalizada = true;
+
+    // Ahora en minutos como EL PRIMERO componente
+    this.tiempoRealMinutos = Math.round((Date.now() - this.tiempoInicio) / 60000);
   }
 
+  // === Marcar ejercicios como el PRIMERO ===
   marcarEjercicio(ej: any) {
-    // Solo puede marcar si:
-    // 1. la sesión está activa, O
-    // 2. la sesión ya terminó pero aún no había marcado este ejercicio
-    if (this.sesionFinalizada) return;               // ← BLOQUEO TOTAL después de finalizar
-    if (!this.sesionActiva && this.tiempoRealSegundos === 0) return;
-
+    if (this.sesionFinalizada || !this.sesionActiva) return;
     if (ej.hecho) return;
+
     ej.hecho = true;
-    this.energiaGastada += ej.energia;
+
+    // Mantener gasto de energía del SEGUNDO
+    this.energiaGastada += ej.energia ?? 0;
   }
 
-  minutosReales(): number {
-    if (this.sesionActiva) {
-      return Math.floor((Date.now() - this.tiempoInicio) / 60000);
-    }
-    return Math.floor(this.tiempoRealSegundos / 60);
+  // === Tiempo transcurrido (del PRIMERO) ===
+  tiempoTranscurrido(): number {
+    if (!this.sesionActiva) return this.tiempoRealMinutos;
+    return Math.floor((Date.now() - this.tiempoInicio) / 60000);
   }
 
-  porcentajeEjercicios(): number {
-    const total = this.rutina.ejercicios.length;
-    const hechos = this.rutina.ejercicios.filter(e => e.hecho).length;
-    return total > 0 ? Math.round((hechos / total) * 100) : 0;
+  // === Ejercicios completados (del PRIMERO) ===
+  ejerciciosCompletados(): number {
+    return this.rutina.ejercicios.filter(e => e.hecho).length;
   }
 
-  beta(): number {
-    const minutos = this.minutosReales();
-    return Math.min(minutos / 120, 1);
-  }
-
+  // === Stamina o energía restante (mezcla lógica 1 + 2) ===
   energiaRestante(): number {
-    return this.rutina.energiaMax - this.energiaGastada;
-  }
+  return this.rutina.energiaMax - this.energiaGastada;
+}
 }
