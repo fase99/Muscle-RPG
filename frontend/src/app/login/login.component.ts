@@ -36,7 +36,7 @@ export class LoginComponent {
 
         if (success) {
             this.errorMessage = '';
-            this.router.navigate(['/home']);
+            this.router.navigate(['/setup']);
         } else {
             this.errorMessage = 'Usuario o contraseña incorrectos';
             this.password = ''; 

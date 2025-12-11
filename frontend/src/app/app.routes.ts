@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'setup',
+    loadComponent: () => import('./setup/setup.component').then(m => m.SetupComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'ejercicios',
     loadComponent: () => import('./Ejercicios/ejercicios.component').then(m => m.EjerciciosComponent),
     canActivate: [authGuard]
@@ -29,6 +34,7 @@ export const routes: Routes = [
   },
   {
     path: 'perfil',
-    loadComponent: () => import('./perfil/perfil.component').then(m => m.PerfilComponent)
+    loadComponent: () => import('./perfil/perfil.component').then(m => m.PerfilComponent),
+    canActivate: [authGuard]
   }
 ];

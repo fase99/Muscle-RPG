@@ -1,0 +1,118 @@
+/* Setup page styles aligned with Home theme */
+.rpg-container {
+	min-height: calc(100vh - 180px);
+	background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+	padding: 2rem;
+}
+
+.section {
+	background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+	border: 2px solid #334155;
+	border-radius: 1rem;
+	padding: 1.5rem;
+	color: #94a3b8;
+	margin-bottom: 1.5rem;
+}
+
+.section h3 {
+	margin: 0 0 1rem 0;
+	color: #fff;
+	font-size: 1rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+}
+
+.section label {
+	display: block;
+	margin-bottom: 0.75rem;
+	font-size: 0.875rem;
+	color: #94a3b8;
+}
+
+.section input,
+.section select {
+	width: 100%;
+	background-color: rgba(30, 41, 59, 0.6);
+	border: 1px solid #334155;
+	border-radius: 0.5rem;
+	padding: 0.5rem 0.75rem;
+	color: #fff;
+}
+
+.section input:focus,
+.section select:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.checkbox-group {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	accent-color: #2563eb;
+}
+
+.btn-rpg {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1.25rem;
+	border: 2px solid #2563eb;
+	border-radius: 0.5rem;
+	font-weight: 700;
+	font-size: 0.875rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	color: #fff;
+	transition: all 0.3s ease;
+}
+
+.btn-rpg:hover {
+	background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+	box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+	transform: translateY(-2px);
+}
+
+.result-card {
+	background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+	border: 2px solid #334155;
+	border-radius: 1rem;
+	padding: 1.5rem;
+	color: #94a3b8;
+}
+
+.result-card h3 {
+	margin: 0 0 1rem 0;
+	color: #fff;
+	font-size: 1rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+}
+
+.result-card p {
+	margin: 0.25rem 0;
+}
+
+.class-badge {
+	display: inline-block;
+	margin-top: 0.75rem;
+	background-color: #2563eb;
+	color: #fff;
+	padding: 0.25rem 0.75rem;
+	border-radius: 0.375rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+@media (max-width: 768px) {
+	.rpg-container { padding: 1rem; }
+}

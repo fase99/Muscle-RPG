@@ -1,0 +1,53 @@
+<div class="rpg-container">
+  <h2>Creación de Personaje</h2>
+  
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="!result">
+    
+    <div class="section">
+      <h3>1. Biometría</h3>
+      <label>Edad: <input type="number" formControlName="age"></label>
+      
+      <label>Género:</label>
+      <select formControlName="gender">
+        <option value="1">Hombre</option>
+        <option value="0">Mujer</option>
+      </select>
+
+      <label>Peso (kg): <input type="number" formControlName="weight"></label>
+      <label>Estatura (cm): <input type="number" formControlName="height"></label>
+    </div>
+
+    <div class="section">
+      <h3>2. Historial de Batalla</h3>
+      
+      <label>Tiempo entrenando (meses):</label>
+      <input type="number" formControlName="experienceMonths" placeholder="0 si eres nuevo">
+
+      <label>Nivel de Actividad:</label>
+      <select formControlName="activityLevel">
+        <option value="sedentary">Sedentario (Oficina/Casa)</option>
+        <option value="active">Activo (Cumplo mínimos)</option>
+        <option value="sport">Deportista (Entreno frecuente)</option>
+      </select>
+
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" formControlName="hasMedicalConditions">
+          Tengo condiciones médicas de riesgo (Hipertensión/Diabetes)
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" [disabled]="!profileForm.valid" class="btn-rpg">CALCULAR CLASE</button>
+  </form>
+
+  <div *ngIf="result" class="result-card">
+    <h3>¡Análisis Completo!</h3>
+    <p>Tu Score (S_{{ '{' }}RPG{{ '}' }}): <strong>{{ result.sRpg | number:'1.0-2' }}</strong></p>
+    <p>Grasa Estimada: <strong>{{ result.estimatedBodyFat | number:'1.0-1' }}%</strong></p>
+    <div class="class-badge">
+      CLASE ASIGNADA: <span>{{ result.level | uppercase }}</span>
+    </div>
+    <button routerLink="/rutina">COMENZAR AVENTURA</button>
+  </div>
+</div>

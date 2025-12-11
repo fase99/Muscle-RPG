@@ -82,7 +82,17 @@ export class UsersController {
     }
 
     @Post('profile')
-    createProfile(@Body() createProfileDto: CreateProfileDto) {
-    return this.profilingService.calcularNivelUsuario(createProfileDto);
-}   
+    async createProfile(@Body() createProfileDto: CreateProfileDto) {
+        try {
+            console.log('Incoming profile DTO:', createProfileDto);
+            return await this.profilingService.calcularNivelUsuario(createProfileDto);
+        } catch (err) {
+            console.error('Error creating profile:', err);
+            return {
+                statusCode: 500,
+                message: 'Internal Server Error',
+                error: err?.message ?? 'Unknown error'
+            };
+        }
+    }
 }

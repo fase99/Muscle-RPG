@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Profile, ProfileDocument } from '../schemas/profile.schema';
 import { CreateProfileDto, Genero, NivelActividad } from './dto/create-profile.dto';
 
 
 @Injectable()
 export class profilingService{
+    constructor(
+      @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
+    ) {}
 
 
-    calcularNivelUsuario(data: CreateProfileDto){
+    async calcularNivelUsuario(data: CreateProfileDto){
         //para factor de seguridad
 
         const deltaSalud = data.condicionmedica ? 0 : 1;
@@ -56,12 +62,27 @@ export class profilingService{
         if (sRpg > 65) level = 'Avanzado';
         else if (sRpg >= 36) level = 'Intermedio';
 
-        return {
+        const result = {
           sRpg,
           level,
           estimatedBodyFat: pgc,
           compositionMultiplier: muComp
         };
+
+        // Persist profile + result
+        await this.profileModel.create({
+          age: data.age,
+          gender: data.gender,
+          experienceMonths: data.experienceMonths,
+          weight: data.weight,
+          height: data.height,
+          nivelactividad: data.nivelactividad,
+          condicionmedica: data.condicionmedica,
+          knownBodyFat: data.knownBodyFat,
+          ...result,
+        });
+
+        return result;
     }
 
     private getCompositionMultiplier(pgc: number, gender: Genero, weight: number, height: number): number {
