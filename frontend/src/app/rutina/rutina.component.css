@@ -1,76 +1,239 @@
-.page { font-family: system-ui, -apple-system, sans-serif; max-width: 680px; margin: 20px auto; padding: 0 16px; }
-.header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 24px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.header h1 { margin: 0; font-size: 2rem; }
-.cronometro { background: rgba(255,255,255,0.3); padding: 12px 24px; border-radius: 40px; font-size: 1.6rem; font-weight: bold; }
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  min-height: 100vh;
+}
 
-.main { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
-h2 { text-align: center; margin: 0 0 8px 0; color: #333; font-size: 1.7rem; }
-.ventana { text-align: center; color: #666; margin-bottom: 30px; font-size: 1.1rem; }
+/* === HEADER DEL DÍA === */
+.header-dia {
+  text-align: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  border-radius: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 32px rgba(30, 58, 138, 0.4);
+}
 
-.controles { text-align: center; margin: 30px 0; }
-.btn-iniciar, .btn-finalizar {
+.header-dia h1 {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+/* === ENERGÍA === */
+.energia {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.energia strong {
+  color: #93c5fd;
+  font-size: 1.5rem;
+}
+
+.energia-restante {
+  margin-left: 12px;
+  color: #93c5fd;
+}
+
+.baja {
+  color: #f87171;
+  font-weight: bold;
+}
+
+/* === ESTADO INICIAL === */
+.estado-inicial,
+.durante {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.card-inicial {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.icono-rutina {
+  color: #60a5fa;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.card-inicial h2 {
+  font-size: 1.8rem;
+  color: #93c5fd;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.descripcion {
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  font-size: 1.05rem;
+}
+
+/* === INFO ENERGÍA === */
+.info-energia {
+  margin: 20px 0;
+  font-size: 1.2rem;
+  color: #e2e8f0;
+}
+
+.valor-energia {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #60a5fa;
+  margin-left: 8px;
+}
+
+.valor-energia.baja {
+  color: #fb7185;
+}
+
+/* === BOTONES === */
+.btn-comenzar,
+.btn-finalizar {
   padding: 18px 40px;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: bold;
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
-.btn-iniciar { background: #00c853; color: white; }
-.btn-finalizar { background: #ff1744; color: white; }
 
-.resumen { display: grid; gap: 18px; margin: 30px 0; }
-.tarjeta { background: #f8f9ff; padding: 20px; border-radius: 14px; text-align: center; }
-.titulo { color: #666; font-size: 0.95rem; margin-bottom: 8px; }
-.grande { font-size: 3rem; font-weight: bold; color: #667eea; margin: 8px 0; }
-.beta .grande { color: #ff1744; }
-.barra { height: 14px; background: #e0e0e0; border-radius: 7px; overflow: hidden; }
-.progreso { height: 100%; background: #667eea; transition: width 0.6s ease; }
-.beta .progreso { background: #ff1744; }
+.btn-comenzar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #1d4ed8;
+  color: white;
+  margin: 24px 0;
+}
 
-.ejercicios { display: flex; flex-direction: column; gap: 14px; margin: 30px 0; }
-.ejercicio { 
-  background: #f5f5f5; 
-  padding: 20px; 
-  border-radius: 16px; 
-  display: flex; 
-  align-items: center; 
+.btn-comenzar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.6);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.btn-finalizar {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.cronometro {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #60a5fa;
+  margin: 30px 0;
+}
+
+/* === LISTA DE EJERCICIOS === */
+.ejercicios {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 30px 0;
+}
+
+.ejercicio {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
   transition: all 0.3s;
 }
-.ejercicio.hecho { background: #e8f5e8; }
-.numero { 
-  background: #667eea; 
-  color: white; 
-  width: 48px; 
-  height: 48px; 
-  border-radius: 50%; 
-  display: grid; 
-  place-items: center; 
-  font-weight: bold; 
-  font-size: 1.3rem; 
-  flex-shrink: 0; 
-}
-.detalles { margin-left: 18px; flex: 1; }
-.nombre { font-weight: 600; font-size: 1.2rem; }
-.info { margin-top: 6px; color: #555; font-size: 0.98rem; }
-.estado { 
-  background: #00c853; 
-  color: white; 
-  padding: 10px 18px; 
-  border-radius: 30px; 
-  font-weight: bold; 
+
+.ejercicio:hover {
+  border-color: #3b82f6;
 }
 
-.btn-nueva { 
-  width: 100%; 
-  padding: 18px; 
-  background: #667eea; 
-  color: white; 
-  border: none; 
-  border-radius: 16px; 
-  font-size: 1.3rem; 
-  font-weight: bold; 
-  cursor: pointer; 
-  margin-top: 20px;
+.ejercicio.hecho {
+  background: #0f172a;
+  border-color: #10b981;
+  opacity: 0.95;
+}
+
+.izq .num {
+  background: #3b82f6;
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.centro {
+  flex: 1;
+}
+
+.nombre {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #e0f2fe;
+}
+
+.detalle {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 0.98rem;
+}
+
+/* === CHECK === */
+.check {
+  background: #10b981;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* === RESUMEN === */
+.resumen {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.resumen h3 {
+  font-size: 1.8rem;
+  color: #60a5fa;
+  margin-bottom: 20px;
+}
+
+.resumen p {
+  font-size: 1.2rem;
+  margin: 12px 0;
+  color: #c9d1d9;
+}
+
+.resumen strong {
+  color: #93c5fd;
 }
