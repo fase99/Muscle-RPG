@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { RutinasModule } from './rutinas/rutinas.module';
+import { ExercisesModule } from './exercises/exercises.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RutinasModule } from './rutinas/rutinas.module';
     MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://admin:muscleRPG2025@localhost:27017/muscle_rpg?authSource=admin'),
     UsersModule,
     RutinasModule,
+    ExercisesModule,
   ],
 })
 export class AppModule {}
