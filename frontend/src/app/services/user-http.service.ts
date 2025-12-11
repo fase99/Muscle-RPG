@@ -23,6 +23,15 @@ export interface UserFromDB {
     END: number;
   };
   rutinas?: string[];
+  metricas?: {
+    icon: string;
+    label: string;
+    subLabel: string;
+    value: string;
+    unit: string;
+    trend: string;
+    updatedAt: Date;
+  }[];
   activo: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -69,5 +78,9 @@ export class UserHttpService {
 
   updateUser(id: string, userData: Partial<UserFromDB>): Observable<UserFromDB> {
     return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}`, userData);
+  }
+
+  updateMetrics(id: string, metricas: any[]): Observable<UserFromDB> {
+    return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/metricas`, { metricas });
   }
 }
