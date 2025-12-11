@@ -2,8 +2,8 @@
   <!-- Vista de todos los árboles -->
   @if (!selectedExercise()) {
     <div class="all-trees-view">
-      <h1 class="main-title">Muscle RPG</h1>
-      <p class="main-subtitle">Progresa en tus entrenamientos desbloqueando nuevos ejercicios</p>
+      <h1 class="main-title">Muscle RPG - {{ userName }}</h1>
+      <p class="main-subtitle">Nivel {{ userLevel }} | Progresa en tus entrenamientos desbloqueando nuevos ejercicios</p>
       
       <div class="trees-grid">
         @for (group of muscleGroups(); track group.group) {
