@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { RutinasModule } from './rutinas/rutinas.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { AuthModule } from './auth/auth.module';
 import { Connection } from 'mongoose';
 
 @Module({
@@ -11,7 +12,8 @@ import { Connection } from 'mongoose';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(process.env.MONGODB_URI!),
+    AuthModule,
     UsersModule,
     RutinasModule,
     ExercisesModule,
