@@ -18,7 +18,7 @@ export class Ejercicio {
     peso: number;
 
     @Prop()
-    duracion: number; // en segundos para cardio
+    duracion: number; 
 
     @Prop({ default: false })
     completado: boolean;
