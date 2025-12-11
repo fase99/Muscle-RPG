@@ -98,6 +98,54 @@ export class UsersService {
         return this.findOne(id);
     }
 
+    /**
+     * Actualizar stamina del usuario
+     * @param id ID del usuario
+     * @param staminaCost Costo de stamina a restar (negativo para recuperar)
+     */
+    async updateStamina(id: string, staminaCost: number): Promise<User> {
+        const user = await this.userModel.findById(id);
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+        }
+
+        user.staminaActual = Math.max(0, Math.min(user.staminaMaxima, user.staminaActual - staminaCost));
+        await user.save();
+        return this.findOne(id);
+    }
+
+    /**
+     * Marcar ejercicio como completado y actualizar historial
+     * @param id ID del usuario
+     * @param exerciseId ID del ejercicio completado
+     */
+    async completeExercise(id: string, exerciseId: string): Promise<User> {
+        const user = await this.userModel.findById(id);
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+        }
+
+        if (!user.ejerciciosCompletados.includes(exerciseId)) {
+            user.ejerciciosCompletados.push(exerciseId);
+            await user.save();
+        }
+
+        return this.findOne(id);
+    }
+
+    /**
+     * Obtener historial de ejercicios completados
+     * @param id ID del usuario
+     */
+    async getCompletedExercises(id: string): Promise<string[]> {
+        const user = await this.userModel.findById(id);
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+        }
+
+        return user.ejerciciosCompletados;
+    }
+
     async remove(id: string): Promise<void> {
         const result = await this.userModel
             .findByIdAndUpdate(id, { activo: false }, { new: true })

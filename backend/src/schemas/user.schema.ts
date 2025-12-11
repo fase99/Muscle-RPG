@@ -49,6 +49,15 @@ export class User {
         END: number;
     };
 
+    @Prop({ default: 100 })
+    staminaActual: number; // (s_actual) Stamina disponible del usuario
+
+    @Prop({ default: 100 })
+    staminaMaxima: number; // (s_max) Stamina máxima del usuario
+
+    @Prop({ type: [String], default: [] })
+    ejerciciosCompletados: string[]; // (H) Historial de ejercicios dominados
+
     @Prop({ default: 0 })
     rachasDias: number;
 

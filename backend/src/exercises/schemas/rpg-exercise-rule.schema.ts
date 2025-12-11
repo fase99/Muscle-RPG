@@ -17,6 +17,30 @@ export class RpgExerciseRule {
   @Prop({ required: true, type: Number })
   fatigueCost: number; // (f_j) Costo de Stamina
 
+  @Prop({ required: true, type: Number })
+  executionTime: number; // (t_j) Tiempo de ejecución en minutos
+
+  // Vector de músculos objetivo (v⃗_i)
+  @Prop({
+    type: {
+      STR: { type: Number, default: 0 },
+      AGI: { type: Number, default: 0 },
+      STA: { type: Number, default: 0 },
+      INT: { type: Number, default: 0 },
+      DEX: { type: Number, default: 0 },
+      END: { type: Number, default: 0 },
+    },
+    default: {},
+  })
+  muscleTargets: {
+    STR: number;
+    AGI: number;
+    STA: number;
+    INT: number;
+    DEX: number;
+    END: number;
+  };
+
   // DEFINICIÓN DEL GRAFO (ARISTAS E)
   // IDs de ejercicios que deben dominarse antes que este
   @Prop({ type: [String], default: [] })

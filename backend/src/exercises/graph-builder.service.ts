@@ -9,9 +9,18 @@ export interface GraphNode {
   id: string;
   xp: number; // Ganancia de hipertrofia (g_j)
   fatigue: number; // Costo de stamina (f_j)
+  executionTime: number; // Tiempo de ejecución en minutos (t_j)
   level: number; // Nivel requerido
   prerequisites: string[]; // IDs de ejercicios prerequisitos
   unlocks: string[]; // IDs de ejercicios que desbloquea
+  muscleTargets: { // Vector de músculos objetivo (v⃗_i)
+    STR: number;
+    AGI: number;
+    STA: number;
+    INT: number;
+    DEX: number;
+    END: number;
+  };
 
   // Datos Visuales (Para el Frontend)
   name: string;
@@ -66,12 +75,21 @@ export class GraphBuilderService {
           id: rule.externalId,
           xp: rule.baseXP,
           fatigue: rule.fatigueCost,
+          executionTime: rule.executionTime,
           level: rule.levelRequired,
           prerequisites: rule.prerequisites || [],
           unlocks: rule.unlocks || [],
+          muscleTargets: rule.muscleTargets || {
+            STR: 0,
+            AGI: 0,
+            STA: 0,
+            INT: 0,
+            DEX: 0,
+            END: 0,
+          },
 
           // Datos Visuales (Para el Frontend)
-          name: details?.name || 'Ejercicio Desconocido',
+          name: details?.name || '',
           gifUrl: details?.gifUrl || '',
           targetMuscle: details?.target || 'unknown',
           equipment: details?.equipment || 'unknown',

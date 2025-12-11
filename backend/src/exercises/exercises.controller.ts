@@ -80,6 +80,15 @@ export class ExercisesController {
         levelRequired: 1,
         baseXP: 10,
         fatigueCost: 5,
+        executionTime: 5, // 5 minutos
+        muscleTargets: {
+          STR: 0,
+          AGI: 0,
+          STA: 30, // Abdominales = Stamina
+          INT: 0,
+          DEX: 0,
+          END: 20,
+        },
         prerequisites: [],
         unlocks: ['0002'],
       },
@@ -88,6 +97,15 @@ export class ExercisesController {
         levelRequired: 2,
         baseXP: 15,
         fatigueCost: 8,
+        executionTime: 8,
+        muscleTargets: {
+          STR: 40, // Dominadas = Fuerza espalda
+          AGI: 10,
+          STA: 0,
+          INT: 0,
+          DEX: 20,
+          END: 30,
+        },
         prerequisites: ['0001'],
         unlocks: ['0003'],
       },
@@ -96,6 +114,15 @@ export class ExercisesController {
         levelRequired: 3,
         baseXP: 20,
         fatigueCost: 10,
+        executionTime: 10,
+        muscleTargets: {
+          STR: 50, // Bench press = Fuerza pecho
+          AGI: 0,
+          STA: 0,
+          INT: 0,
+          DEX: 15,
+          END: 35,
+        },
         prerequisites: ['0002'],
         unlocks: [],
       },

@@ -48,6 +48,27 @@ export class UsersController {
         return this.usersService.updateExperiencia(id, body.xpGanada);
     }
 
+    @Patch(':id/stamina')
+    updateStamina(
+        @Param('id') id: string,
+        @Body() body: { staminaCost: number },
+    ) {
+        return this.usersService.updateStamina(id, body.staminaCost);
+    }
+
+    @Patch(':id/complete-exercise')
+    completeExercise(
+        @Param('id') id: string,
+        @Body() body: { exerciseId: string },
+    ) {
+        return this.usersService.completeExercise(id, body.exerciseId);
+    }
+
+    @Get(':id/completed-exercises')
+    getCompletedExercises(@Param('id') id: string) {
+        return this.usersService.getCompletedExercises(id);
+    }
+
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     remove(@Param('id') id: string) {
