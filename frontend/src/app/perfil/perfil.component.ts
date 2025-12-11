@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../auth/auth.service';
+import { UserFromDB } from '../services/user-http.service';
 
 @Component({
     selector: 'app-perfil',
@@ -8,23 +10,56 @@ import { CommonModule } from '@angular/common';
     templateUrl: './perfil.component.html',
     styleUrls: ['./perfil.component.css'],
 })
-export class PerfilComponent {
-    name = 'IRON WARRIOR';
-    clazz = 'VANGUARD';
-    level = 42;
-    xpCurrent = 3450;
-    xpMax = 5000;
-    dayStreak = 14;
-    achievements = 8;
+export class PerfilComponent implements OnInit {
+    user: UserFromDB | null = null;
 
-    attributes = [
-        { key: 'STR', value: 92, max: 100 },
-        { key: 'AGI', value: 65, max: 100 },
-        { key: 'STA', value: 78, max: 100 },
-        { key: 'INT', value: 45, max: 100 },
-        { key: 'DEX', value: 63, max: 100 },
-        { key: 'END', value: 88, max: 100 },
-    ];
+    constructor(public authService: AuthService) {}
+
+    ngOnInit() {
+        this.authService.currentUser$.subscribe(user => {
+            this.user = user;
+        });
+    }
+
+    get name(): string {
+        return this.user?.nombre.toUpperCase() || 'USUARIO';
+    }
+
+    get username(): string {
+        return this.user?.username || this.user?.email.split('@')[0] || 'user';
+    }
+
+    get level(): number {
+        return this.user?.nivel || 1;
+    }
+
+    get xpCurrent(): number {
+        return this.user?.experiencia || 0;
+    }
+
+    get xpMax(): number {
+        return this.user?.experienciaMaxima || 100;
+    }
+
+    get dayStreak(): number {
+        return this.user?.rachasDias || 0;
+    }
+
+    get achievements(): number {
+        return this.user?.logrosObtenidos || 0;
+    }
+
+    get attributes() {
+        const attrs = this.user?.atributos || { STR: 50, AGI: 50, STA: 50, INT: 50, DEX: 50, END: 50 };
+        return [
+            { key: 'STR', value: attrs.STR, max: 100 },
+            { key: 'AGI', value: attrs.AGI, max: 100 },
+            { key: 'STA', value: attrs.STA, max: 100 },
+            { key: 'INT', value: attrs.INT, max: 100 },
+            { key: 'DEX', value: attrs.DEX, max: 100 },
+            { key: 'END', value: attrs.END, max: 100 },
+        ];
+    }
 
     metrics = [
         { icon: '🏋️', label: '1RM Bench Press', subLabel: 'Last updated: 2 days ago', value: '105', unit: 'KG', trend: '+2.6% vs last month' },
