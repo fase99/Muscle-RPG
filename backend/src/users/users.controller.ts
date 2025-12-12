@@ -117,7 +117,7 @@ export class UsersController {
             
             throw new BadRequestException({
                 message: 'Error al crear el perfil',
-                error: err?.message ?? 'Unknown error',
+                error: err?.message ?? 'Error desconocido',
                 details: err
             });
         }
