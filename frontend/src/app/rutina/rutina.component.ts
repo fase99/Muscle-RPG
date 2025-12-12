@@ -322,3 +322,4 @@ ngOnInit() {
   return this.rutina.energiaMax - this.energiaGastada;
 }
 }
+
