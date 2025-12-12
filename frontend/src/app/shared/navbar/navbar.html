@@ -1,17 +1,17 @@
-<nav class="navbar" *ngIf="authService.isAuthenticated()">
+<nav class="navbar">
   <div class="navbar-brand">
     <span class="logo-icon">Muscle</span>
     <h1>MUSCLE RPG</h1>
   </div>
 
-  <div class="nav-links">
+  <div class="nav-links" *ngIf="authService.isAuthenticated() && !isLoginPage">
     <a routerLink="/home" routerLinkActive="active" class="nav-link"> Home </a>
     <a routerLink="/ejercicios" routerLinkActive="active" class="nav-link"> Skill Tree </a>
     <a routerLink="/rutina" routerLinkActive="active" class="nav-link"> Routine </a>
     <a routerLink="/perfil" routerLinkActive="active" class="nav-link"> Perfil </a>
   </div>
 
-  <div class="user-info">
+  <div class="user-info" *ngIf="authService.isAuthenticated() && !isLoginPage">
     <span class="username">{{ authService.getUsername() }}</span>
 
     <!-- XP + STAMINA agrupadas en una columna -->
