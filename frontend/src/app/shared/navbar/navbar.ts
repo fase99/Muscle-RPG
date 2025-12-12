@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { UserFromDB } from '../../services/user-http.service';
 
@@ -17,13 +17,22 @@ import { UserFromDB } from '../../services/user-http.service';
 
 export class Navbar implements OnInit {
   user: UserFromDB | null = null;
+  isLoginPage: boolean = false;
 
-  constructor(public authService: AuthService) { }
+  constructor(public authService: AuthService, private router: Router) { }
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
     });
+
+    // Detectar si estamos en la página de login
+    this.router.events.subscribe(() => {
+      this.isLoginPage = this.router.url === '/login' || this.router.url === '/';
+    });
+
+    // Inicializar el estado actual
+    this.isLoginPage = this.router.url === '/login' || this.router.url === '/';
   }
 
   get level(): number {
