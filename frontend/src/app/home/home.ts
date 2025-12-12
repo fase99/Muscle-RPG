@@ -34,7 +34,7 @@ export class Home implements OnInit {
         this.nextAchievement = achievement;
       },
       error: (err) => {
-        console.error('Error loading next achievement:', err);
+        console.error('Error cargando el siguiente logro:', err);
         this.nextAchievement = null;
       }
     });
