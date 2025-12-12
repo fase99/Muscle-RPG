@@ -35,6 +35,8 @@ export interface UserFromDB {
   activo: boolean;
   createdAt: Date;
   updatedAt: Date;
+  staminaActual?: number;
+  staminaMaxima?: number;
 }
 
 export interface RegisterRequest {
