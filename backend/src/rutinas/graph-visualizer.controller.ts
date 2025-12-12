@@ -66,6 +66,94 @@ export class GraphVisualizerController {
   }
 
   /**
+   * GET /graph/routine/:userId
+   * Visualiza SOLO los ejercicios de la rutina generada (ruta óptima)
+   * Útil para ver exactamente qué ejercicios están en la sesión del día
+   * 
+   * Query params:
+   * - maxTime (number): Límite de tiempo (default: 120)
+   * 
+   * Respuesta: Solo los nodos y aristas de la rutina generada
+   */
+  @Get('routine/:userId')
+  async visualizeRoutineOnly(
+    @Param('userId') userId: string,
+    @Query('maxTime') maxTime?: string,
+  ) {
+    const timeLimit = maxTime ? parseInt(maxTime) : 120;
+    return await this.graphVisualizer.visualizeOptimalPathOnly(userId, timeLimit);
+  }
+
+  /**
+   * GET /graph/routines/:userId
+   * Lista todas las rutinas guardadas del usuario
+   * Útil para debugging y verificar qué hay en la base de datos
+   */
+  @Get('routines/:userId')
+  async listUserRoutines(@Param('userId') userId: string) {
+    return await this.graphVisualizer.listUserRoutines(userId);
+  }
+
+  /**
+   * GET /graph/export/dot/routine/:userId
+   * Exporta SOLO los ejercicios de la rutina generada en formato DOT
+   * Muestra la secuencia exacta de ejercicios del día
+   */
+  @Get('export/dot/routine/:userId')
+  async exportRoutineToDot(
+    @Param('userId') userId: string,
+    @Query('maxTime') maxTime?: string,
+    @Res() res?: Response,
+  ) {
+    const timeLimit = maxTime ? parseInt(maxTime) : 120;
+    const routineData = await this.graphVisualizer.visualizeOptimalPathOnly(userId, timeLimit);
+
+    // Generar DOT simplificado
+    let dot = 'digraph RoutineGraph {\n';
+    dot += '  rankdir=LR;\n';
+    dot += '  node [shape=box, style="rounded,filled", fontsize=10];\n';
+    dot += `  label="Rutina del Día - ${routineData.nodes.length} ejercicios\\nXP Total: ${routineData.metadata.totalXP.toFixed(1)} | Tiempo: ${routineData.metadata.totalTime.toFixed(0)}m | Fatiga: ${routineData.metadata.totalFatigue.toFixed(1)}";\n`;
+    dot += '  labelloc="t";\n\n';
+
+    // Colores por grupo muscular
+    const muscleColors: Record<string, string> = {
+      'chest': '#FFB6C1',
+      'back': '#87CEEB',
+      'shoulders': '#FFD700',
+      'legs': '#90EE90',
+      'waist': '#FFA07A',
+      'arms': '#DDA0DD',
+      'upper arms': '#DDA0DD',
+      'lower arms': '#E6E6FA',
+    };
+
+    // Nodos
+    for (let i = 0; i < routineData.nodes.length; i++) {
+      const node = routineData.nodes[i];
+      const muscleGroup = node.bodyParts[0] || node.targetMuscles[0] || 'otros';
+      const color = muscleColors[muscleGroup.toLowerCase()] || '#87CEEB';
+      const label = `${i + 1}. ${node.name}\\n${node.series}x${node.repeticiones} @ RIR${node.rir}\\nXP:${node.estimuloXP.toFixed(0)} T:${node.costoTiempo}m F:${node.costoFatiga.toFixed(0)}`;
+      
+      dot += `  "${node.id}" [label="${label}", fillcolor="${color}"];\n`;
+    }
+
+    // Aristas (secuencia)
+    dot += '\n  // Secuencia de ejercicios\n';
+    for (const edge of routineData.edges) {
+      dot += `  "${edge.from}" -> "${edge.to}" [color="#000000", penwidth=2];\n`;
+    }
+
+    dot += '}\n';
+
+    if (res) {
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="routine-${userId}.dot"`);
+      return res.send(dot);
+    }
+    return dot;
+  }
+
+  /**
    * GET /graph/export/dot
    * Exporta el grafo completo en formato DOT (Graphviz)
    * 
