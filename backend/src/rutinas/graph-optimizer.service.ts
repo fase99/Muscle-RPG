@@ -312,6 +312,15 @@ export class GraphOptimizerService {
    * NIVEL 1: OPTIMIZACIÓN DE SESIÓN DIARIA (GRAFO DAG)
    * Encuentra el camino óptimo de ejercicios que maximiza XP
    * sujeto a restricciones de tiempo y Stamina
+   * 
+   * @param userId - ID del usuario
+   * @param maxTime - Límite temporal en minutos (por defecto 120 = 2 horas)
+   * @param availableStamina - Stamina disponible (se obtiene del usuario si no se proporciona)
+   * @param targetRIR - RIR objetivo según perfil del usuario:
+   *                    - Básico (SRPG ≤ 35): RIR=3 (3 reps en reserva)
+   *                    - Intermedio (36 ≤ SRPG ≤ 65): RIR=2 (2 reps en reserva)
+   *                    - Avanzado (SRPG > 65): RIR=0-1 (al fallo o muy cerca)
+   * @param targetMuscleGroups - Grupos musculares a trabajar en esta sesión (opcional)
    */
   async optimizeSesionDiaria(
     userId: string,
@@ -716,8 +725,14 @@ export class GraphOptimizerService {
   }
 
   /**
-   * Obtiene el número de series según el perfil (nivel del usuario)
-   * Básico: 3 series, Intermedio: 4 series, Avanzado: 5 series
+   * Obtiene el número de series según el perfil del usuario (profile.level)
+   * El número de series se ajusta según el nivel de entrenamiento para
+   * balancear volumen y capacidad de recuperación
+   * 
+   * Según metodología de perfilamiento:
+   * - Básico (SRPG ≤ 35): 3 series - Prioriza adaptación neuronal
+   * - Intermedio (36 ≤ SRPG ≤ 65): 4 series - Balance volumen-intensidad
+   * - Avanzado (SRPG > 65): 5 series - Máximo volumen de trabajo
    */
   private getSeriesForProfile(profile: ProfileDocument): number {
     switch (profile.level) {
@@ -740,9 +755,16 @@ export class GraphOptimizerService {
   }
 
   /**
-   * Calcula el multiplicador de XP basado en el RIR
+   * Calcula el multiplicador de XP y fatiga basado en el RIR (Repeticiones en Reserva)
    * RIR más bajo = mayor intensidad = mayor XP y fatiga
-   * Según paper: RIR 3 (Básico), RIR 2 (Intermedio), RIR 0-1 (Avanzado)
+   * 
+   * Según paper científico de perfilamiento:
+   * - RIR 3 (Básico): 0.85x - Series alejadas del fallo, menor estímulo
+   * - RIR 2 (Intermedio): 1.0x - Balance entre estímulo y fatiga
+   * - RIR 0-1 (Avanzado): 1.2x - Series al fallo, máximo estímulo mecánico
+   * 
+   * El RIR actúa como regulador inverso: menor RIR → mayor fatiga sistémica (φj)
+   * y mayor estímulo mecánico para hipertrofia
    */
   private calculateRIRMultiplier(rir: number): number {
     // RIR 0-1 (al fallo - Avanzado): 1.2x
@@ -781,25 +803,34 @@ export class GraphOptimizerService {
   /**
    * NIVEL 2: CÁLCULO DE VOLUME LANDMARKS (MEV/MAV/MRV)
    * Determina los hitos de volumen según el nivel del usuario
+   * 
+   * Definiciones según literatura científica:
+   * - MEV (Minimum Effective Volume): Volumen mínimo para generar adaptación
+   * - MAV (Maximum Adaptive Volume): Volumen óptimo para hipertrofia
+   * - MRV (Maximum Recoverable Volume): Volumen máximo que el usuario puede recuperar
+   * 
+   * Los valores se ajustan según:
+   * 1. Perfil del usuario (Básico/Intermedio/Avanzado basado en SRPG)
+   * 2. Composición corporal (μ_comp) - Mejor composición permite más volumen
    */
   calculateVolumeLandmarks(profile: ProfileDocument): VolumeLandmarks {
     let MEV: number, MAV: number, MRV: number;
 
     switch (profile.level) {
       case 'Básico':
-        MEV = 10;  // 10 series semanales mínimas
+        MEV = 10;  // 10 series semanales mínimas (menor capacidad de trabajo)
         MAV = 15;  // 15 series óptimas
         MRV = 20;  // 20 series máximas recuperables
         break;
       
       case 'Intermedio':
-        MEV = 12;
+        MEV = 12;  // Mayor capacidad de trabajo que básico
         MAV = 18;
         MRV = 24;
         break;
       
       case 'Avanzado':
-        MEV = 15;
+        MEV = 15;  // Alta capacidad de trabajo y recuperación
         MAV = 22;
         MRV = 30;
         break;
@@ -811,6 +842,7 @@ export class GraphOptimizerService {
     }
 
     // Ajustar según composición corporal (μ_comp)
+    // Mejor composición (menor grasa, más músculo) = mejor recuperación
     const muComp = profile.compositionMultiplier || 1.0;
     
     return {
