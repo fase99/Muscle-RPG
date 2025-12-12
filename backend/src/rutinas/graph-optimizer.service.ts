@@ -55,6 +55,260 @@ export class GraphOptimizerService {
   ) {}
 
   /**
+   * MÉTODO PRINCIPAL: GENERACIÓN DE SESIÓN DIARIA (MICROCICLO)
+   * Genera una sesión de ejercicios óptima usando algoritmo Greedy sobre un Grafo Dirigido
+   * 
+   * @param userStamina - Energía disponible del usuario (ej: 80)
+   * @param timeLimit - Tiempo máximo en minutos (fijo: 120)
+   * @param targetMuscle - Grupo muscular objetivo (ej: 'Pecho', 'Espalda', 'chest', 'back')
+   * @param userLevel - Nivel del usuario (1-8)
+   * @param availableNodes - Lista de ejercicios/nodos del grafo disponibles
+   * @returns Array ordenado de ExerciseNode[] representando la ruta óptima
+   */
+  async generateSession(
+    userStamina: number,
+    timeLimit: number = 120,
+    targetMuscle: string,
+    userLevel: number,
+    availableNodes: ExerciseNode[],
+  ): Promise<ExerciseNode[]> {
+    console.log('[GraphOptimizer.generateSession] ========================================');
+    console.log(`[GraphOptimizer.generateSession] Iniciando generación de sesión...`);
+    console.log(`[GraphOptimizer.generateSession] Parámetros:`);
+    console.log(`  - Stamina disponible: ${userStamina}`);
+    console.log(`  - Límite de tiempo: ${timeLimit} min`);
+    console.log(`  - Grupo muscular objetivo: ${targetMuscle}`);
+    console.log(`  - Nivel de usuario: ${userLevel}`);
+    console.log(`  - Nodos disponibles: ${availableNodes.length}`);
+
+    // PASO 1: FILTRADO INICIAL
+    // Solo considerar ejercicios que coincidan con targetMuscle y estén desbloqueados por userLevel
+    const filteredNodes = this.filterNodesByTargetMuscle(availableNodes, targetMuscle, userLevel);
+    console.log(`[GraphOptimizer.generateSession] Ejercicios filtrados: ${filteredNodes.length}`);
+
+    if (filteredNodes.length === 0) {
+      console.log(`[GraphOptimizer.generateSession] ⚠️ No se encontraron ejercicios para ${targetMuscle}`);
+      return [];
+    }
+
+    // PASO 2: RECORRIDO DEL GRAFO CON ALGORITMO GREEDY
+    const selectedPath = this.greedyPathSelection(
+      filteredNodes,
+      userStamina,
+      timeLimit,
+      targetMuscle,
+    );
+
+    console.log(`[GraphOptimizer.generateSession] ✅ Sesión generada: ${selectedPath.length} ejercicios`);
+    console.log('[GraphOptimizer.generateSession] ========================================');
+
+    return selectedPath;
+  }
+
+  /**
+   * FILTRADO INICIAL: Solo ejercicios que coincidan con targetMuscle y nivel permitido
+   */
+  private filterNodesByTargetMuscle(
+    nodes: ExerciseNode[],
+    targetMuscle: string,
+    userLevel: number,
+  ): ExerciseNode[] {
+    const normalizedTarget = targetMuscle.toLowerCase().trim();
+    
+    // Mapeo de nombres en español/inglés
+    const muscleAliases: Record<string, string[]> = {
+      'chest': ['chest', 'pecho', 'pectoral'],
+      'back': ['back', 'espalda', 'dorsal'],
+      'shoulders': ['shoulders', 'hombros', 'deltoides'],
+      'triceps': ['triceps', 'tríceps'],
+      'biceps': ['biceps', 'bíceps'],
+      'legs': ['legs', 'piernas', 'cuádriceps', 'quadriceps'],
+      'core': ['core', 'abdomen', 'abs'],
+    };
+
+    // Encontrar aliases del target
+    let targetAliases: string[] = [normalizedTarget];
+    for (const [key, aliases] of Object.entries(muscleAliases)) {
+      if (aliases.includes(normalizedTarget)) {
+        targetAliases = aliases;
+        break;
+      }
+    }
+
+    const filtered = nodes.filter(node => {
+      // Verificar nivel (si el nodo tiene prerequisites, usar esa lógica)
+      // Por simplicidad, asumimos que si está en availableNodes ya está desbloqueado
+      
+      // Verificar coincidencia con targetMuscle
+      if (node.targetMuscles && node.targetMuscles.length > 0) {
+        // Buscar en targetMuscles del nodo
+        const hasMatch = node.targetMuscles.some(muscle => 
+          targetAliases.some(alias => muscle.toLowerCase().includes(alias))
+        );
+        if (hasMatch) return true;
+      }
+
+      if (node.bodyParts && node.bodyParts.length > 0) {
+        // Buscar en bodyParts del nodo
+        const hasMatch = node.bodyParts.some(part => 
+          targetAliases.some(alias => part.toLowerCase().includes(alias))
+        );
+        if (hasMatch) return true;
+      }
+
+      // Fallback: verificar en muscleTargets (atributos RPG)
+      const rpgMapping: Record<string, string[]> = {
+        'chest': ['STR'],
+        'back': ['STR'],
+        'shoulders': ['STR', 'DEX'],
+        'triceps': ['STR', 'DEX'],
+        'biceps': ['STR', 'DEX'],
+        'legs': ['STR', 'STA'],
+        'core': ['STA', 'END'],
+      };
+
+      for (const [muscle, attrs] of Object.entries(rpgMapping)) {
+        if (targetAliases.includes(muscle)) {
+          const hasRPGMatch = attrs.some(attr => node.muscleTargets[attr] > 0.3);
+          if (hasRPGMatch) return true;
+        }
+      }
+
+      return false;
+    });
+
+    return filtered;
+  }
+
+  /**
+   * SELECCIÓN GREEDY DEL CAMINO ÓPTIMO
+   * Algoritmo:
+   * 1. Calcular ratio XP/(Tiempo+Fatiga) para cada candidato
+   * 2. Ordenar por mejor ratio
+   * 3. Seleccionar secuencialmente mientras se cumplan restricciones
+   * 4. IMPORTANTE: No repetir nodos (usar Set<string>)
+   */
+  private greedyPathSelection(
+    candidates: ExerciseNode[],
+    maxStamina: number,
+    maxTime: number,
+    targetMuscle: string,
+  ): ExerciseNode[] {
+    const selectedPath: ExerciseNode[] = [];
+    const visitedIds = new Set<string>(); // Restricción de unicidad
+    
+    let currentTime = 0;
+    let currentFatigue = 0;
+    const muscleDistribution = new Map<string, number>(); // Rastrear distribución muscular
+
+    console.log(`[GraphOptimizer.greedyPathSelection] Iniciando selección greedy...`);
+    console.log(`[GraphOptimizer.greedyPathSelection] Candidatos iniciales: ${candidates.length}`);
+
+    // Calcular ratios y ordenar (mejor ratio primero)
+    const candidatesWithRatio = candidates.map(node => ({
+      node,
+      ratio: this.calculateEfficiencyRatio(node),
+    }));
+
+    candidatesWithRatio.sort((a, b) => b.ratio - a.ratio);
+
+    // Iterar hasta que no se puedan agregar más ejercicios
+    for (const { node, ratio } of candidatesWithRatio) {
+      // RESTRICCIÓN DE UNICIDAD: Verificar si ya fue visitado
+      if (visitedIds.has(node.id)) {
+        console.log(`[GraphOptimizer.greedyPathSelection] ⏭️ Ejercicio ${node.name} ya seleccionado (unicidad)`);
+        continue;
+      }
+
+      // RESTRICCIÓN DE TIEMPO: Verificar si agregar excede timeLimit
+      if (currentTime + node.costoTiempo > maxTime) {
+        console.log(`[GraphOptimizer.greedyPathSelection] ⏱️ Ejercicio ${node.name} excedería tiempo (${currentTime + node.costoTiempo} > ${maxTime})`);
+        continue;
+      }
+
+      // RESTRICCIÓN DE STAMINA: Verificar si agregar excede userStamina
+      if (currentFatigue + node.costoFatiga > maxStamina) {
+        console.log(`[GraphOptimizer.greedyPathSelection] 💤 Ejercicio ${node.name} excedería stamina (${currentFatigue + node.costoFatiga} > ${maxStamina})`);
+        continue;
+      }
+
+      // RESTRICCIÓN DE BALANCE: Máximo 40% por grupo muscular
+      const primaryMuscle = this.getPrimaryMuscle(node);
+      const currentMusclePercentage = this.calculateMusclePercentage(
+        muscleDistribution,
+        primaryMuscle,
+        node.estimuloXP,
+        selectedPath.reduce((sum, n) => sum + n.estimuloXP, 0) + node.estimuloXP
+      );
+
+      if (currentMusclePercentage > 0.40 && selectedPath.length >= 4) {
+        console.log(`[GraphOptimizer.greedyPathSelection] ⚖️ Ejercicio ${node.name} excedería límite del 40% para ${primaryMuscle} (${(currentMusclePercentage * 100).toFixed(1)}%)`);
+        continue;
+      }
+
+      // AGREGAR NODO A LA RUTA
+      selectedPath.push(node);
+      visitedIds.add(node.id);
+      currentTime += node.costoTiempo;
+      currentFatigue += node.costoFatiga;
+
+      // Actualizar distribución muscular
+      const currentValue = muscleDistribution.get(primaryMuscle) || 0;
+      muscleDistribution.set(primaryMuscle, currentValue + node.estimuloXP);
+
+      console.log(`[GraphOptimizer.greedyPathSelection] ✅ Agregado: ${node.name} (Ratio: ${ratio.toFixed(2)}, XP: ${node.estimuloXP.toFixed(1)})`);
+      console.log(`[GraphOptimizer.greedyPathSelection]    Total: ${selectedPath.length} ejercicios | Tiempo: ${currentTime}min | Fatiga: ${currentFatigue.toFixed(1)}`);
+    }
+
+    // CONDICIÓN DE PARADA: Ya iteramos todos los candidatos
+    console.log(`[GraphOptimizer.greedyPathSelection] 🏁 Selección completada`);
+    console.log(`[GraphOptimizer.greedyPathSelection] Ejercicios seleccionados: ${selectedPath.length}`);
+    console.log(`[GraphOptimizer.greedyPathSelection] Tiempo total: ${currentTime}/${maxTime} min`);
+    console.log(`[GraphOptimizer.greedyPathSelection] Fatiga total: ${currentFatigue.toFixed(1)}/${maxStamina}`);
+
+    return selectedPath;
+  }
+
+  /**
+   * Calcula el ratio de eficiencia: XP/(Tiempo+Fatiga)
+   */
+  private calculateEfficiencyRatio(node: ExerciseNode): number {
+    const denominator = node.costoTiempo + node.costoFatiga;
+    if (denominator === 0) return 0;
+    return node.estimuloXP / denominator;
+  }
+
+  /**
+   * Obtiene el músculo principal de un nodo
+   */
+  private getPrimaryMuscle(node: ExerciseNode): string {
+    if (node.targetMuscles && node.targetMuscles.length > 0) {
+      return node.targetMuscles[0];
+    }
+    if (node.bodyParts && node.bodyParts.length > 0) {
+      return node.bodyParts[0];
+    }
+    // Fallback: usar el atributo RPG con mayor valor
+    const maxAttr = Object.entries(node.muscleTargets)
+      .reduce((max, [attr, val]) => val > max.val ? { attr, val } : max, { attr: 'STR', val: 0 });
+    return maxAttr.attr;
+  }
+
+  /**
+   * Calcula el porcentaje que representa un músculo en el total de XP
+   */
+  private calculateMusclePercentage(
+    distribution: Map<string, number>,
+    muscle: string,
+    additionalXP: number,
+    totalXP: number,
+  ): number {
+    const currentValue = distribution.get(muscle) || 0;
+    const newValue = currentValue + additionalXP;
+    return totalXP > 0 ? newValue / totalXP : 0;
+  }
+
+  /**
    * NIVEL 1: OPTIMIZACIÓN DE SESIÓN DIARIA (GRAFO DAG)
    * Encuentra el camino óptimo de ejercicios que maximiza XP
    * sujeto a restricciones de tiempo y Stamina
