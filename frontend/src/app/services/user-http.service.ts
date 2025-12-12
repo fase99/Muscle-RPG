@@ -125,4 +125,8 @@ export class UserHttpService {
   updateStamina(id: string, staminaCost: number): Observable<UserFromDB> {
     return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/stamina`, { staminaCost });
   }
+
+  getUserStats(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users/${id}/stats`);
+  }
 }
