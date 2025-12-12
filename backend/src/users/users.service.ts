@@ -96,7 +96,7 @@ export class UsersService {
 
         user.experiencia += xpGanada;
 
-        // Sistema de nivelación (REVISAR)
+        // Sistema de nivelación
         while (user.experiencia >= user.experienciaMaxima) {
             user.experiencia -= user.experienciaMaxima;
             user.nivel += 1;
@@ -243,5 +243,156 @@ export class UsersService {
         }
 
         return updatedUser;
+    }
+
+    /**
+     * Obtiene estadísticas del usuario basadas en sus rutinas completadas
+     */
+    async getUserStats(userId: string): Promise<any> {
+        const user = await this.userModel
+            .findById(userId)
+            .populate('profileId')
+            .exec();
+
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        // Obtener rutinas del usuario desde la colección de rutinas
+        const rutinas = await this.userModel.db.collection('rutinas')
+            .find({ usuarioId: userId })
+            .toArray();
+
+        // Calcular estadísticas
+        const stats = {
+            // Datos personales
+            personalData: {
+                nombre: `${user.nombre} ${user.apellido}`,
+                email: user.email,
+                edad: user.edad,
+                nivel: user.nivel,
+                experiencia: user.experiencia,
+                experienciaMaxima: user.experienciaMaxima,
+            },
+            
+            // Datos del perfil
+            profileData: user.profileId ? {
+                level: (user.profileId as any).level,
+                weight: (user.profileId as any).weight,
+                height: (user.profileId as any).height,
+                bmi: (user.profileId as any).weight / Math.pow((user.profileId as any).height / 100, 2),
+                trainingExperience: (user.profileId as any).trainingExperience,
+            } : null,
+
+            // Atributos actuales
+            atributos: user.atributos,
+
+            // Estadísticas de rutinas
+            rutinasStats: {
+                totalRutinas: rutinas.length,
+                rutinasCompletadas: rutinas.filter((r: any) => r.completada).length,
+                totalEjercicios: rutinas.reduce((sum: number, r: any) => sum + (r.ejercicios?.length || 0), 0),
+                ejerciciosCompletados: rutinas.reduce((sum: number, r: any) => 
+                    sum + (r.ejercicios?.filter((e: any) => e.completado).length || 0), 0
+                ),
+                xpTotalGanado: rutinas.reduce((sum: number, r: any) => sum + (r.xpGanado || 0), 0),
+                xpEstimadoTotal: rutinas.reduce((sum: number, r: any) => sum + (r.xpTotalEstimado || 0), 0),
+                tiempoTotalMinutos: rutinas.reduce((sum: number, r: any) => sum + (r.tiempoTotal || 0), 0),
+                diasEntrenamiento: new Set(rutinas.map((r: any) => 
+                    new Date(r.createdAt).toDateString()
+                )).size,
+            },
+
+            // Métricas calculadas
+            metricas: [
+                {
+                    icon: '🏋️',
+                    label: 'Rutinas Completadas',
+                    subLabel: 'Total de sesiones',
+                    value: rutinas.filter((r: any) => r.completada).length.toString(),
+                    unit: 'sesiones',
+                    trend: rutinas.length > 0 ? 'En progreso' : 'Sin datos'
+                },
+                {
+                    icon: '📊',
+                    label: 'Ejercicios Realizados',
+                    subLabel: 'Ejercicios completados',
+                    value: rutinas.reduce((sum: number, r: any) => 
+                        sum + (r.ejercicios?.filter((e: any) => e.completado).length || 0), 0
+                    ).toString(),
+                    unit: 'ejercicios',
+                    trend: rutinas.length > 0 ? `${rutinas.length} rutinas generadas` : 'Comienza a entrenar'
+                },
+                {
+                    icon: '⚡',
+                    label: 'XP Total Ganado',
+                    subLabel: 'Puntos de experiencia',
+                    value: user.experiencia.toString(),
+                    unit: 'XP',
+                    trend: `Nivel ${user.nivel}`
+                },
+                {
+                    icon: '⏱️',
+                    label: 'Tiempo de Entrenamiento',
+                    subLabel: 'Minutos totales',
+                    value: Math.round(rutinas.reduce((sum: number, r: any) => 
+                        sum + (r.tiempoTotal || 0), 0
+                    )).toString(),
+                    unit: 'min',
+                    trend: `${new Set(rutinas.map((r: any) => new Date(r.createdAt).toDateString())).size} días entrenados`
+                }
+            ],
+
+            // Análisis de atributos
+            atributosAnalisis: this.analizarAtributos(user.atributos),
+        };
+
+        return stats;
+    }
+
+    /**
+     * Analiza los atributos del usuario y genera descripción
+     */
+    private analizarAtributos(atributos: any): any {
+        const attrs = [
+            { key: 'STR', value: atributos.STR, label: 'Fuerza' },
+            { key: 'AGI', value: atributos.AGI, label: 'Agilidad' },
+            { key: 'STA', value: atributos.STA, label: 'Resistencia' },
+            { key: 'INT', value: atributos.INT, label: 'Técnica' },
+            { key: 'DEX', value: atributos.DEX, label: 'Destreza' },
+            { key: 'END', value: atributos.END, label: 'Durabilidad' },
+        ];
+
+        // Encontrar el atributo más alto
+        const maxAttr = attrs.reduce((max, attr) => attr.value > max.value ? attr : max, attrs[0]);
+        
+        // Calcular promedio
+        const avg = attrs.reduce((sum, attr) => sum + attr.value, 0) / attrs.length;
+
+        let perfil = 'BALANCED';
+        let descripcion = 'Tu perfil muestra un desarrollo equilibrado en todos los atributos.';
+
+        if (maxAttr.value > avg * 1.3) {
+            perfil = `${maxAttr.key} FOCUSED`;
+            
+            const descripciones: Record<string, string> = {
+                STR: 'Tank/Warrior build. Fuerza y potencia son tus atributos principales.',
+                AGI: 'Speedster build. Velocidad y explosividad definen tu entrenamiento.',
+                STA: 'Endurance build. Resistencia cardiovascular es tu fuerte.',
+                INT: 'Technical build. Dominas la técnica y ejecución perfecta.',
+                DEX: 'Agility build. Coordinación y movimientos complejos son tu especialidad.',
+                END: 'Tank build. Durabilidad y capacidad de trabajo son excepcionales.',
+            };
+            
+            descripcion = descripciones[maxAttr.key] || descripcion;
+        }
+
+        return {
+            perfil,
+            descripcion,
+            atributoDestacado: maxAttr.key,
+            valorDestacado: maxAttr.value,
+            promedio: Math.round(avg),
+        };
     }
 }
