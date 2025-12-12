@@ -44,10 +44,47 @@ export class RutinaComponent implements OnInit {
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
+      if (user?._id) {
+        this.cargarRutinasExistentes();
+      }
     });
   }
 
-  // === GENERAR RUTINA SEMANAL DESDE EL BACKEND ===
+  cargarRutinasExistentes() {
+    const userId = this.user?._id;
+    if (!userId) return;
+
+    this.loading = true;
+    this.servicio.getUserRoutines(userId).subscribe({
+      next: (rutinas) => {
+        if (rutinas && rutinas.length > 0) {
+          console.log('✅ Rutinas existentes encontradas:', rutinas);
+          
+          rutinas.sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || a.fecha || 0).getTime();
+            const dateB = new Date(b.createdAt || b.fecha || 0).getTime();
+            return dateB - dateA;
+          });
+          
+          const rutinasRecientes = rutinas.slice(0, 7);
+          
+          this.rutinaSemanal = rutinasRecientes.map((r: any) => this.convertirRutinaBackend(r));
+          this.diaActual = 0;
+          this.rutina = this.rutinaSemanal[this.diaActual];
+          this.rutinaGenerada = true;
+          this.loading = false;
+        } else {
+          console.log('ℹ️ No se encontraron rutinas existentes');
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error(' Error cargando rutinas existentes:', error);
+        this.loading = false;
+      }
+    });
+  }
+
   generarRutinaDiaria() {
     const userId = this.user?._id;
     
@@ -64,14 +101,12 @@ export class RutinaComponent implements OnInit {
         next: (response) => {
           console.log('✅ Rutina semanal generada:', response);
           
-          // Convertir las rutinas del backend al formato del componente
           this.rutinaSemanal = response.rutinas.map((r: any) => this.convertirRutinaBackend(r));
           this.diaActual = 0;
           this.rutina = this.rutinaSemanal[this.diaActual];
           this.rutinaGenerada = true;
           this.loading = false;
 
-          // Resetear estados
           this.sesionActiva = false;
           this.sesionFinalizada = false;
           this.energiaGastada = 0;
@@ -95,7 +130,16 @@ export class RutinaComponent implements OnInit {
       });
   }
 
-  // === CAMBIAR DE DÍA ===
+  regenerarRutina() {
+    this.rutinaGenerada = false;
+    this.errorMessage = '';
+    this.rutinaSemanal = [];
+    this.sesionActiva = false;
+    this.sesionFinalizada = false;
+    this.energiaGastada = 0;
+    this.tiempoRealMinutos = 0;
+  }
+
   cambiarDia(dia: number) {
     if (dia >= 0 && dia < this.rutinaSemanal.length) {
       this.diaActual = dia;
@@ -105,7 +149,6 @@ export class RutinaComponent implements OnInit {
     }
   }
 
-  // === Convertir rutina del backend al formato del frontend ===
   private convertirRutinaBackend(rutinaBackend: any): Rutina {
     const ejercicios = rutinaBackend.ejercicios.map((ej: any) => ({
       nombre: ej.nombre || `Ejercicio ${ej.externalId}`,
@@ -158,7 +201,6 @@ export class RutinaComponent implements OnInit {
     return 70;
   }
 
-  // === Cargar rutina mock (fallback) ===
   cargarRutinaMock() {
     this.rutina = this.servicio.obtenerRutinaMock();
     this.rutinaGenerada = true;
@@ -170,7 +212,6 @@ export class RutinaComponent implements OnInit {
     this.rutina.ejercicios.forEach(e => e.hecho = false);
   }
 
-  // === Getters del usuario ===
   get userName(): string {
     return this.user?.nombre || 'Invitado';
   }
@@ -179,7 +220,6 @@ export class RutinaComponent implements OnInit {
     return this.user?.nivel || 1;
   }
 
-  // === Cargar rutina (mezcla de ambos componentes) ===
   cargarRutina() {
     this.rutina = this.servicio.obtenerRutinaMock();
     this.sesionActiva = false;
