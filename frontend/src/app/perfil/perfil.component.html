@@ -1,4 +1,9 @@
 <div class="profile-container">
+    <div *ngIf="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Cargando estadísticas del perfil...</p>
+    </div>
+
     <div class="header">
         <div class="system-info">
             <span class="indicator"></span>
@@ -97,12 +102,16 @@
                     </div>
 
                     <div class="attributes-info">
-                        <div class="focus-badge">STRENGTH FOCUSED</div>
-                        <p class="focus-desc">
-                            Your profile indicates a Tank/Warrior build.
-                            Strength and durability are your primary
-                            attributes, exceeding 85% of the user base.
+                        <div class="focus-badge" *ngIf="!loading">{{ atributosAnalisis.perfil }}</div>
+                        <div class="focus-badge" *ngIf="loading">CARGANDO...</div>
+                        
+                        <p class="focus-desc" *ngIf="!loading">
+                            {{ atributosAnalisis.descripcion }}
                         </p>
+                        <p class="focus-desc" *ngIf="loading">
+                            Obteniendo análisis de tus atributos...
+                        </p>
+                        
                         <div class="attributes-list">
                             <div *ngFor="let attr of attributes" class="attr-row">
                                 <span class="attr-key">{{ attr.key }}</span>
