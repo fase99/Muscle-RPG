@@ -20,11 +20,6 @@ import { ExercisesModule } from '../exercises/exercises.module';
             { name: Profile.name, schema: ProfileSchema },
             { name: RpgExerciseRule.name, schema: RpgExerciseRuleSchema },
         ]),
-        ExercisesModule, // Importar ExercisesModule para usar ExerciseDbService
-    ],
-    controllers: [
-        RutinasController,
-        GraphVisualizerController,
     ],
     providers: [
         RutinasService,
