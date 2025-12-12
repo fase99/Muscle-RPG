@@ -173,97 +173,27 @@
         </div>
     </div>
 
-    <!-- MODAL: Editar Datos Personales -->
-    <div class="modal-overlay" *ngIf="showPersonalModal" (click)="closeModals()">
-        <div class="modal" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h2 class="modal-title">📋 Editar Datos Personales</h2>
-                <button class="close-btn" (click)="closeModals()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Nombre:</label>
-                    <input type="text" class="form-input" [(ngModel)]="editPersonalData.nombre" [disabled]="saving">
+            <div class="metrics-section">
+                <div class="section-header">
+                    <div class="section-title">PERFORMANCE METRICS</div>
+                    <button class="view-all-btn">VIEW ALL DATA</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Apellido:</label>
-                    <input type="text" class="form-input" [(ngModel)]="editPersonalData.apellido" [disabled]="saving">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Edad:</label>
-                    <input type="number" class="form-input" [(ngModel)]="editPersonalData.edad" [disabled]="saving">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email:</label>
-                    <input type="email" class="form-input" [(ngModel)]="editPersonalData.email" [disabled]="saving">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" (click)="closeModals()" [disabled]="saving">Cancelar</button>
-                <button class="btn-save" (click)="savePersonalData()" [disabled]="saving">
-                    {{ saving ? 'Guardando...' : 'Guardar' }}
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- MODAL: Editar Datos Físicos -->
-    <div class="modal-overlay" *ngIf="showPhysicalModal" (click)="closeModals()">
-        <div class="modal" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h2 class="modal-title">💪 Editar Datos Físicos</h2>
-                <button class="close-btn" (click)="closeModals()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Peso (kg):</label>
-                    <input type="number" step="0.1" class="form-input" [(ngModel)]="editPhysicalData.weight" [disabled]="saving">
+                <div class="metrics-cards">
+                    <div *ngFor="let metric of metrics" class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">{{ metric.icon }}</div>
+                            <div class="metric-info">
+                                <div class="metric-type">{{ metric.label }}</div>
+                                <div class="metric-subtitle">{{ metric.subLabel }}</div>
+                            </div>
+                        </div>
+                        <div class="metric-value">
+                            {{ metric.value }} <span class="metric-unit">{{ metric.unit }}</span>
+                        </div>
+                        <div class="metric-trend">{{ metric.trend }}</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Altura (metros, ej: 1.83):</label>
-                    <input type="number" step="0.01" class="form-input" [(ngModel)]="editPhysicalData.height" [disabled]="saving">
-                    <small style="color: #94a3b8; font-size: 11px; margin-top: 4px;">
-                        Ingresa tu altura en metros (ej: 1.83 para 183cm)
-                    </small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" (click)="closeModals()" [disabled]="saving">Cancelar</button>
-                <button class="btn-save" (click)="savePhysicalData()" [disabled]="saving">
-                    {{ saving ? 'Guardando...' : 'Guardar' }}
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: Editar Experiencia -->
-    <div class="modal-overlay" *ngIf="showExperienceModal" (click)="closeModals()">
-        <div class="modal" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h2 class="modal-title">🎯 Editar Experiencia</h2>
-                <button class="close-btn" (click)="closeModals()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Meses de Experiencia:</label>
-                    <input type="number" class="form-input" [(ngModel)]="editExperienceData.experienceMonths" [disabled]="saving">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nivel de Actividad:</label>
-                    <select class="form-select" [(ngModel)]="editExperienceData.nivelactividad" [disabled]="saving">
-                        <option value="SEDENTARIO">Sedentario</option>
-                        <option value="LIGERO">Ligero</option>
-                        <option value="MODERADO">Moderado</option>
-                        <option value="ACTIVO">Activo</option>
-                        <option value="MUY_ACTIVO">Muy Activo</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" (click)="closeModals()" [disabled]="saving">Cancelar</button>
-                <button class="btn-save" (click)="saveExperienceData()" [disabled]="saving">
-                    {{ saving ? 'Guardando...' : 'Guardar' }}
-                </button>
             </div>
         </div>
     </div>
