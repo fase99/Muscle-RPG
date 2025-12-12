@@ -39,6 +39,18 @@ export class Navbar implements OnInit {
   get xpPercentage(): number {
     return (this.currentXP / this.maxXP) * 100;
   }
+  // === NUEVOS GETTERS DE STAMINA (solo estos 3) ===
+  get currentStamina(): number {
+    // Cambia los nombres de los campos si en tu UserFromDB se llaman diferente
+    return this.user?.staminaActual  || 0;
+  }
 
+  get maxStamina(): number {
+    return this.user?.staminaMaxima  || 100;
+  }
+
+  get staminaPercentage(): number {
+    return this.maxStamina > 0 ? (this.currentStamina / this.maxStamina) * 100 : 0;
+  }
   avatarUrl = 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=Blank&clotheType=Hoodie&clotheColor=Gray01&eyeType=Happy&eyebrowType=FlatNatural&mouthType=Default&skinColor=Pale';
 }
