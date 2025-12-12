@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { RpgExerciseRule, RpgExerciseRuleDocument } from '../exercises/schemas/rpg-exercise-rule.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Profile, ProfileDocument } from '../schemas/profile.schema';
+import { Rutina, RutinaDocument } from '../schemas/rutina.schema';
 import { GraphOptimizerService } from './graph-optimizer.service';
 import { ExerciseDbService } from '../exercises/exercisedb.service';
 
@@ -150,6 +151,8 @@ export class GraphVisualizerService {
     private userModel: Model<UserDocument>,
     @InjectModel(Profile.name) 
     private profileModel: Model<ProfileDocument>,
+    @InjectModel(Rutina.name)
+    private rutinaModel: Model<RutinaDocument>,
     private graphOptimizer: GraphOptimizerService,
     private exerciseDbService: ExerciseDbService,
   ) {}
@@ -323,7 +326,54 @@ export class GraphVisualizerService {
     
     return visualization;
   }
-
+  /**
+   * Lista todas las rutinas guardadas del usuario
+   * Útil para debugging y verificar qué hay en la base de datos
+   */
+  async listUserRoutines(userId: string): Promise<any> {
+    try {
+      console.log(`\n[listUserRoutines] Buscando rutinas para usuario: ${userId}`);
+      
+      const userObjectId = new Types.ObjectId(userId);
+      console.log(`[listUserRoutines] ObjectId convertido:`, userObjectId);
+      
+      const rutinas = await this.rutinaModel
+        .find({ usuarioId: userObjectId })
+        .sort({ createdAt: -1 })
+        .exec();
+      
+      console.log(`[listUserRoutines] Rutinas encontradas: ${rutinas.length}`);
+      
+      const rutinasInfo = rutinas.map((rutina, index) => {
+        const ejerciciosCount = rutina.ejercicios?.length || 0;
+        const ejerciciosNames = rutina.ejercicios?.map(ej => ej.nombre) || [];
+        
+        console.log(`\n[listUserRoutines] Rutina ${index + 1}:`);
+        console.log(`  - ID: ${rutina._id}`);
+        console.log(`  - Nombre: ${rutina.nombre}`);
+        console.log(`  - UsuarioId: ${rutina.usuarioId}`);
+        console.log(`  - Ejercicios: ${ejerciciosCount}`);
+        
+        return {
+          id: rutina._id,
+          nombre: rutina.nombre,
+          usuarioId: rutina.usuarioId,
+          ejerciciosCount: ejerciciosCount,
+          ejercicios: ejerciciosNames,
+        };
+      });
+      
+      return {
+        userId,
+        userObjectId: userObjectId.toString(),
+        totalRoutines: rutinas.length,
+        routines: rutinasInfo,
+      };
+    } catch (error) {
+      console.error('[listUserRoutines] Error:', error);
+      throw error;
+    }
+  }
   /**
    * Genera una visualización del grafo específica para un usuario
    * Muestra qué nodos están desbloqueados/bloqueados y la ruta óptima
@@ -422,6 +472,202 @@ export class GraphVisualizerService {
     this.logger.log(`Visualización de usuario generada: ${unlockedNodes.length} desbloqueados, ${lockedNodes.length} bloqueados`);
     
     return userVisualization;
+  }
+
+  /**
+   * Visualiza SOLO la ruta óptima (ejercicios de la rutina generada)
+   * Este método muestra únicamente los ejercicios de la última rutina activa guardada
+   */
+  async visualizeOptimalPathOnly(userId: string, maxTime: number = 120): Promise<{
+    nodes: GraphNodeVisualization[];
+    edges: GraphEdge[];
+    metadata: any;
+  }> {
+    this.logger.log(`Generando visualización de rutina guardada para usuario ${userId}...`);
+
+    // Convertir userId a ObjectId para la búsqueda
+    const userObjectId = new Types.ObjectId(userId);
+
+    // 1. Buscar CUALQUIER rutina del usuario (no solo activa)
+    const rutinas = await this.rutinaModel
+      .find({ usuarioId: userObjectId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .exec();
+
+    this.logger.log(`Rutinas encontradas para ObjectId ${userObjectId}: ${rutinas.length}`);
+    
+    if (rutinas.length > 0) {
+      rutinas.forEach((r, i) => {
+        this.logger.log(`  ${i + 1}. ${r.nombre} - Activa: ${r.activa}, Ejercicios: ${r.ejercicios?.length || 0}`);
+      });
+    }
+
+    const rutina = rutinas[0]; // Tomar la más reciente
+
+    if (!rutina || !rutina.ejercicios || rutina.ejercicios.length === 0) {
+      this.logger.warn(`No se encontró rutina con ejercicios. Rutina existe: ${!!rutina}, Tiene ejercicios: ${!!rutina?.ejercicios}, Cantidad: ${rutina?.ejercicios?.length || 0}`);
+      
+      // Si no hay rutina, generar una nueva
+      const user = await this.userModel.findById(userId).exec();
+      if (!user) {
+        this.logger.error('Usuario no encontrado');
+        throw new Error('Usuario no encontrado');
+      }
+
+      this.logger.log(`Usuario encontrado: ${user.nombre}, Nivel: ${user.nivel}, Stamina: ${user.staminaActual}`);
+      this.logger.log(`Intentando generar nueva rutina...`);
+
+      try {
+        const pathResult = await this.graphOptimizer.optimizeSesionDiaria(
+          userId,
+          maxTime,
+          user.staminaActual,
+        );
+
+        this.logger.log(`Ruta generada exitosamente: ${pathResult.nodes.length} ejercicios, XP: ${pathResult.totalXP}, Tiempo: ${pathResult.totalTime}`);
+
+        if (pathResult.nodes.length === 0) {
+          this.logger.error('El optimizador no retornó ningún ejercicio');
+          return {
+            nodes: [],
+            edges: [],
+            metadata: {
+              totalNodes: 0,
+              totalEdges: 0,
+              graphType: 'Ruta Óptima (Error: Sin ejercicios disponibles)',
+              totalXP: 0,
+              totalTime: 0,
+              totalFatigue: 0,
+              generatedAt: new Date(),
+              error: 'No hay ejercicios disponibles para el usuario'
+            }
+          };
+        }
+
+      // Convertir a formato de visualización
+      const nodes: GraphNodeVisualization[] = pathResult.nodes.map(node => ({
+        id: node.id,
+        externalId: node.externalId,
+        name: node.name,
+        costoTiempo: node.costoTiempo,
+        costoFatiga: node.costoFatiga,
+        estimuloXP: node.estimuloXP,
+        eficienciaRatio: (node.costoTiempo + node.costoFatiga) > 0 
+          ? node.estimuloXP / (node.costoTiempo + node.costoFatiga) 
+          : 0,
+        series: node.series,
+        repeticiones: node.repeticiones,
+        rir: node.rir,
+        muscleTargets: node.muscleTargets,
+        targetMuscles: node.targetMuscles || [],
+        bodyParts: node.bodyParts || [],
+        equipment: [],
+        prerequisites: node.prerequisites || [],
+        unlocks: [],
+        levelRequired: 1,
+      }));
+
+      const edges: GraphEdge[] = [];
+      for (let i = 0; i < nodes.length - 1; i++) {
+        edges.push({
+          from: nodes[i].id,
+          to: nodes[i + 1].id,
+          type: 'muscle-group',
+          weight: i + 1,
+        });
+      }
+
+      return {
+        nodes,
+        edges,
+        metadata: {
+          totalNodes: nodes.length,
+          totalEdges: edges.length,
+          graphType: 'Ruta Óptima (Secuencia de Rutina - Nueva)',
+          totalXP: pathResult.totalXP,
+          totalTime: pathResult.totalTime,
+          totalFatigue: pathResult.totalFatigue,
+          generatedAt: new Date(),
+        }
+      };
+      } catch (error) {
+        this.logger.error(`Error generando nueva rutina: ${error.message}`);
+        throw error;
+      }
+    }
+
+    this.logger.log(`Usando rutina "${rutina.nombre}" con ${rutina.ejercicios.length} ejercicios`);
+
+    // 2. Convertir los ejercicios de la rutina a formato de visualización
+    const nodes: GraphNodeVisualization[] = rutina.ejercicios.map((ejercicio, index) => ({
+      id: `ejercicio-${index + 1}`,
+      externalId: ejercicio.externalId,
+      name: ejercicio.nombre,
+      costoTiempo: ejercicio.costoTiempo,
+      costoFatiga: ejercicio.costoFatiga,
+      estimuloXP: ejercicio.estimuloXP,
+      eficienciaRatio: (ejercicio.costoTiempo + ejercicio.costoFatiga) > 0 
+        ? ejercicio.estimuloXP / (ejercicio.costoTiempo + ejercicio.costoFatiga) 
+        : 0,
+      series: ejercicio.series,
+      repeticiones: ejercicio.repeticiones,
+      rir: ejercicio.rir || 2,
+      muscleTargets: ejercicio.muscleTargets || {
+        STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0
+      },
+      targetMuscles: [],
+      bodyParts: [],
+      equipment: [],
+      prerequisites: [],
+      unlocks: [],
+      levelRequired: 1,
+    }));
+
+    // 3. Obtener detalles adicionales de ExerciseDB
+    try {
+      const externalIds = nodes.map(n => n.externalId);
+      const externalData = await this.exerciseDbService.getExercisesByIds(externalIds);
+
+      // Enriquecer nodos con datos visuales
+      for (const node of nodes) {
+        const details = externalData.find(ex => ex.exerciseId === node.externalId);
+        if (details) {
+          node.targetMuscles = details.targetMuscles || [];
+          node.bodyParts = details.bodyParts || [];
+          node.equipment = details.equipments || [];
+        }
+      }
+    } catch (error) {
+      this.logger.warn(`Error al obtener detalles de ExerciseDB: ${error.message}`);
+    }
+
+    // 4. Crear aristas entre ejercicios consecutivos
+    const edges: GraphEdge[] = [];
+    for (let i = 0; i < nodes.length - 1; i++) {
+      edges.push({
+        from: nodes[i].id,
+        to: nodes[i + 1].id,
+        type: 'muscle-group',
+        weight: i + 1,
+      });
+    }
+
+    const metadata = {
+      totalNodes: nodes.length,
+      totalEdges: edges.length,
+      graphType: 'Ruta Óptima (Secuencia de Rutina)',
+      rutinaId: rutina._id.toString(),
+      rutinaNombre: rutina.nombre,
+      totalXP: rutina.xpTotalEstimado || nodes.reduce((sum, n) => sum + n.estimuloXP, 0),
+      totalTime: rutina.tiempoTotal || nodes.reduce((sum, n) => sum + n.costoTiempo, 0),
+      totalFatigue: rutina.fatigaTotal || nodes.reduce((sum, n) => sum + n.costoFatiga, 0),
+      generatedAt: new Date(),
+    };
+
+    this.logger.log(`Rutina visualizada: ${nodes.length} ejercicios de "${rutina.nombre}"`);
+
+    return { nodes, edges, metadata };
   }
 
   /**
