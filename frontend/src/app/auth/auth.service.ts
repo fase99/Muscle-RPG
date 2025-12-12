@@ -27,7 +27,7 @@ export class AuthService {
                 const user = await this.userHttpService.getUserById(userId).toPromise();
                 this.currentUserSubject.next(user!);
             } catch (error) {
-                console.error('Error loading user:', error);
+                console.error('Error cargando usuario:', error);
                 this.logout();
             }
         }
