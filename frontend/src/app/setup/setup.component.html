@@ -1,53 +1,332 @@
 <div class="rpg-container">
-  <h2>Creación de Personaje</h2>
+  <div class="header">
+    <h2>⚔️ Clasificación del Aventurero</h2>
+    <p class="subtitle">Sistema de Perfilamiento Multifactorial</p>
+  </div>
+
+  <!-- Indicador de Progreso -->
+  <div class="progress-indicator" *ngIf="!result">
+    <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+      <span class="step-number">1</span>
+      <span class="step-label">Biometría</span>
+    </div>
+    <div class="progress-line" [class.completed]="currentStep > 1"></div>
+    <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+      <span class="step-number">2</span>
+      <span class="step-label">Experiencia</span>
+    </div>
+    <div class="progress-line" [class.completed]="currentStep > 2"></div>
+    <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+      <span class="step-number">3</span>
+      <span class="step-label">Salud</span>
+    </div>
+    <div class="progress-line" [class.completed]="currentStep > 3"></div>
+    <div class="step" [class.active]="currentStep >= 4">
+      <span class="step-number">4</span>
+      <span class="step-label">Composición</span>
+    </div>
+  </div>
   
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="!result">
     
-    <div class="section">
-      <h3>1. Biometría</h3>
-      <label>Edad: <input type="number" formControlName="age"></label>
+    <!-- PASO 1: BIOMETRÍA -->
+    <div class="section" *ngIf="currentStep === 1">
+      <h3>📊 Paso 1: Datos Biométricos</h3>
+      <p class="section-description">Información básica para calcular tu índice de masa corporal y composición</p>
       
-      <label>Género:</label>
-      <select formControlName="gender">
-        <option value="1">Hombre</option>
-        <option value="0">Mujer</option>
-      </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Edad (años)</label>
+          <input type="number" formControlName="age" placeholder="Ej: 25" min="13" max="120">
+          <span class="hint">Entre 13 y 120 años</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Género Biológico</label>
+          <select formControlName="gender">
+            <option value="1">Masculino</option>
+            <option value="0">Femenino</option>
+          </select>
+          <span class="hint">Para cálculo de composición corporal</span>
+        </div>
+      </div>
 
-      <label>Peso (kg): <input type="number" formControlName="weight"></label>
-      <label>Estatura (cm): <input type="number" formControlName="height"></label>
-    </div>
-
-    <div class="section">
-      <h3>2. Historial de Batalla</h3>
-      
-      <label>Tiempo entrenando (meses):</label>
-      <input type="number" formControlName="experienceMonths" placeholder="0 si eres nuevo">
-
-      <label>Nivel de Actividad:</label>
-      <select formControlName="activityLevel">
-        <option value="sedentary">Sedentario (Oficina/Casa)</option>
-        <option value="active">Activo (Cumplo mínimos)</option>
-        <option value="sport">Deportista (Entreno frecuente)</option>
-      </select>
-
-      <div class="checkbox-group">
-        <label>
-          <input type="checkbox" formControlName="hasMedicalConditions">
-          Tengo condiciones médicas de riesgo (Hipertensión/Diabetes)
-        </label>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" formControlName="weight" placeholder="Ej: 75" min="30" max="300" step="0.1">
+          <span class="hint">Peso actual en kilogramos</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Estatura (cm)</label>
+          <input type="number" formControlName="height" placeholder="Ej: 175" min="100" max="250">
+          <span class="hint">Tu altura en centímetros</span>
+        </div>
       </div>
     </div>
 
-    <button type="submit" [disabled]="!profileForm.valid" class="btn-rpg">CALCULAR CLASE</button>
+    <!-- PASO 2: HISTORIAL DE ENTRENAMIENTO -->
+    <div class="section" *ngIf="currentStep === 2">
+      <h3>💪 Paso 2: Experiencia de Entrenamiento</h3>
+      <p class="section-description">Tu historial determina el puntaje de experiencia (P<sub>exp</sub>)</p>
+      
+      <div class="form-group">
+        <label>¿Cuántos meses has entrenado con pesas/resistencia?</label>
+        <input type="number" formControlName="experienceMonths" placeholder="0 si eres principiante" min="0">
+        <div class="experience-guide">
+          <div class="guide-item">
+            <span class="badge">5 pts</span>
+            <span>Menos de 3 meses</span>
+          </div>
+          <div class="guide-item">
+            <span class="badge">15 pts</span>
+            <span>3-6 meses</span>
+          </div>
+          <div class="guide-item">
+            <span class="badge">30 pts</span>
+            <span>6-12 meses</span>
+          </div>
+          <div class="guide-item">
+            <span class="badge">45 pts</span>
+            <span>1-2 años</span>
+          </div>
+          <div class="guide-item">
+            <span class="badge">60 pts</span>
+            <span>Más de 2 años</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nivel de Actividad Física (Según OMS)</label>
+        <select formControlName="activityLevel">
+          <option value="sedentary">🪑 Sedentario - Poco o ningún ejercicio (0 pts)</option>
+          <option value="active">🚶 Activo - Cumple mínimos recomendados (10 pts)</option>
+          <option value="sport">🏃 Deportista - Entrena regularmente (20 pts)</option>
+        </select>
+        <span class="hint">Puntaje de Actividad (P<sub>act</sub>)</span>
+      </div>
+    </div>
+
+    <!-- PASO 3: CONDICIONES DE SALUD -->
+    <div class="section" *ngIf="currentStep === 3">
+      <h3>🏥 Paso 3: Evaluación de Salud</h3>
+      <p class="section-description">Factor de seguridad (δ<sub>salud</sub>) para personalizar tu rutina</p>
+      
+      <div class="health-check">
+        <div class="checkbox-group">
+          <input type="checkbox" id="medicalConditions" formControlName="hasMedicalConditions">
+          <label for="medicalConditions">
+            <strong>Tengo condiciones médicas de riesgo</strong>
+            <span class="checkbox-description">
+              ⚠️ Hipertensión no controlada, diabetes sin tratamiento, problemas cardíacos, lesiones graves recientes
+            </span>
+          </label>
+        </div>
+        
+        <div class="info-box" *ngIf="profileForm.get('hasMedicalConditions')?.value">
+          <span class="icon">⚠️</span>
+          <div>
+            <strong>Factor de Seguridad Activado</strong>
+            <p>Tu perfil será ajustado para priorizar tu seguridad (δ = 0). Te recomendamos consultar con un médico antes de iniciar.</p>
+          </div>
+        </div>
+
+        <div class="info-box success" *ngIf="!profileForm.get('hasMedicalConditions')?.value">
+          <span class="icon">✅</span>
+          <div>
+            <strong>Sin Restricciones Médicas</strong>
+            <p>Perfil sin limitaciones de salud (δ = 1). El sistema calculará tu capacidad total.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4: COMPOSICIÓN CORPORAL -->
+    <div class="section" *ngIf="currentStep === 4">
+      <h3>📏 Paso 4: Composición Corporal (Opcional)</h3>
+      <p class="section-description">Mejora la precisión del cálculo con datos antropométricos</p>
+      
+      <div class="form-group">
+        <label>Método de Medición</label>
+        <select formControlName="metodoMedicion" (change)="onMetodoChange($event)">
+          <option value="estimacion">📊 Estimación por IMC (Método Deurenberg)</option>
+          <option value="conocido">✍️ Tengo mi % de grasa corporal medido</option>
+          <option value="7pliegues">🎯 Medición de 7 Pliegues Cutáneos (Gold Standard)</option>
+        </select>
+      </div>
+
+      <!-- Opción: PGC Conocido -->
+      <div class="form-group" *ngIf="profileForm.get('metodoMedicion')?.value === 'conocido'">
+        <label>Porcentaje de Grasa Corporal (%)</label>
+        <input type="number" formControlName="knownBodyFat" placeholder="Ej: 18.5" step="0.1" min="3" max="60">
+        <span class="hint">Si lo tienes de una medición con bioimpedancia, plicómetro, etc.</span>
+      </div>
+
+      <!-- Opción: 7 Pliegues Cutáneos -->
+      <div class="pliegues-container" *ngIf="profileForm.get('metodoMedicion')?.value === '7pliegues'">
+        <div class="pliegues-intro">
+          <span class="badge gold">Gold Standard</span>
+          <p>Ingresa las mediciones de los 7 pliegues cutáneos en <strong>milímetros (mm)</strong>. Se utilizará la ecuación de Jackson & Pollock + Siri.</p>
+        </div>
+
+        <div class="pliegues-grid">
+          <div class="form-group">
+            <label>💪 Tríceps (mm)</label>
+            <input type="number" formControlName="pliegue_triceps" placeholder="Ej: 12" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>🦴 Deltoides/Clavicular (mm)</label>
+            <input type="number" formControlName="pliegue_deltoides" placeholder="Ej: 10" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>💓 Pectoral (mm)</label>
+            <input type="number" formControlName="pliegue_pectoral" placeholder="Ej: 8" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>⚡ Cintura (mm)</label>
+            <input type="number" formControlName="pliegue_cintura" placeholder="Ej: 15" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>🍑 Glúteo (mm)</label>
+            <input type="number" formControlName="pliegue_gluteo" placeholder="Ej: 14" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>🦵 Cuádriceps/Vasto Externo (mm)</label>
+            <input type="number" formControlName="pliegue_cuadriceps" placeholder="Ej: 16" step="0.5" min="1" max="50">
+          </div>
+
+          <div class="form-group">
+            <label>🦿 Gastrocnemio/Gemelar (mm)</label>
+            <input type="number" formControlName="pliegue_gastronemio" placeholder="Ej: 11" step="0.5" min="1" max="50">
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box" *ngIf="profileForm.get('metodoMedicion')?.value === 'estimacion'">
+        <span class="icon">ℹ️</span>
+        <div>
+          <strong>Estimación Automática</strong>
+          <p>El sistema calculará tu porcentaje de grasa corporal usando la fórmula de Deurenberg basada en IMC, edad y género.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de Navegación -->
+    <div class="navigation-buttons">
+      <button type="button" class="btn-secondary" (click)="prevStep()" *ngIf="currentStep > 1">
+        ← Anterior
+      </button>
+      
+      <button type="button" class="btn-rpg" (click)="nextStep()" 
+              *ngIf="currentStep < totalSteps" 
+              [disabled]="!canProceedToNextStep()">
+        Siguiente →
+      </button>
+      
+      <button type="submit" class="btn-rpg submit" *ngIf="currentStep === totalSteps">
+        🎯 Calcular Mi Perfil RPG
+      </button>
+    </div>
   </form>
 
-  <div *ngIf="result" class="result-card">
-    <h3>¡Análisis Completo!</h3>
-    <p>Tu Score (S_{{ '{' }}RPG{{ '}' }}): <strong>{{ result.sRpg | number:'1.0-2' }}</strong></p>
-    <p>Grasa Estimada: <strong>{{ result.estimatedBodyFat | number:'1.0-1' }}%</strong></p>
-    <div class="class-badge">
-      CLASE ASIGNADA: <span>{{ result.level | uppercase }}</span>
+  <!-- RESULTADO DEL PERFILAMIENTO -->
+  <div *ngIf="result" class="result-container">
+    <div class="result-header">
+      <h3>⚔️ Clasificación Completa</h3>
+      <p>Tu perfil ha sido analizado mediante el algoritmo multifactorial</p>
     </div>
-    <button routerLink="/rutina">COMENZAR AVENTURA</button>
+
+    <div class="class-card">
+      <div class="class-badge-large" [class.basico]="result.level === 'Básico'" 
+                                     [class.intermedio]="result.level === 'Intermedio'"
+                                     [class.avanzado]="result.level === 'Avanzado'">
+        <span class="level-icon">{{ result.level === 'Básico' ? '🛡️' : result.level === 'Intermedio' ? '⚔️' : '👑' }}</span>
+        <span class="level-name">{{ result.level | uppercase }}</span>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Score RPG (S<sub>RPG</sub>)</div>
+        <div class="stat-value">{{ result.sRpg | number:'1.0-2' }}</div>
+        <div class="stat-description">Puntaje de capacidad total</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Grasa Corporal</div>
+        <div class="stat-value">{{ result.estimatedBodyFat | number:'1.0-1' }}%</div>
+        <div class="stat-description">{{ result.metodoCalculoPGC }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Multiplicador (μ<sub>comp</sub>)</div>
+        <div class="stat-value">{{ result.compositionMultiplier | number:'1.0-2' }}</div>
+        <div class="stat-description">Factor de composición</div>
+      </div>
+    </div>
+
+    <div class="parameters-section">
+      <h4>📋 Parámetros de Entrenamiento</h4>
+      
+      <div class="parameters-grid">
+        <div class="parameter-card">
+          <span class="param-icon">📅</span>
+          <div class="param-content">
+            <div class="param-label">Frecuencia Semanal</div>
+            <div class="param-value">{{ result.frecuenciaSemanal.min }} - {{ result.frecuenciaSemanal.max }} días</div>
+          </div>
+        </div>
+
+        <div class="parameter-card">
+          <span class="param-icon">🎯</span>
+          <div class="param-content">
+            <div class="param-label">RIR Target</div>
+            <div class="param-value">{{ result.rirTarget.min }}{{ result.rirTarget.max !== result.rirTarget.min ? ' - ' + result.rirTarget.max : '' }} reps en reserva</div>
+          </div>
+        </div>
+
+        <div class="parameter-card">
+          <span class="param-icon">💪</span>
+          <div class="param-content">
+            <div class="param-label">Carga Estimada</div>
+            <div class="param-value">{{ result.cargaEstimada.min }} - {{ result.cargaEstimada.max }}% 1RM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <h4>📊 Desglose del Cálculo</h4>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-label">Experiencia (P<sub>exp</sub>):</span>
+          <span class="detail-value">{{ result.puntajeExperiencia }} pts</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Actividad (P<sub>act</sub>):</span>
+          <span class="detail-value">{{ result.puntajeActividad }} pts</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Factor Seguridad (δ):</span>
+          <span class="detail-value">{{ result.factorSeguridad }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-rpg large" routerLink="/rutina">
+        🚀 Comenzar Mi Aventura
+      </button>
+      <button class="btn-secondary" (click)="result = null; currentStep = 1">
+        🔄 Recalcular Perfil
+      </button>
+    </div>
   </div>
 </div>

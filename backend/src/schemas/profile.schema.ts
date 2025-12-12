@@ -29,18 +29,54 @@ export class Profile {
   @Prop()
   knownBodyFat?: number;
 
-  // Computed result fields
+  // Método de 7 Pliegues Cutáneos (opcional)
+  @Prop({ type: Object })
+  pliegues?: {
+    triceps: number;
+    deltoides: number;
+    pectoral: number;
+    cintura: number;
+    gluteo: number;
+    cuadriceps: number;
+    gastronemio: number;
+  };
+
+  // ========== Campos Calculados ==========
+  
   @Prop({ required: true })
-  sRpg: number;
+  sRpg: number; // Score de Capacidad
 
   @Prop({ required: true })
-  level: string;
+  level: string; // Básico | Intermedio | Avanzado
 
   @Prop({ required: true })
-  estimatedBodyFat: number;
+  estimatedBodyFat: number; // PGC calculado
 
   @Prop({ required: true })
-  compositionMultiplier: number;
+  compositionMultiplier: number; // μ_comp
+
+  @Prop()
+  metodoCalculoPGC?: string; // Método utilizado para calcular PGC
+
+  @Prop()
+  puntajeExperiencia?: number; // P_exp
+
+  @Prop()
+  puntajeActividad?: number; // P_act
+
+  @Prop()
+  factorSeguridad?: number; // δ_salud
+
+  // ========== Parámetros de Entrenamiento ==========
+  
+  @Prop({ type: Object })
+  frecuenciaSemanal?: { min: number; max: number }; // Días por semana
+
+  @Prop({ type: Object })
+  rirTarget?: { min: number; max: number }; // Repeticiones en Reserva
+
+  @Prop({ type: Object })
+  cargaEstimada?: { min: number; max: number }; // % del 1RM
 }
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);
