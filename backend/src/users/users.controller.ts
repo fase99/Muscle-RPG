@@ -192,6 +192,14 @@ export class UsersController {
         return this.profilingService.getProfilesByLevel(level);
     }
 
+    @Patch('profiles/:profileId')
+    async updateProfile(
+        @Param('profileId') profileId: string,
+        @Body() updateData: Partial<CreateProfileDto>
+    ) {
+        return this.profilingService.updateProfile(profileId, updateData);
+    }
+
     // ========== ENDPOINTS DE LOGROS ==========
 
     @Get(':id/achievements')
