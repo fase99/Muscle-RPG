@@ -41,9 +41,9 @@ export class RutinasService {
             );
         }
 
-        // Determinar perfil según nivel (SRPG)
-        const perfilConfig = this.determinarPerfilUsuario(user.nivel);
-        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil}, RIR: ${perfilConfig.rir}`);
+        // Determinar perfil según SRPG (Score RPG del profile)
+        const perfilConfig = this.determinarPerfilUsuario(profile.sRpg);
+        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
 
         // 2. Usar el optimizador de grafos para encontrar el camino óptimo
         const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
@@ -69,7 +69,7 @@ export class RutinasService {
             completado: false,
             rir: perfilConfig.rir, // Usar el RIR del perfil
             muscleTargets: node.muscleTargets,
-            notas: `${perfilConfig.perfil} - RIR ${perfilConfig.rir} - ${perfilConfig.descripcion}`,
+            notas: `${perfilConfig.perfil} (SRPG: ${profile.sRpg}) - RIR ${perfilConfig.rir} - ${node.series} series x ${node.repeticiones} reps`,
         }));
 
         const optimizationTime = Date.now() - startTime;
@@ -77,7 +77,7 @@ export class RutinasService {
         const rutina = new this.rutinaModel({
             usuarioId: new Types.ObjectId(usuarioId),
             nombre: `Misión Diaria - ${perfilConfig.perfil}`,
-            descripcion: `Hipertrofia - Perfil ${perfilConfig.perfil} (RIR ${perfilConfig.rir}). Algoritmo DAG. XP: ${Math.round(optimalPath.totalXP)}`,
+            descripcion: `Hipertrofia - Perfil ${perfilConfig.perfil} (SRPG: ${profile.sRpg}, RIR ${perfilConfig.rir}). ${ejercicios.length} ejercicios, ${Math.round(optimalPath.totalTime)}min, XP: ${Math.round(optimalPath.totalXP)}`,
             cycleType: 'daily-session',
             goal: 'hypertrophy',
             ejercicios,
@@ -106,38 +106,51 @@ export class RutinasService {
     }
 
     /**
-     * Determina el perfil del usuario basado en su nivel (SRPG)
-     * Retorna: { perfil, frecuencia, rir, objetivo }
+     * Determina el perfil del usuario basado en su SRPG (Score RPG del Profile)
+     * Retorna: { perfil, frecuenciaMin, frecuenciaMax, rir, objetivo }
+     * 
+     * Perfiles según paper:
+     * - Básico (SRPG ≤ 35): 2-3 sesiones semanales, RIR=3 (adaptación neuronal)
+     * - Intermedio (36 ≤ SRPG ≤ 65): 3-4 sesiones semanales, RIR=2 (sobrecarga progresiva)
+     * - Avanzado (SRPG > 65): 4-5 sesiones semanales, RIR=0-1 (hipertrofia máxima)
      */
-    private determinarPerfilUsuario(nivel: number): { 
+    private determinarPerfilUsuario(srpg: number): { 
         perfil: string; 
-        frecuencia: number; 
+        frecuenciaMin: number;
+        frecuenciaMax: number;
+        frecuencia: number; // Valor promedio para compatibilidad
         rir: number; 
         descripcion: string;
     } {
-        if (nivel <= 35) {
+        if (srpg <= 35) {
             // Perfil Básico (Principiante)
             return {
                 perfil: 'Básico',
-                frecuencia: 3, // 3 sesiones
+                frecuenciaMin: 2,
+                frecuenciaMax: 3,
+                frecuencia: 3, // Usar el máximo por defecto
                 rir: 3,
-                descripcion: 'Adaptación neuronal y aprendizaje técnico'
+                descripcion: 'Adaptación neuronal y aprendizaje técnico. Minimizar riesgo de lesión.'
             };
-        } else if (nivel <= 65) {
+        } else if (srpg <= 65) {
             // Perfil Intermedio
             return {
                 perfil: 'Intermedio',
-                frecuencia: 4, // 4 sesiones
+                frecuenciaMin: 3,
+                frecuenciaMax: 4,
+                frecuencia: 4, // Usar el máximo por defecto
                 rir: 2,
-                descripcion: 'Sobrecarga progresiva y hipertrofia funcional'
+                descripcion: 'Sobrecarga progresiva y hipertrofia funcional. Balance volumen-intensidad.'
             };
         } else {
             // Perfil Avanzado
             return {
                 perfil: 'Avanzado',
-                frecuencia: 5, // 5 sesiones
-                rir: 1, // 0-1 (usamos 1)
-                descripcion: 'Hipertrofia máxima con alto volumen'
+                frecuenciaMin: 4,
+                frecuenciaMax: 5,
+                frecuencia: 5, // Usar el máximo por defecto
+                rir: 1, // RIR 0-1 (usamos 1 como promedio)
+                descripcion: 'Hipertrofia máxima con alto volumen. Series al fallo o muy cerca.'
             };
         }
     }
@@ -145,11 +158,20 @@ export class RutinasService {
     /**
      * Define la división de grupos musculares según la frecuencia de entrenamiento
      * Retorna un array con los grupos musculares a trabajar cada día
+     * 
+     * Soporta frecuencias de 2 a 5 días/semana según el perfil del usuario
      */
     private getMuscleGroupSplit(frecuencia: number): string[][] {
         switch (frecuencia) {
+            case 2:
+                // 2 días/semana (Básico - mínimo) - Full body muy simplificado
+                return [
+                    ['chest', 'back', 'shoulders'],  // Día 1: Tren superior
+                    ['legs', 'core'],                 // Día 2: Tren inferior
+                ];
+            
             case 3:
-                // 3 días/semana (Básico) - Full body dividido
+                // 3 días/semana (Básico - máximo) - Full body dividido
                 return [
                     ['chest', 'shoulders', 'triceps'],  // Día 1: Push
                     ['back', 'biceps'],                  // Día 2: Pull
@@ -206,10 +228,11 @@ export class RutinasService {
             );
         }
 
-        // Determinar perfil según nivel (SRPG)
-        const perfilConfig = this.determinarPerfilUsuario(user.nivel);
-        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (Nivel ${user.nivel})`);
-        console.log(`[RutinasService] Frecuencia: ${perfilConfig.frecuencia} días/semana, RIR: ${perfilConfig.rir}`);
+        // Determinar perfil según SRPG (Score RPG del profile)
+        const perfilConfig = this.determinarPerfilUsuario(profile.sRpg);
+        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (SRPG: ${profile.sRpg})`);
+        console.log(`[RutinasService] Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana, RIR: ${perfilConfig.rir}`);
+        console.log(`[RutinasService] ${perfilConfig.descripcion}`);
 
         // Definir división de grupos musculares según frecuencia
         const muscleGroupSplits = this.getMuscleGroupSplit(perfilConfig.frecuencia);
@@ -252,13 +275,13 @@ export class RutinasService {
                 completado: false,
                 rir: perfilConfig.rir, // Usar el RIR del perfil
                 muscleTargets: node.muscleTargets,
-                notas: `${muscleGroups.join(' + ')} - RIR ${perfilConfig.rir}`,
+                notas: `${muscleGroups.join(' + ')} - RIR ${perfilConfig.rir} - ${node.series} series x ${node.repeticiones} reps`,
             }));
 
             const rutina = new this.rutinaModel({
                 usuarioId: new Types.ObjectId(usuarioId),
                 nombre: `${dayName} - ${muscleGroups.join(' + ')}`,
-                descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (RIR ${perfilConfig.rir}). XP: ${Math.round(optimalPath.totalXP)}`,
+                descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (SRPG: ${profile.sRpg}, RIR ${perfilConfig.rir}). ${ejercicios.length} ejercicios, XP: ${Math.round(optimalPath.totalXP)}`,
                 cycleType: 'daily-session',
                 goal: 'hypertrophy',
                 ejercicios,
