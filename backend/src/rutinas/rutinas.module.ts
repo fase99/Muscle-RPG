@@ -4,6 +4,8 @@ import { RutinasService } from './rutinas.service';
 import { RutinasController } from './rutinas.controller';
 import { GraphOptimizerService } from './graph-optimizer.service';
 import { DynamicProgrammingService } from './dynamic-programming.service';
+import { GraphVisualizerService } from './graph-visualizer.service';
+import { GraphVisualizerController } from './graph-visualizer.controller';
 import { Rutina, RutinaSchema } from '../schemas/rutina.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Profile, ProfileSchema } from '../schemas/profile.schema';
@@ -20,11 +22,15 @@ import { ExercisesModule } from '../exercises/exercises.module';
         ]),
         ExercisesModule, // Importar ExercisesModule para usar ExerciseDbService
     ],
-    controllers: [RutinasController],
+    controllers: [
+        RutinasController,
+        GraphVisualizerController,
+    ],
     providers: [
         RutinasService,
         GraphOptimizerService,
         DynamicProgrammingService,
+        GraphVisualizerService,
     ],
     exports: [RutinasService],
 })
