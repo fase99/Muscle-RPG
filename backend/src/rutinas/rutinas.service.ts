@@ -41,9 +41,16 @@ export class RutinasService {
             );
         }
 
-        // Determinar perfil según SRPG (Score RPG del profile)
-        const perfilConfig = this.determinarPerfilUsuario(profile.sRpg);
-        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
+        // Usar el nivel directamente del perfil (ya calculado durante el profiling)
+        console.log(`[RutinasService] 🔍 Datos del perfil:`, {
+            sRpg: profile.sRpg,
+            level: profile.level,
+            profileId: profile._id,
+        });
+        
+        // Usar el nivel guardado en el perfil en lugar de recalcularlo
+        const perfilConfig = this.getConfigPorNivel(profile.level);
+        console.log(`[RutinasService] 📊 Usando perfil guardado: ${profile.level} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
 
         // 2. Usar el optimizador de grafos para encontrar el camino óptimo
         const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
@@ -156,6 +163,63 @@ export class RutinasService {
     }
 
     /**
+     * Obtiene la configuración de entrenamiento basada en el nivel del perfil guardado
+     * Este método usa directamente el nivel calculado durante el profiling (Básico/Intermedio/Avanzado)
+     * en lugar de recalcularlo desde el SRPG
+     */
+    private getConfigPorNivel(nivel: string): { 
+        perfil: string; 
+        frecuenciaMin: number;
+        frecuenciaMax: number;
+        frecuencia: number;
+        rir: number; 
+        descripcion: string;
+    } {
+        // Normalizar el nivel por si viene con mayúsculas/minúsculas diferentes
+        const nivelNormalizado = nivel.toLowerCase();
+
+        if (nivelNormalizado.includes('básico') || nivelNormalizado.includes('basico')) {
+            return {
+                perfil: 'Básico',
+                frecuenciaMin: 2,
+                frecuenciaMax: 3,
+                frecuencia: 3,
+                rir: 3,
+                descripcion: 'Adaptación neuronal y aprendizaje técnico. Minimizar riesgo de lesión.'
+            };
+        } else if (nivelNormalizado.includes('intermedio')) {
+            return {
+                perfil: 'Intermedio',
+                frecuenciaMin: 3,
+                frecuenciaMax: 4,
+                frecuencia: 4,
+                rir: 2,
+                descripcion: 'Sobrecarga progresiva y hipertrofia funcional. Balance volumen-intensidad.'
+            };
+        } else if (nivelNormalizado.includes('avanzado')) {
+            return {
+                perfil: 'Avanzado',
+                frecuenciaMin: 4,
+                frecuenciaMax: 5,
+                frecuencia: 5,
+                rir: 1,
+                descripcion: 'Hipertrofia máxima con alto volumen. Series al fallo o muy cerca.'
+            };
+        } else {
+            // Por defecto, usar Básico si el nivel no es reconocido
+            console.warn(`[RutinasService] ⚠️ Nivel no reconocido: ${nivel}, usando Básico por defecto`);
+            return {
+                perfil: 'Básico',
+                frecuenciaMin: 2,
+                frecuenciaMax: 3,
+                frecuencia: 3,
+                rir: 3,
+                descripcion: 'Adaptación neuronal y aprendizaje técnico. Minimizar riesgo de lesión.'
+            };
+        }
+    }
+
+    /**
      * Define la división de grupos musculares según la frecuencia de entrenamiento
      * Retorna un array con los grupos musculares a trabajar cada día
      * 
@@ -228,9 +292,9 @@ export class RutinasService {
             );
         }
 
-        // Determinar perfil según SRPG (Score RPG del profile)
-        const perfilConfig = this.determinarPerfilUsuario(profile.sRpg);
-        console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (SRPG: ${profile.sRpg})`);
+        // Usar el nivel directamente del perfil (ya calculado durante el profiling)
+        const perfilConfig = this.getConfigPorNivel(profile.level);
+        console.log(`[RutinasService] Perfil: ${profile.level} (SRPG: ${profile.sRpg})`);
         console.log(`[RutinasService] Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana, RIR: ${perfilConfig.rir}`);
         console.log(`[RutinasService] ${perfilConfig.descripcion}`);
 

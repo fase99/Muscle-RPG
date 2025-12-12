@@ -4,6 +4,7 @@ import { RutinasService } from './rutinas.service';
 import { RutinasController } from './rutinas.controller';
 import { GraphOptimizerService } from './graph-optimizer.service';
 import { DynamicProgrammingService } from './dynamic-programming.service';
+import { LoadManagementService } from './load-management.service';
 import { Rutina, RutinaSchema } from '../schemas/rutina.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Profile, ProfileSchema } from '../schemas/profile.schema';
@@ -27,6 +28,7 @@ import { ExercisesModule } from '../exercises/exercises.module';
         RutinasService,
         GraphOptimizerService,
         DynamicProgrammingService,
+        LoadManagementService,
     ],
     exports: [RutinasService],
 })

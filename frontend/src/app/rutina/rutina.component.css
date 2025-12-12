@@ -408,3 +408,69 @@
 .resumen strong {
   color: #93c5fd;
 }
+
+/* === PESO Y CARGA === */
+.peso-destacado {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.intensidad-tag {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.notas-ejercicio {
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid #6366f1;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+/* === RESUMEN DE CARGAS === */
+.resumen-cargas {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+
+.cargas-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.carga-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.carga-label {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.carga-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #60a5fa;
+}

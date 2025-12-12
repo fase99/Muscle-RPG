@@ -110,6 +110,25 @@
         </span>
       </div>
 
+      <!-- Resumen de cargas -->
+      <div class="resumen-cargas" *ngIf="rutina.ejercicios && rutina.ejercicios.length > 0">
+        <h3 style="font-size: 1rem; color: #60a5fa; margin-bottom: 12px;">📊 Resumen de Cargas</h3>
+        <div class="cargas-stats">
+          <div class="carga-stat">
+            <span class="carga-label">Ejercicios con peso:</span>
+            <span class="carga-value">{{ contarEjerciciosConPeso() }} / {{ rutina.ejercicios.length }}</span>
+          </div>
+          <div class="carga-stat" *ngIf="obtenerPesoPromedio() > 0">
+            <span class="carga-label">Peso promedio:</span>
+            <span class="carga-value peso-destacado">{{ obtenerPesoPromedio() | number:'1.1-1' }}kg</span>
+          </div>
+          <div class="carga-stat">
+            <span class="carga-label">RIR promedio:</span>
+            <span class="carga-value">{{ obtenerRIRPromedio() | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
       <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
         💪 COMENZAR ENTRENAMIENTO
       </button>
@@ -146,7 +165,15 @@
       <div class="centro">
         <div class="nombre">{{ ej.nombre }}</div>
         <div class="detalle">
-          {{ ej.sets }}×{{ ej.reps }} rep. • RIR {{ ej.rir || 2 }} • ≈{{ ej.tiempo }} min • XP {{ ej.estimuloXP | number:'1.0-0' }}
+          {{ ej.sets }}×{{ ej.reps }} rep. • 
+          <span class="peso-destacado" *ngIf="ej.peso && ej.peso > 0">💪 {{ ej.peso }}kg</span>
+          <span *ngIf="!ej.peso || ej.peso === 0" style="color: #ff6b6b;">⚠️ Sin peso asignado</span>
+          • RIR {{ ej.rir || 2 }} • 
+          <span *ngIf="ej.intensidad" class="intensidad-tag">{{ ej.intensidad }}% 1RM</span>
+          ≈{{ ej.tiempo }} min • XP {{ ej.estimuloXP | number:'1.0-0' }}
+        </div>
+        <div class="notas-ejercicio" *ngIf="ej.notas" style="font-size: 0.7rem; color: #999; margin-top: 0.25rem; font-style: italic;">
+          📝 {{ ej.notas }}
         </div>
         <div class="muscles" *ngIf="ej.targetMuscles && ej.targetMuscles.length > 0" 
              style="font-size: 0.75rem; color: #667eea; margin-top: 0.25rem;">

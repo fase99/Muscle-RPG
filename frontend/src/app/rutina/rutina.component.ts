@@ -319,7 +319,30 @@ ngOnInit() {
 
   // === Stamina o energía restante (mezcla lógica 1 + 2) ===
   energiaRestante(): number {
-  return this.rutina.energiaMax - this.energiaGastada;
-}
-}
+    return this.rutina.energiaMax - this.energiaGastada;
+  }
 
+  // === Métodos para resumen de cargas ===
+  contarEjerciciosConPeso(): number {
+    if (!this.rutina?.ejercicios) return 0;
+    return this.rutina.ejercicios.filter(ej => ej.peso && ej.peso > 0).length;
+  }
+
+  obtenerPesoPromedio(): number {
+    if (!this.rutina?.ejercicios) return 0;
+    const ejerciciosConPeso = this.rutina.ejercicios.filter(ej => ej.peso && ej.peso > 0);
+    if (ejerciciosConPeso.length === 0) return 0;
+    
+    const sumaTotal = ejerciciosConPeso.reduce((sum, ej) => sum + (ej.peso || 0), 0);
+    return sumaTotal / ejerciciosConPeso.length;
+  }
+
+  obtenerRIRPromedio(): number {
+    if (!this.rutina?.ejercicios) return 2;
+    const ejerciciosConRIR = this.rutina.ejercicios.filter(ej => ej.rir !== undefined);
+    if (ejerciciosConRIR.length === 0) return 2;
+    
+    const sumaTotal = ejerciciosConRIR.reduce((sum, ej) => sum + (ej.rir || 0), 0);
+    return sumaTotal / ejerciciosConRIR.length;
+  }
+}
