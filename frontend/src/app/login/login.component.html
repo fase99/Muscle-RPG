@@ -3,7 +3,7 @@
         <div class="login-header">
             <div class="logo">💪</div>
             <h1>MUSCLE RPG</h1>
-            <p class="subtitle">{{ isLoginMode ? 'OPERATIVE PROFILE ACCESS' : 'NEW USER REGISTRATION' }}</p>
+            <p class="subtitle">{{ isLoginMode ? 'ACCESO AL PERFIL OPERATIVO' : 'REGISTRO DE NUEVO USUARIO' }}</p>
         </div>
 
         <form (ngSubmit)="onSubmit()" class="login-form">
@@ -28,7 +28,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="username">USERNAME (opcional)</label>
+                    <label for="username">NOMBRE DE USUARIO (opcional)</label>
                     <input type="text" id="username" name="username" [(ngModel)]="username" 
                            placeholder="Usuario único" />
                 </div>
@@ -43,7 +43,7 @@
 
             <!-- Password (común para login y registro) -->
             <div class="form-group">
-                <label for="password">PASSWORD *</label>
+                <label for="password">CONTRASEÑA *</label>
                 <div class="password-input">
                     <input [type]="showPassword ? 'text' : 'password'" id="password" name="password"
                         [(ngModel)]="password" placeholder="Mínimo 6 caracteres" 
@@ -71,7 +71,7 @@
 
         <div class="status-bar">
             <span class="status-dot"></span>
-            <span class="status-text">{{ isLoginMode ? 'LOGIN MODE' : 'REGISTER MODE' }}</span>
+            <span class="status-text">{{ isLoginMode ? 'MODO INICIO DE SESIÓN' : 'MODO REGISTRO' }}</span>
         </div>
     </div>
 </div>
