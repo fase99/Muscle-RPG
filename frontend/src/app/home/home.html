@@ -1,8 +1,4 @@
 <div class="home-container">
-
-
-
-  
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">WELCOME BACK, <span class="highlight">{{ userName.toUpperCase() }}</span></h1>
@@ -20,7 +16,7 @@
   </section>
 
   <div class="dashboard-grid">
-
+    <!-- XP Progress -->
     <div class="card progress-card">
       <div class="card-header">
         <h2 class="card-title">PROGRESS OVERVIEW</h2>
@@ -42,99 +38,93 @@
       </div>
     </div>
 
-    <div class="card workout-card">
+    <!-- Profile Overview -->
+    <div class="card profile-card">
       <div class="card-header">
-        <h2 class="card-title">TODAY'S MISSION</h2>
-        <span class="status-badge active">ACTIVE</span>
+        <h2 class="card-title">PROFILE OVERVIEW</h2>
       </div>
       <div class="card-content">
-        <div class="workout-item" *ngFor="let exercise of todayWorkout">
-          <div class="exercise-icon">💪</div>
-          <div class="exercise-info">
-            <span class="exercise-name">{{ exercise.name }}</span>
-            <span class="exercise-details">{{ exercise.sets }} sets × {{ exercise.reps }} reps</span>
+        <div class="profile-info">
+          <div class="info-item">
+            <span class="info-label">Profile Level</span>
+            <span class="info-value">{{ profileInfo.profileLevel }}</span>
           </div>
-          <div class="exercise-status">
-            <input type="checkbox" [checked]="exercise.completed" class="checkbox">
+          <div class="info-item">
+            <span class="info-label">Age</span>
+            <span class="info-value">{{ profileInfo.age }} years</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Week Activity</span>
+            <span class="info-value">{{ weekActivity.daysActive }}/{{ weekActivity.totalDays }} days</span>
+          </div>
+          <div class="activity-bar">
+            <div class="activity-fill" [style.width.%]="weekActivity.percentage"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card stats-card">
+    <!-- Top Attributes -->
+    <div class="card attributes-card">
       <div class="card-header">
-        <h2 class="card-title">YOUR STATS</h2>
+        <h2 class="card-title">TOP ATTRIBUTES</h2>
       </div>
       <div class="card-content">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-icon-small">🏋️</div>
-            <div class="stat-data">
-              <span class="stat-value-large">{{ userStats.totalWorkouts }}</span>
-              <span class="stat-label-small">Workouts</span>
+        <div class="attributes-list">
+          <div *ngFor="let attr of profileInfo.topAttributes" class="attribute-item">
+            <span class="attr-name">{{ attr.key }}</span>
+            <div class="attr-bar-small">
+              <div class="attr-fill" [style.width.%]="attr.value"></div>
             </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon-small">⏱️</div>
-            <div class="stat-data">
-              <span class="stat-value-large">{{ userStats.totalMinutes }}</span>
-              <span class="stat-label-small">Minutes</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon-small">📈</div>
-            <div class="stat-data">
-              <span class="stat-value-large">{{ userStats.personalRecords }}</span>
-              <span class="stat-label-small">PRs</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon-small">🎯</div>
-            <div class="stat-data">
-              <span class="stat-value-large">{{ userStats.goalsCompleted }}</span>
-              <span class="stat-label-small">Goals</span>
-            </div>
+            <span class="attr-value">{{ attr.value }}</span>
           </div>
         </div>
       </div>
     </div>
 
-
-    <div class="card achievements-card">
+    <!-- Goals Progress -->
+    <div class="card goals-card">
       <div class="card-header">
-        <h2 class="card-title">RECENT ACHIEVEMENTS</h2>
+        <h2 class="card-title">PRÓXIMO LOGRO</h2>
       </div>
       <div class="card-content">
-        <div class="achievement-item" *ngFor="let achievement of recentAchievements">
-          <div class="achievement-icon">{{ achievement.icon }}</div>
-          <div class="achievement-info">
-            <span class="achievement-name">{{ achievement.name }}</span>
-            <span class="achievement-date">{{ achievement.date }}</span>
+        <div class="goals-info">
+          <div class="goal-stat">
+            <div class="goal-icon">{{ nextAchievement?.icon || '🎯' }}</div>
+            <div class="goal-data">
+              <span class="goal-value">{{ userStats.goalsCompleted }}</span>
+              <span class="goal-label">Logros obtenidos</span>
+            </div>
+          </div>
+          <div class="next-achievement">
+            <strong>{{ nextAchievement?.name || 'Cargando...' }}</strong>
+            <small style="display: block; margin-top: 0.5rem;">{{ nextAchievement?.description }}</small>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Quick Actions -->
     <div class="card actions-card">
       <div class="card-header">
-        <h2 class="card-title">QUICK ACTIONS</h2>
+        <h2 class="card-title">QUICK START</h2>
       </div>
       <div class="card-content">
-        <button class="action-btn primary">
-          <span class="btn-icon">▶️</span>
-          START WORKOUT
+        <button class="action-btn primary" routerLink="/rutina">
+          <span class="btn-icon">🚀</span>
+          <span>GENERAR RUTINA</span>
         </button>
-        <button class="action-btn secondary">
-          <span class="btn-icon">📊</span>
-          VIEW PROGRESS
+        <button class="action-btn secondary" routerLink="/perfil">
+          <span class="btn-icon">👤</span>
+          <span>VER PERFIL</span>
         </button>
-        <button class="action-btn secondary">
-          <span class="btn-icon">⚙️</span>
-          SETTINGS
+        <button class="action-btn secondary" routerLink="/Ejercicios">
+          <span class="btn-icon">💪</span>
+          <span>EJERCICIOS</span>
         </button>
         <button class="action-btn primary" routerLink="/setup">
           <span class="btn-icon">🛠️</span>
-          SETUP PERFIL
+          <span>SETUP PERFIL</span>
         </button>
       </div>
     </div>

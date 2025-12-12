@@ -110,6 +110,18 @@ export class UserHttpService {
     return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/experiencia`, { xpGanada });
   }
 
+  getUserAchievements(id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users/${id}/achievements`);
+  }
+
+  getNextAchievement(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users/${id}/achievements/next`);
+  }
+
+  checkAchievements(id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/users/${id}/achievements/check`, {});
+  }
+
   updateStamina(id: string, staminaCost: number): Observable<UserFromDB> {
     return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/stamina`, { staminaCost });
   }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
-import { UserFromDB } from '../services/user-http.service';
+import { UserFromDB, UserHttpService } from '../services/user-http.service';
 
 @Component({
   selector: 'app-home',
@@ -12,12 +12,31 @@ import { UserFromDB } from '../services/user-http.service';
 })
 export class Home implements OnInit {
   user: UserFromDB | null = null;
+  nextAchievement: any = null;
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private userHttpService: UserHttpService
+  ) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
+      if (user) {
+        this.loadNextAchievement(user._id);
+      }
+    });
+  }
+
+  loadNextAchievement(userId: string) {
+    this.userHttpService.getNextAchievement(userId).subscribe({
+      next: (achievement) => {
+        this.nextAchievement = achievement;
+      },
+      error: (err) => {
+        console.error('Error loading next achievement:', err);
+        this.nextAchievement = null;
+      }
     });
   }
 
@@ -40,25 +59,34 @@ export class Home implements OnInit {
         return maxXP - currentXP;
       },
       streak: this.user?.rachasDias || 0,
-      totalWorkouts: 45,
-      totalMinutes: 2340,
-      personalRecords: 12,
       goalsCompleted: this.user?.logrosObtenidos || 0
     };
   }
 
-  // Today's Workout
-  todayWorkout = [
-    { name: 'Push-ups', sets: 3, reps: 15, completed: false },
-    { name: 'Squats', sets: 4, reps: 12, completed: false },
-    { name: 'Plank', sets: 3, reps: 30, completed: false },
-    { name: 'Pull-ups', sets: 3, reps: 8, completed: false }
-  ];
+  // Profile Info
+  get profileInfo() {
+    const attrs = this.user?.atributos || { STR: 50, AGI: 50, STA: 50, INT: 50, DEX: 50, END: 50 };
+    const sorted = Object.entries(attrs)
+      .map(([key, value]) => ({ key, value: value as number }))
+      .sort((a, b) => b.value - a.value);
+    
+    return {
+      profileLevel: this.user?.profileId?.level || 'SIN ASIGNAR',
+      age: this.user?.edad || '-',
+      topAttributes: sorted.slice(0, 3),
+      allAttributes: attrs
+    };
+  }
 
-  // Recent Achievements
-  recentAchievements = [
-    { icon: '🏆', name: 'Week Warrior', date: '2 days ago' },
-    { icon: '💪', name: 'Strength Builder', date: '5 days ago' },
-    { icon: '🔥', name: 'On Fire!', date: '1 week ago' }
-  ];
+  // Week Activity
+  get weekActivity() {
+    // Estimado basado en streak
+    const daysThisWeek = Math.min(this.user?.rachasDias || 0, 7);
+    const percentage = (daysThisWeek / 7) * 100;
+    return {
+      daysActive: daysThisWeek,
+      totalDays: 7,
+      percentage
+    };
+  }
 }

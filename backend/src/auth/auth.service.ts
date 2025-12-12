@@ -1,11 +1,15 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { AchievementsService } from '../users/achievements.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private achievementsService: AchievementsService,
+  ) {}
 
   async register(registerDto: RegisterDto) {
     // Verificar si el email ya existe
@@ -38,6 +42,11 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
+
+    // Verificar y desbloquear logros (en background, no bloquea el login)
+    this.achievementsService.checkAndUnlockAchievements(user._id.toString()).catch(err => {
+      console.error('Error al verificar logros:', err);
+    });
 
     // No devolver el password
     const userObj = user.toObject();

@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateMetricsDto } from './dto/update-metrics.dto';
 import { profilingService } from './profiling.services';
+import { AchievementsService } from './achievements.service';
 
 
 @Controller('users')
@@ -10,6 +11,7 @@ export class UsersController {
     constructor(
         private readonly usersService: UsersService,
         private readonly profilingService: profilingService,
+        private readonly achievementsService: AchievementsService,
     ) { }
 
     @Post()
@@ -183,5 +185,36 @@ export class UsersController {
     @Get('profiles/level/:level')
     async getProfilesByLevel(@Param('level') level: string) {
         return this.profilingService.getProfilesByLevel(level);
+    }
+
+    // ========== ENDPOINTS DE LOGROS ==========
+
+    @Get(':id/achievements')
+    async getUserAchievements(@Param('id') id: string) {
+        return this.achievementsService.getUserAchievements(id);
+    }
+
+    @Get(':id/achievements/next')
+    async getNextAchievement(@Param('id') id: string) {
+        return this.achievementsService.getNextAchievement(id);
+    }
+
+    @Post(':id/achievements/check')
+    async checkAchievements(@Param('id') id: string) {
+        const newAchievements = await this.achievementsService.checkAndUnlockAchievements(id);
+        return {
+            message: 'Logros verificados',
+            newAchievements,
+            totalCount: (await this.achievementsService.getUserAchievements(id)).length
+        };
+    }
+
+    @Post(':id/achievements/workout-complete')
+    async recordWorkoutCompletion(@Param('id') id: string) {
+        const newAchievements = await this.achievementsService.recordWorkoutCompletion(id);
+        return {
+            message: 'Entrenamiento registrado',
+            newAchievements,
+        };
     }
 }
