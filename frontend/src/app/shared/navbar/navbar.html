@@ -11,7 +11,6 @@
   </div>
 
   <div class="user-info" *ngIf="authService.isAuthenticated() && !isLoginPage">
-    <span class="username">{{ authService.getUsername() }}</span>
 
     <!-- XP + STAMINA agrupadas en una columna -->
     <div class="stats-column">
@@ -39,6 +38,8 @@
       <span class="level-label">LVL</span>
       <span class="level-number">{{ level }}</span>
     </div>
+
+    <span class="username">{{ authService.getUsername() }}</span>
 
     <button class="logout-btn" (click)="authService.logout()" title="Cerrar sesión">
        🚪
