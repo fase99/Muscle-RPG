@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { UserFromDB } from '../../services/user-http.service';
@@ -6,6 +7,7 @@ import { UserFromDB } from '../../services/user-http.service';
 @Component({
   selector: 'app-navbar',
   imports: [
+    CommonModule,
     RouterLink,
     RouterLinkActive,
   ],
