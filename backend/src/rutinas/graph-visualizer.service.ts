@@ -476,7 +476,7 @@ export class GraphVisualizerService {
 
   /**
    * Visualiza SOLO la ruta óptima (ejercicios de la rutina generada)
-   * Este método muestra únicamente los ejercicios de la última rutina activa guardada
+   * Este método muestra únicamente los ejercicios de TODAS las rutinas guardadas del usuario
    */
   async visualizeOptimalPathOnly(userId: string, maxTime: number = 120): Promise<{
     nodes: GraphNodeVisualization[];
@@ -488,25 +488,32 @@ export class GraphVisualizerService {
     // Convertir userId a ObjectId para la búsqueda
     const userObjectId = new Types.ObjectId(userId);
 
-    // 1. Buscar CUALQUIER rutina del usuario (no solo activa)
+    // 1. Buscar TODAS las rutinas del usuario
     const rutinas = await this.rutinaModel
       .find({ usuarioId: userObjectId })
       .sort({ createdAt: -1 })
-      .limit(5)
       .exec();
 
     this.logger.log(`Rutinas encontradas para ObjectId ${userObjectId}: ${rutinas.length}`);
     
     if (rutinas.length > 0) {
       rutinas.forEach((r, i) => {
+        console.log(`\n[DEBUG] Rutina ${i + 1}:`);
+        console.log(`  - ID: ${r._id}`);
+        console.log(`  - Nombre: ${r.nombre}`);
+        console.log(`  - Activa: ${r.activa}`);
+        console.log(`  - Ejercicios array existe: ${!!r.ejercicios}`);
+        console.log(`  - Ejercicios length: ${r.ejercicios?.length || 0}`);
+        if (r.ejercicios && r.ejercicios.length > 0) {
+          console.log(`  - Primer ejercicio: ${JSON.stringify(r.ejercicios[0], null, 2)}`);
+        }
         this.logger.log(`  ${i + 1}. ${r.nombre} - Activa: ${r.activa}, Ejercicios: ${r.ejercicios?.length || 0}`);
       });
     }
 
-    const rutina = rutinas[0]; // Tomar la más reciente
-
-    if (!rutina || !rutina.ejercicios || rutina.ejercicios.length === 0) {
-      this.logger.warn(`No se encontró rutina con ejercicios. Rutina existe: ${!!rutina}, Tiene ejercicios: ${!!rutina?.ejercicios}, Cantidad: ${rutina?.ejercicios?.length || 0}`);
+    if (!rutinas || rutinas.length === 0) {
+    if (!rutinas || rutinas.length === 0) {
+      this.logger.warn(`No se encontraron rutinas para el usuario`);
       
       // Si no hay rutina, generar una nueva
       const user = await this.userModel.findById(userId).exec();
@@ -597,40 +604,73 @@ export class GraphVisualizerService {
       }
     }
 
-    this.logger.log(`Usando rutina "${rutina.nombre}" con ${rutina.ejercicios.length} ejercicios`);
+    // 2. Combinar TODOS los ejercicios de TODAS las rutinas
+    this.logger.log(`Procesando ${rutinas.length} rutinas para visualización completa...`);
+    
+    const allNodes: GraphNodeVisualization[] = [];
+    let nodeIndex = 0;
 
-    // 2. Convertir los ejercicios de la rutina a formato de visualización
-    const nodes: GraphNodeVisualization[] = rutina.ejercicios.map((ejercicio, index) => ({
-      id: `ejercicio-${index + 1}`,
-      externalId: ejercicio.externalId,
-      name: ejercicio.nombre,
-      costoTiempo: ejercicio.costoTiempo,
-      costoFatiga: ejercicio.costoFatiga,
-      estimuloXP: ejercicio.estimuloXP,
-      eficienciaRatio: (ejercicio.costoTiempo + ejercicio.costoFatiga) > 0 
-        ? ejercicio.estimuloXP / (ejercicio.costoTiempo + ejercicio.costoFatiga) 
-        : 0,
-      series: ejercicio.series,
-      repeticiones: ejercicio.repeticiones,
-      rir: ejercicio.rir || 2,
-      muscleTargets: ejercicio.muscleTargets || {
-        STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0
-      },
-      targetMuscles: [],
-      bodyParts: [],
-      equipment: [],
-      prerequisites: [],
-      unlocks: [],
-      levelRequired: 1,
-    }));
+    for (const rutina of rutinas) {
+      if (!rutina.ejercicios || rutina.ejercicios.length === 0) {
+        this.logger.warn(`Rutina "${rutina.nombre}" no tiene ejercicios`);
+        continue;
+      }
+
+      this.logger.log(`Procesando rutina "${rutina.nombre}" con ${rutina.ejercicios.length} ejercicios`);
+
+      // Convertir ejercicios a nodos de visualización
+      const rutinaNodes: GraphNodeVisualization[] = rutina.ejercicios.map((ejercicio, indexInRutina) => ({
+        id: `${rutina.nombre.replace(/\s+/g, '-')}-ejercicio-${indexInRutina + 1}`,
+        externalId: ejercicio.externalId,
+        name: `${rutina.nombre} - ${ejercicio.nombre}`,
+        costoTiempo: ejercicio.costoTiempo,
+        costoFatiga: ejercicio.costoFatiga,
+        estimuloXP: ejercicio.estimuloXP,
+        eficienciaRatio: (ejercicio.costoTiempo + ejercicio.costoFatiga) > 0 
+          ? ejercicio.estimuloXP / (ejercicio.costoTiempo + ejercicio.costoFatiga) 
+          : 0,
+        series: ejercicio.series,
+        repeticiones: ejercicio.repeticiones,
+        rir: ejercicio.rir || 2,
+        muscleTargets: ejercicio.muscleTargets || {
+          STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0
+        },
+        targetMuscles: [],
+        bodyParts: [],
+        equipment: [],
+        prerequisites: [],
+        unlocks: [],
+        levelRequired: 1,
+      }));
+
+      allNodes.push(...rutinaNodes);
+      nodeIndex += rutinaNodes.length;
+    }
+
+    if (allNodes.length === 0) {
+      this.logger.warn('No se encontraron ejercicios en ninguna rutina');
+      return {
+        nodes: [],
+        edges: [],
+        metadata: {
+          totalNodes: 0,
+          totalEdges: 0,
+          graphType: 'Ruta Óptima (Sin ejercicios)',
+          totalXP: 0,
+          totalTime: 0,
+          totalFatigue: 0,
+          generatedAt: new Date(),
+        }
+      };
+    }
 
     // 3. Obtener detalles adicionales de ExerciseDB
     try {
-      const externalIds = nodes.map(n => n.externalId);
+      const externalIds = [...new Set(allNodes.map(n => n.externalId))]; // Unique IDs
       const externalData = await this.exerciseDbService.getExercisesByIds(externalIds);
 
       // Enriquecer nodos con datos visuales
-      for (const node of nodes) {
+      for (const node of allNodes) {
         const details = externalData.find(ex => ex.exerciseId === node.externalId);
         if (details) {
           node.targetMuscles = details.targetMuscles || [];
@@ -642,32 +682,32 @@ export class GraphVisualizerService {
       this.logger.warn(`Error al obtener detalles de ExerciseDB: ${error.message}`);
     }
 
-    // 4. Crear aristas entre ejercicios consecutivos
+    // 4. Crear aristas entre ejercicios consecutivos (dentro de cada rutina y entre rutinas)
     const edges: GraphEdge[] = [];
-    for (let i = 0; i < nodes.length - 1; i++) {
+    for (let i = 0; i < allNodes.length - 1; i++) {
       edges.push({
-        from: nodes[i].id,
-        to: nodes[i + 1].id,
-        type: 'muscle-group',
+        from: allNodes[i].id,
+        to: allNodes[i + 1].id,
+        type: 'sequence',
         weight: i + 1,
       });
     }
 
     const metadata = {
-      totalNodes: nodes.length,
+      totalNodes: allNodes.length,
       totalEdges: edges.length,
-      graphType: 'Ruta Óptima (Secuencia de Rutina)',
-      rutinaId: rutina._id.toString(),
-      rutinaNombre: rutina.nombre,
-      totalXP: rutina.xpTotalEstimado || nodes.reduce((sum, n) => sum + n.estimuloXP, 0),
-      totalTime: rutina.tiempoTotal || nodes.reduce((sum, n) => sum + n.costoTiempo, 0),
-      totalFatigue: rutina.fatigaTotal || nodes.reduce((sum, n) => sum + n.costoFatiga, 0),
+      graphType: `Rutina Completa (${rutinas.length} días)`,
+      routineCount: rutinas.length,
+      routineNames: rutinas.map(r => r.nombre),
+      totalXP: allNodes.reduce((sum, n) => sum + n.estimuloXP, 0),
+      totalTime: allNodes.reduce((sum, n) => sum + n.costoTiempo, 0),
+      totalFatigue: allNodes.reduce((sum, n) => sum + n.costoFatiga, 0),
       generatedAt: new Date(),
     };
 
-    this.logger.log(`Rutina visualizada: ${nodes.length} ejercicios de "${rutina.nombre}"`);
+    this.logger.log(`Rutina completa visualizada: ${allNodes.length} ejercicios de ${rutinas.length} días`);
 
-    return { nodes, edges, metadata };
+    return { nodes: allNodes, edges, metadata };
   }
 
   /**
