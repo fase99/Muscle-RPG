@@ -7,14 +7,14 @@
     <div class="header">
         <div class="system-info">
             <span class="indicator"></span>
-            SECURE CONNECTION ESTABLISHED
+            CONEXIÓN SEGURA ESTABLECIDA
         </div>
         <div class="title">
-            <span class="highlight">PROFILE</span>
+            <span class="highlight">PERFIL</span>
         </div>
         <div class="status">
             <span class="status-indicator"></span>
-            STATUS: <span class="online">ONLINE</span>
+            ESTADO: <span class="online">EN LÍNEA</span>
         </div>
     </div>
 
@@ -26,21 +26,21 @@
                     <div class="level-badge">LVL {{ level }}</div>
                 </div>
                 <div class="user-name">{{ name }}</div>
-                <div class="user-class">USERNAME: @{{ username }}</div>
+                <div class="user-class">NOMBRE DE USUARIO: @{{ username }}</div>
             </div>
 
             <div class="level-section">
-                <div class="section-label">TOTAL LEVEL</div>
+                <div class="section-label">NIVEL TOTAL</div>
                 <div class="level-number">{{ level }}</div>
             </div>
 
             <div class="level-section">
-                <div class="section-label">PROFILE LEVEL</div>
+                <div class="section-label">NIVEL DE PERFIL</div>
                 <div class="level-number">{{ profileLevel }}</div>
             </div>
 
             <div class="xp-section">
-                <div class="xp-label">XP PROGRESS</div>
+                <div class="xp-label">PROGRESO XP</div>
                 <div class="xp-bar">
                     <div class="xp-fill" [style.width.%]="xpPercent"></div>
                 </div>
@@ -53,12 +53,12 @@
                 <div class="stat-card">
                     <div class="stat-icon fire">🔥</div>
                     <div class="stat-value">{{ dayStreak }}</div>
-                    <div class="stat-label">DAY STREAK</div>
+                    <div class="stat-label">RACHA DE DÍAS</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon trophy">🏆</div>
                     <div class="stat-value">{{ achievements }}</div>
-                    <div class="stat-label">ACHIEVEMENTS</div>
+                    <div class="stat-label">LOGROS</div>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
                         <span class="icon">�</span>
                         PERFIL DEL USUARIO
                     </div>
-                    <div class="live-data">LIVE DATA</div>
+                    <div class="live-data">DATOS EN VIVO</div>
                 </div>
 
                 <div class="radar-content">
