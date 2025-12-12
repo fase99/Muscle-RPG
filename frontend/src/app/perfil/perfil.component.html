@@ -172,29 +172,3 @@
             </div>
         </div>
     </div>
-
-            <div class="metrics-section">
-                <div class="section-header">
-                    <div class="section-title">PERFORMANCE METRICS</div>
-                    <button class="view-all-btn">VIEW ALL DATA</button>
-                </div>
-
-                <div class="metrics-cards">
-                    <div *ngFor="let metric of metrics" class="metric-card">
-                        <div class="metric-header">
-                            <div class="metric-icon">{{ metric.icon }}</div>
-                            <div class="metric-info">
-                                <div class="metric-type">{{ metric.label }}</div>
-                                <div class="metric-subtitle">{{ metric.subLabel }}</div>
-                            </div>
-                        </div>
-                        <div class="metric-value">
-                            {{ metric.value }} <span class="metric-unit">{{ metric.unit }}</span>
-                        </div>
-                        <div class="metric-trend">{{ metric.trend }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
