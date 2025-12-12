@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { RpgExerciseRule, RpgExerciseRuleDocument } from '../exercises/schemas/rpg-exercise-rule.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Profile, ProfileDocument } from '../schemas/profile.schema';
+import { ExerciseDbService } from '../exercises/exercisedb.service';
 
 // ========== INTERFACES DEL MODELO ==========
 
@@ -48,6 +49,7 @@ export class GraphOptimizerService {
     @InjectModel(RpgExerciseRule.name) private exerciseRuleModel: Model<RpgExerciseRuleDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
+    private exerciseDbService: ExerciseDbService,
   ) {}
 
   /**
@@ -118,16 +120,27 @@ export class GraphOptimizerService {
       .find({ levelRequired: { $in: allowedLevels } })
       .exec();
 
+    console.log(`[GraphOptimizer] Encontradas ${exerciseRules.length} reglas de ejercicios para niveles ${JSON.stringify(allowedLevels)}`);
+
     const nodes: ExerciseNode[] = [];
     const completedExercises = new Set(user.ejerciciosCompletados);
 
-    for (const rule of exerciseRules) {
-      // Verificar prerequisites
-      const prerequisitesMet = rule.prerequisites.every(prereq =>
-        completedExercises.has(prereq)
-      );
+    // Obtener todos los IDs de ejercicios para cargar nombres en batch
+    const exerciseIds = exerciseRules.map(rule => rule.externalId);
+    console.log(`[GraphOptimizer] Obteniendo nombres para ${exerciseIds.length} ejercicios desde ExerciseDB...`);
 
-      if (!prerequisitesMet) continue;
+    for (const rule of exerciseRules) {
+      // Verificar prerequisites - IGNORAR SI ESTÁ VACÍO
+      const prerequisitesMet = rule.prerequisites.length === 0 || 
+        rule.prerequisites.every(prereq => completedExercises.has(prereq));
+
+      if (!prerequisitesMet) {
+        console.log(`[GraphOptimizer] Ejercicio ${rule.externalId} bloqueado por prerequisites: ${rule.prerequisites.join(', ')}`);
+        continue;
+      }
+
+      // Obtener nombre real del ejercicio desde data-exercises/exercises.json
+      const exerciseName = await this.exerciseDbService.getExerciseName(rule.externalId);
 
       // Usar el RIR del perfil (pasado como parámetro)
       const series = this.getSeriesForProfile(profile);
@@ -151,7 +164,7 @@ export class GraphOptimizerService {
       const node: ExerciseNode = {
         id: rule._id.toString(),
         externalId: rule.externalId,
-        name: `Exercise ${rule.externalId}`, // Esto debería venir de ExerciseDB
+        name: exerciseName, // Nombre real desde exercises.json
         costoTiempo,
         costoFatiga,
         estimuloXP,
@@ -165,6 +178,8 @@ export class GraphOptimizerService {
       nodes.push(node);
     }
 
+    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} nodos (ejercicios disponibles)`);
+    
     return nodes;
   }
 
@@ -227,9 +242,20 @@ export class GraphOptimizerService {
     let currentFatigue = 0;
     let currentXP = 0;
     const muscleWork = { STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0 };
+    
+    // Usar ~75% del tiempo disponible para permitir flexibilidad
+    const targetTime = maxTime * 0.75;
+    const minExercises = 5;
+    const maxExercises = 10;
 
     // Intentar agregar ejercicios mientras se pueda
     for (const exercise of sortedExercises) {
+      // Verificar si ya alcanzamos el máximo de ejercicios
+      if (selectedNodes.length >= maxExercises) {
+        console.log(`[GraphOptimizer] Límite de ${maxExercises} ejercicios alcanzado`);
+        break;
+      }
+
       // Verificar restricciones de recursos
       if (currentTime + exercise.costoTiempo > maxTime) {
         console.log(`[GraphOptimizer] Ejercicio ${exercise.name} excede tiempo`);
@@ -240,9 +266,9 @@ export class GraphOptimizerService {
         continue;
       }
 
-      // Verificar balance muscular (máximo 40% por grupo muscular)
+      // Verificar balance muscular (máximo 60% por grupo muscular)
       const wouldOverwork = this.wouldOverworkMuscleStrict(muscleWork, exercise.muscleTargets, currentXP + exercise.estimuloXP);
-      if (wouldOverwork && selectedNodes.length >= 4) {
+      if (wouldOverwork && selectedNodes.length >= minExercises) {
         console.log(`[GraphOptimizer] Ejercicio ${exercise.name} causaría desbalance muscular`);
         continue;
       }
@@ -260,9 +286,9 @@ export class GraphOptimizerService {
 
       console.log(`[GraphOptimizer] ✓ Agregado: ${exercise.name} (XP: ${exercise.estimuloXP.toFixed(1)}, Total: ${selectedNodes.length})`);
 
-      // Límite razonable de ejercicios por sesión
-      if (selectedNodes.length >= 12) {
-        console.log(`[GraphOptimizer] Límite de 12 ejercicios alcanzado`);
+      // Parar si alcanzamos ~75% del tiempo y tenemos al menos minExercises
+      if (selectedNodes.length >= minExercises && currentTime >= targetTime) {
+        console.log(`[GraphOptimizer] Objetivo de tiempo (~75%) alcanzado con ${selectedNodes.length} ejercicios`);
         break;
       }
     }
@@ -283,14 +309,14 @@ export class GraphOptimizerService {
 
   /**
    * Verifica si agregar un ejercicio sobreentrenarí un grupo muscular
-   * Límite estricto: máximo 40% del trabajo total en un grupo muscular
+   * Límite estricto: máximo 60% del trabajo total en un grupo muscular
    */
   private wouldOverworkMuscleStrict(
     currentWork: Record<string, number>,
     newWork: Record<string, number>,
     newTotalXP: number,
   ): boolean {
-    const maxPercentage = 0.40; // 40% máximo por grupo muscular
+    const maxPercentage = 0.60; // 60% máximo por grupo muscular
 
     for (const [muscle, value] of Object.entries(newWork)) {
       if (value > 0) {

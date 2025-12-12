@@ -68,7 +68,7 @@ export class GraphBuilderService {
 
       // 4. FUSIÓN (Merge): Crear el objeto final para el algoritmo y el Frontend
       const graphNodes: GraphNode[] = rpgRules.map((rule) => {
-        const details = externalData.find((ex) => ex.id === rule.externalId);
+        const details = externalData.find((ex) => ex.exerciseId === rule.externalId);
 
         return {
           // Datos RPG (Para el Algoritmo de Optimización)
@@ -91,9 +91,9 @@ export class GraphBuilderService {
           // Datos Visuales (Para el Frontend)
           name: details?.name || '',
           gifUrl: details?.gifUrl || '',
-          targetMuscle: details?.target || 'unknown',
-          equipment: details?.equipment || 'unknown',
-          bodyPart: details?.bodyPart || 'unknown',
+          targetMuscle: details?.targetMuscles?.[0] || 'unknown',
+          equipment: details?.equipments?.[0] || 'unknown',
+          bodyPart: details?.bodyParts?.[0] || 'unknown',
           secondaryMuscles: details?.secondaryMuscles || [],
           instructions: details?.instructions || [],
         };

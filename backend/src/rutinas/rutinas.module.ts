@@ -8,6 +8,7 @@ import { Rutina, RutinaSchema } from '../schemas/rutina.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Profile, ProfileSchema } from '../schemas/profile.schema';
 import { RpgExerciseRule, RpgExerciseRuleSchema } from '../exercises/schemas/rpg-exercise-rule.schema';
+import { ExercisesModule } from '../exercises/exercises.module';
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { RpgExerciseRule, RpgExerciseRuleSchema } from '../exercises/schemas/rpg
             { name: Profile.name, schema: ProfileSchema },
             { name: RpgExerciseRule.name, schema: RpgExerciseRuleSchema },
         ]),
+        ExercisesModule, // Importar ExercisesModule para usar ExerciseDbService
     ],
     controllers: [RutinasController],
     providers: [
