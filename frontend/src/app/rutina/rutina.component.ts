@@ -41,14 +41,22 @@ export class RutinaComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+ngOnInit() {
+  this.authService.currentUser$
+    .subscribe(user => {
       this.user = user;
-      if (user?._id) {
+
+      if (!user?._id) return;
+
+      // Solo cargar si es la primera vez o si no hay rutina semanal
+      const noHayRutinaSemanal = !this.rutinaSemanal || this.rutinaSemanal.length === 0;
+      const esPrimeraCarga = !this.rutinaGenerada;
+
+      if (noHayRutinaSemanal || esPrimeraCarga) {
         this.cargarRutinasExistentes();
       }
     });
-  }
+}
 
   cargarRutinasExistentes() {
     const userId = this.user?._id;
@@ -67,7 +75,7 @@ export class RutinaComponent implements OnInit {
           });
           
           const rutinasRecientes = rutinas.slice(0, 7);
-          
+          rutinasRecientes.reverse(); // ← Esto arregla el orden de los días
           this.rutinaSemanal = rutinasRecientes.map((r: any) => this.convertirRutinaBackend(r));
           this.diaActual = 0;
           this.rutina = this.rutinaSemanal[this.diaActual];
@@ -244,7 +252,7 @@ export class RutinaComponent implements OnInit {
 
     this.sesionActiva = false;
     this.sesionFinalizada = true;
-
+    
     // Ahora en minutos
     this.tiempoRealMinutos = Math.round((Date.now() - this.tiempoInicio) / 60000);
 
