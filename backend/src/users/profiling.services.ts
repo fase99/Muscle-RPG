@@ -243,7 +243,6 @@ export class profilingService{
                 };
             
             default:
-                // Fallback a Básico
                 return {
                     frecuenciaSemanal: { min: 2, max: 3 },
                     rirTarget: { min: 3, max: 3 },
