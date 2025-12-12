@@ -66,21 +66,35 @@
   gap: 1rem;
 }
 
-/* XP Section */
-.xp-section {
+/* Columna que agrupa XP + Energía (para que queden una debajo de la otra) */
+.stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+/* XP y Stamina Section (mismo estilo, solo cambia el color) */
+.xp-section,
+.stamina-section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: #fff;
 }
 
-.xp-label {
+.xp-label,
+.stamina-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: #94a3b8;
+  width: 40px;
+  text-align: right;
 }
 
-.xp-bar {
+/* Barras de progreso */
+.xp-bar,
+.stamina-bar {
   width: 120px;
   height: 8px;
   background-color: #1e293b;
@@ -96,9 +110,19 @@
   transition: width 0.3s ease;
 }
 
-.xp-text {
+.stamina-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Texto al lado de las barras */
+.xp-text,
+.stamina-text {
   font-size: 0.75rem;
   color: #94a3b8;
+  min-width: 75px;
   white-space: nowrap;
 }
 
@@ -148,7 +172,7 @@
   transform: scale(1.05);
 }
 
-/* Avatar */
+/* Avatar (si lo usas más adelante) */
 .avatar {
   width: 40px;
   height: 40px;

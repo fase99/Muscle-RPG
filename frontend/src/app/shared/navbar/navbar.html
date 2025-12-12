@@ -1,10 +1,9 @@
 <nav class="navbar" *ngIf="authService.isAuthenticated()">
   <div class="navbar-brand">
-    <span class="logo-icon">💪</span>
+    <span class="logo-icon">Muscle</span>
     <h1>MUSCLE RPG</h1>
   </div>
 
-  <!-- Links -->
   <div class="nav-links">
     <a routerLink="/home" routerLinkActive="active" class="nav-link"> Home </a>
     <a routerLink="/ejercicios" routerLinkActive="active" class="nav-link"> Skill Tree </a>
@@ -12,25 +11,38 @@
     <a routerLink="/perfil" routerLinkActive="active" class="nav-link"> Perfil </a>
   </div>
 
-  <!-- User Info -->
   <div class="user-info">
     <span class="username">{{ authService.getUsername() }}</span>
-    
-    <div class="xp-section">
-      <span class="xp-label">XP</span>
-      <div class="xp-bar">
-        <div class="xp-progress" [style.width.%]="xpPercentage"></div>
+
+    <!-- XP + STAMINA agrupadas en una columna -->
+    <div class="stats-column">
+      <!-- XP -->
+      <div class="xp-section">
+        <span class="xp-label">XP</span>
+        <div class="xp-bar">
+          <div class="xp-progress" [style.width.%]="xpPercentage"></div>
+        </div>
+        <span class="xp-text">{{ currentXP }} / {{ maxXP }}</span>
       </div>
-      <span class="xp-text">{{ currentXP }} / {{ maxXP }}</span>
+
+      <!-- STAMINA (debajo de XP) -->
+      <div class="stamina-section">
+        <span class="stamina-label">Energia </span>
+        <div class="stamina-bar">
+          <div class="stamina-progress" [style.width.%]="staminaPercentage"></div>
+        </div>
+        <span class="stamina-text">{{ currentStamina }} / {{ maxStamina }}</span>
+      </div>
     </div>
-    
+
+    <!-- Level -->
     <div class="level-badge">
       <span class="level-label">LVL</span>
       <span class="level-number">{{ level }}</span>
     </div>
-    
+
     <button class="logout-btn" (click)="authService.logout()" title="Cerrar sesión">
-      🚪
+       🚪
     </button>
   </div>
 </nav>
