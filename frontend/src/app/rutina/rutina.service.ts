@@ -20,6 +20,8 @@ export interface Ejercicio {
   hecho: boolean;
   completado?: boolean;
   notas?: string;
+  targetMuscles?: string[];
+  bodyParts?: string[];
 }
 
 export interface Rutina {
@@ -38,6 +40,7 @@ export interface Rutina {
     MAV: number;
     MRV: number;
   };
+  muscleGroups?: string[];
 }
 
 @Injectable({

@@ -119,6 +119,40 @@ export class ExerciseDbService {
   }
 
   /**
+   * Obtener ejercicios que trabajan un grupo muscular específico
+   */
+  async getExercisesByMuscleGroup(muscleGroup: string): Promise<ExerciseDbExercise[]> {
+    const allExercises = await this.getAllExercises();
+    
+    // Normalizar el nombre del grupo muscular
+    const normalizedGroup = muscleGroup.toLowerCase();
+    
+    // Mapeo de grupos musculares a términos de búsqueda
+    const muscleTerms: Record<string, string[]> = {
+      chest: ['chest', 'pectorals'],
+      back: ['back', 'lats', 'latissimus', 'traps', 'trapezius'],
+      shoulders: ['shoulders', 'delts', 'deltoids'],
+      arms: ['biceps', 'triceps', 'forearms'],
+      biceps: ['biceps'],
+      triceps: ['triceps'],
+      legs: ['quads', 'quadriceps', 'hamstrings', 'glutes', 'calves'],
+      core: ['abs', 'abdominals', 'core'],
+    };
+    
+    const searchTerms = muscleTerms[normalizedGroup] || [normalizedGroup];
+    
+    return allExercises.filter(ex => {
+      const targets = ex.targetMuscles.map(m => m.toLowerCase());
+      const secondaries = (ex.secondaryMuscles || []).map(m => m.toLowerCase());
+      const allMuscles = [...targets, ...secondaries];
+      
+      return searchTerms.some(term => 
+        allMuscles.some(muscle => muscle.includes(term))
+      );
+    });
+  }
+
+  /**
    * Datos mock para desarrollo/testing cuando la API no está disponible
    */
   private getMockExercises(): ExerciseDbExercise[] {

@@ -39,11 +39,12 @@ export class RutinasController {
     @Post('generate/weekly')
     @HttpCode(HttpStatus.CREATED)
     async generateWeeklyRoutine(@Body() generateDto: GenerateRoutineDto) {
-        const rutinas = await this.rutinasService.generateWeeklyRoutine(
+        const result = await this.rutinasService.generateWeeklyRoutine(
             generateDto.userId,
             generateDto.availableTimeMinutes,
         );
         
+        const rutinas = result.rutinas;
         const totalXp = rutinas.reduce((sum, r) => sum + r.xpTotalEstimado, 0);
         const totalTiempo = rutinas.reduce((sum, r) => sum + r.tiempoTotal, 0);
         

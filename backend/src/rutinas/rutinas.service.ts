@@ -119,7 +119,7 @@ export class RutinasService {
             // Perfil Básico (Principiante)
             return {
                 perfil: 'Básico',
-                frecuencia: 3, // 2-3 sesiones (usamos 3)
+                frecuencia: 3, // 3 sesiones
                 rir: 3,
                 descripcion: 'Adaptación neuronal y aprendizaje técnico'
             };
@@ -127,7 +127,7 @@ export class RutinasService {
             // Perfil Intermedio
             return {
                 perfil: 'Intermedio',
-                frecuencia: 4, // 3-4 sesiones (usamos 4)
+                frecuencia: 4, // 4 sesiones
                 rir: 2,
                 descripcion: 'Sobrecarga progresiva y hipertrofia funcional'
             };
@@ -135,10 +135,53 @@ export class RutinasService {
             // Perfil Avanzado
             return {
                 perfil: 'Avanzado',
-                frecuencia: 5, // 4-5 sesiones (usamos 5)
+                frecuencia: 5, // 5 sesiones
                 rir: 1, // 0-1 (usamos 1)
                 descripcion: 'Hipertrofia máxima con alto volumen'
             };
+        }
+    }
+
+    /**
+     * Define la división de grupos musculares según la frecuencia de entrenamiento
+     * Retorna un array con los grupos musculares a trabajar cada día
+     */
+    private getMuscleGroupSplit(frecuencia: number): string[][] {
+        switch (frecuencia) {
+            case 3:
+                // 3 días/semana (Básico) - Full body dividido
+                return [
+                    ['chest', 'shoulders', 'triceps'],  // Día 1: Push
+                    ['back', 'biceps'],                  // Día 2: Pull
+                    ['legs', 'core'],                    // Día 3: Piernas + Core
+                ];
+            
+            case 4:
+                // 4 días/semana (Intermedio) - Upper/Lower split
+                return [
+                    ['chest', 'triceps'],      // Día 1: Pecho + Tríceps
+                    ['back', 'biceps'],        // Día 2: Espalda + Bíceps
+                    ['legs', 'core'],          // Día 3: Piernas + Core
+                    ['shoulders', 'triceps', 'biceps'], // Día 4: Hombros + Brazos
+                ];
+            
+            case 5:
+                // 5 días/semana (Avanzado) - Bro split
+                return [
+                    ['chest'],                  // Día 1: Pecho
+                    ['back'],                   // Día 2: Espalda
+                    ['legs'],                   // Día 3: Piernas
+                    ['shoulders'],              // Día 4: Hombros
+                    ['biceps', 'triceps', 'core'], // Día 5: Brazos + Core
+                ];
+            
+            default:
+                // Fallback a 3 días
+                return [
+                    ['chest', 'shoulders', 'triceps'],
+                    ['back', 'biceps'],
+                    ['legs', 'core'],
+                ];
         }
     }
 
@@ -150,7 +193,7 @@ export class RutinasService {
     async generateWeeklyRoutine(
         usuarioId: string,
         maxTimePerSession: number = 120,
-    ): Promise<Rutina[]> {
+    ): Promise<{ rutinas: Rutina[] }> {
         console.log(`[RutinasService] Generando rutina semanal para usuario ${usuarioId}`);
         
         const user = await this.userModel.findById(usuarioId).exec();
@@ -168,6 +211,10 @@ export class RutinasService {
         console.log(`[RutinasService] Perfil: ${perfilConfig.perfil} (Nivel ${user.nivel})`);
         console.log(`[RutinasService] Frecuencia: ${perfilConfig.frecuencia} días/semana, RIR: ${perfilConfig.rir}`);
 
+        // Definir división de grupos musculares según frecuencia
+        const muscleGroupSplits = this.getMuscleGroupSplit(perfilConfig.frecuencia);
+        console.log(`[RutinasService] División muscular:`, muscleGroupSplits);
+
         const weekRoutines: Rutina[] = [];
         const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         
@@ -175,86 +222,92 @@ export class RutinasService {
         const trainingDays = perfilConfig.frecuencia;
         const staminaPerDay = 100; // Stamina fija por día
 
-        // Generar una rutina para cada día de la semana
-        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-            const isRestDay = dayIndex >= trainingDays;
+        // Generar una rutina para cada día de entrenamiento
+        for (let dayIndex = 0; dayIndex < trainingDays; dayIndex++) {
+            const muscleGroups = muscleGroupSplits[dayIndex];
+            const dayName = daysOfWeek[dayIndex];
             
-            if (isRestDay) {
-                // Día de descanso
-                const restRutina = new this.rutinaModel({
-                    usuarioId: new Types.ObjectId(usuarioId),
-                    nombre: `${daysOfWeek[dayIndex]} - Día de Descanso`,
-                    descripcion: `Recuperación activa. Perfil ${perfilConfig.perfil} - ${perfilConfig.descripcion}`,
-                    cycleType: 'daily-session',
-                    goal: 'hypertrophy', // Siempre hipertrofia
-                    ejercicios: [],
-                    tiempoTotal: 0,
-                    fatigaTotal: 0,
-                    xpTotalEstimado: 0,
-                    currentVolume: 0,
-                    diasSemana: [daysOfWeek[dayIndex]],
-                    duracionEstimada: 0,
-                    activa: true,
-                    algorithmVersion: '2.0-DAG',
-                });
-                const saved = await restRutina.save();
-                weekRoutines.push(saved);
-            } else {
-                // Día de entrenamiento
-                const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
-                    usuarioId,
-                    maxTimePerSession,
-                    staminaPerDay,
-                    perfilConfig.rir, // Pasar el RIR del perfil
-                );
+            console.log(`[RutinasService] Generando ${dayName} - Grupos: ${muscleGroups.join(' + ')}`);
 
-                const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
+            // Día de entrenamiento con grupos musculares específicos
+            const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
+                usuarioId,
+                maxTimePerSession,
+                staminaPerDay,
+                perfilConfig.rir,
+                muscleGroups, // Pasar los grupos musculares del día
+            );
 
-                const ejercicios = optimalPath.nodes.map(node => ({
-                    externalId: node.externalId,
-                    nombre: node.name,
-                    series: node.series,
-                    repeticiones: node.repeticiones,
-                    peso: 0,
-                    costoTiempo: node.costoTiempo,
-                    costoFatiga: node.costoFatiga,
-                    estimuloXP: node.estimuloXP,
-                    completado: false,
-                    rir: perfilConfig.rir, // Usar el RIR del perfil
-                    muscleTargets: node.muscleTargets,
-                    notas: `RIR ${perfilConfig.rir} - ${perfilConfig.perfil} - ${perfilConfig.descripcion}`,
-                }));
+            const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
 
-                const rutina = new this.rutinaModel({
-                    usuarioId: new Types.ObjectId(usuarioId),
-                    nombre: `${daysOfWeek[dayIndex]} - ${perfilConfig.perfil}`,
-                    descripcion: `Hipertrofia - Perfil ${perfilConfig.perfil} (RIR ${perfilConfig.rir}). Algoritmo DAG. XP: ${Math.round(optimalPath.totalXP)}`,
-                    cycleType: 'daily-session',
-                    goal: 'hypertrophy', // SIEMPRE hipertrofia
-                    ejercicios,
-                    tiempoTotal: optimalPath.totalTime,
-                    fatigaTotal: optimalPath.totalFatigue,
-                    xpTotalEstimado: optimalPath.totalXP,
-                    volumeLandmarks,
-                    currentVolume: ejercicios.reduce((sum, e) => sum + e.series, 0),
-                    diasSemana: [daysOfWeek[dayIndex]],
-                    duracionEstimada: optimalPath.totalTime,
-                    activa: true,
-                    algorithmVersion: '2.0-DAG',
-                    algorithmMetadata: {
-                        graphNodesEvaluated: optimalPath.nodes.length,
-                        pathsConsidered: 1,
-                        optimizationTime: 0,
-                    },
-                });
+            const ejercicios = optimalPath.nodes.map(node => ({
+                externalId: node.externalId,
+                nombre: node.name,
+                series: node.series,
+                repeticiones: node.repeticiones,
+                peso: 0,
+                costoTiempo: node.costoTiempo,
+                costoFatiga: node.costoFatiga,
+                estimuloXP: node.estimuloXP,
+                completado: false,
+                rir: perfilConfig.rir, // Usar el RIR del perfil
+                muscleTargets: node.muscleTargets,
+                notas: `${muscleGroups.join(' + ')} - RIR ${perfilConfig.rir}`,
+            }));
 
-                const saved = await rutina.save();
-                weekRoutines.push(saved);
-            }
+            const rutina = new this.rutinaModel({
+                usuarioId: new Types.ObjectId(usuarioId),
+                nombre: `${dayName} - ${muscleGroups.join(' + ')}`,
+                descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (RIR ${perfilConfig.rir}). XP: ${Math.round(optimalPath.totalXP)}`,
+                cycleType: 'daily-session',
+                goal: 'hypertrophy',
+                ejercicios,
+                tiempoTotal: optimalPath.totalTime,
+                fatigaTotal: optimalPath.totalFatigue,
+                xpTotalEstimado: optimalPath.totalXP,
+                volumeLandmarks,
+                currentVolume: ejercicios.reduce((sum, e) => sum + e.series, 0),
+                diasSemana: [dayName],
+                duracionEstimada: optimalPath.totalTime,
+                activa: true,
+                algorithmVersion: '2.0-DAG',
+                algorithmMetadata: {
+                    graphNodesEvaluated: optimalPath.nodes.length,
+                    pathsConsidered: 1,
+                    optimizationTime: 0,
+                    muscleGroups, // Guardar los grupos musculares trabajados
+                },
+            });
+
+            const saved = await rutina.save();
+            weekRoutines.push(saved);
         }
 
-        console.log(`[RutinasService] Rutina semanal generada exitosamente (${weekRoutines.length} días)`);
-        return weekRoutines;
+        // Agregar días de descanso
+        for (let dayIndex = trainingDays; dayIndex < 7; dayIndex++) {
+            const restRutina = new this.rutinaModel({
+                usuarioId: new Types.ObjectId(usuarioId),
+                nombre: `${daysOfWeek[dayIndex]} - Descanso`,
+                descripcion: `Recuperación activa - ${perfilConfig.perfil}`,
+                cycleType: 'daily-session',
+                goal: 'hypertrophy',
+                ejercicios: [],
+                tiempoTotal: 0,
+                fatigaTotal: 0,
+                xpTotalEstimado: 0,
+                currentVolume: 0,
+                diasSemana: [daysOfWeek[dayIndex]],
+                duracionEstimada: 0,
+                activa: true,
+                algorithmVersion: '2.0-DAG',
+            });
+            const saved = await restRutina.save();
+            weekRoutines.push(saved);
+        }
+
+        console.log(`[RutinasService] ✅ Rutina semanal generada: ${trainingDays} días de entrenamiento + ${7 - trainingDays} días de descanso`);
+
+        return { rutinas: weekRoutines };
     }
 
     /**

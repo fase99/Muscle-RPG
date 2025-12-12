@@ -24,9 +24,11 @@ interface ExerciseNode {
     DEX: number;
     END: number;
   };
-  prerequisites: string[];    // IDs de ejercicios previos requeridos
+  prerequisites?: string[];    // IDs de ejercicios previos requeridos (opcional)
   series: number;
   repeticiones: number;
+  targetMuscles?: string[];   // Músculos objetivo reales (del JSON)
+  bodyParts?: string[];       // Partes del cuerpo (del JSON)
 }
 
 interface GraphPath {
@@ -62,6 +64,7 @@ export class GraphOptimizerService {
     maxTime: number = 120,      // Límite temporal (2 horas)
     availableStamina?: number,  // Stamina disponible (se obtiene del usuario si no se proporciona)
     targetRIR: number = 2,      // RIR objetivo según perfil (3=Básico, 2=Intermedio, 0-1=Avanzado)
+    targetMuscleGroups?: string[], // Grupos musculares a trabajar en esta sesión (ej: ['chest', 'triceps'])
   ): Promise<GraphPath> {
     console.log('[GraphOptimizer] Iniciando optimización de sesión diaria...');
     
@@ -75,9 +78,12 @@ export class GraphOptimizerService {
     const stamina = availableStamina ?? user.staminaActual;
     
     console.log(`[GraphOptimizer] Usuario Nivel: ${user.nivel}, Stamina: ${stamina}/${user.staminaMaxima}, RIR Target: ${targetRIR}`);
+    if (targetMuscleGroups && targetMuscleGroups.length > 0) {
+      console.log(`[GraphOptimizer] Grupos musculares objetivo: ${targetMuscleGroups.join(', ')}`);
+    }
 
     // 2. Construir el grafo de ejercicios disponibles
-    const availableExercises = await this.buildExerciseGraph(user, profile, targetRIR);
+    const availableExercises = await this.buildExerciseGraph(user, profile, targetRIR, targetMuscleGroups);
     
     console.log(`[GraphOptimizer] Ejercicios disponibles: ${availableExercises.length}`);
 
@@ -101,11 +107,115 @@ export class GraphOptimizerService {
    * - Nivel del usuario
    * - Ejercicios ya dominados (prerequisites cumplidos)
    * - Parámetros del perfil (RIR, carga estimada)
+   * - Grupos musculares objetivo (obligatorio para rutinas semanales)
    */
   private async buildExerciseGraph(
     user: UserDocument,
     profile: ProfileDocument,
     targetRIR: number = 2,
+    targetMuscleGroups?: string[],
+  ): Promise<ExerciseNode[]> {
+    console.log(`[GraphOptimizer] Construyendo grafo de ejercicios...`);
+    
+    // Si hay grupos musculares objetivo, obtener ejercicios directamente desde ExerciseDB
+    if (targetMuscleGroups && targetMuscleGroups.length > 0) {
+      return this.buildGraphFromExerciseDb(user, profile, targetRIR, targetMuscleGroups);
+    }
+    
+    // Fallback: usar reglas de la BD (para rutinas diarias sin split)
+    return this.buildGraphFromRules(user, profile, targetRIR);
+  }
+
+  /**
+   * Construye el grafo usando ejercicios reales de data-exercises/exercises.json
+   * filtrados por grupo muscular
+   */
+  private async buildGraphFromExerciseDb(
+    user: UserDocument,
+    profile: ProfileDocument,
+    targetRIR: number,
+    targetMuscleGroups: string[],
+  ): Promise<ExerciseNode[]> {
+    console.log(`[GraphOptimizer] Obteniendo ejercicios desde ExerciseDB para grupos: ${targetMuscleGroups.join(', ')}`);
+    
+    const nodes: ExerciseNode[] = [];
+    
+    // Obtener ejercicios por cada grupo muscular
+    for (const muscleGroup of targetMuscleGroups) {
+      const exercises = await this.exerciseDbService.getExercisesByMuscleGroup(muscleGroup);
+      console.log(`[GraphOptimizer] Encontrados ${exercises.length} ejercicios para ${muscleGroup}`);
+      
+      // Limitar a los primeros 30 ejercicios por grupo (para evitar demasiados)
+      const limitedExercises = exercises.slice(0, 30);
+      
+      for (const exercise of limitedExercises) {
+        const series = this.getSeriesForProfile(profile);
+        const repeticiones = this.getRepetitionsForHypertrophy();
+        const muRIR = this.calculateRIRMultiplier(targetRIR);
+        
+        const tiempoPorSerie = 2.5;
+        const costoTiempo = tiempoPorSerie * series;
+        
+        const fatigaBasePorSerie = 8;
+        const costoFatiga = fatigaBasePorSerie * series * muRIR;
+        
+        const xpBasePorSerie = 15;
+        const estimuloXP = xpBasePorSerie * series * muRIR;
+        
+        // Mapear grupo muscular a atributos RPG para balance
+        const muscleTargets = this.mapMuscleGroupToRPG(muscleGroup);
+        
+        const node: ExerciseNode = {
+          id: exercise.exerciseId,
+          externalId: exercise.exerciseId,
+          name: exercise.name,
+          costoTiempo,
+          costoFatiga,
+          estimuloXP,
+          muscleTargets,
+          series,
+          repeticiones,
+          rir: targetRIR,
+          targetMuscles: exercise.targetMuscles,
+          bodyParts: exercise.bodyParts,
+        };
+        
+        nodes.push(node);
+      }
+    }
+    
+    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} ejercicios reales desde ExerciseDB`);
+    return nodes;
+  }
+
+  /**
+   * Mapea un grupo muscular a atributos RPG para el balance
+   */
+  private mapMuscleGroupToRPG(muscleGroup: string): { STR: number; AGI: number; STA: number; INT: number; DEX: number; END: number } {
+    const baseAttributes = { STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0 };
+    
+    const mapping: Record<string, Partial<typeof baseAttributes>> = {
+      chest: { STR: 0.7, END: 0.3 },
+      back: { STR: 0.7, END: 0.3 },
+      shoulders: { STR: 0.6, DEX: 0.4 },
+      triceps: { STR: 0.7, DEX: 0.3 },
+      biceps: { STR: 0.7, DEX: 0.3 },
+      legs: { STR: 0.6, STA: 0.4 },
+      core: { STA: 0.6, END: 0.4 },
+    };
+    
+    const groupMapping = mapping[muscleGroup.toLowerCase()] || { STR: 0.5, END: 0.5 };
+    
+    return { ...baseAttributes, ...groupMapping };
+  }
+
+  /**
+   * Construye el grafo usando las reglas de la base de datos (método original)
+   */
+  private async buildGraphFromRules(
+    user: UserDocument,
+    profile: ProfileDocument,
+    targetRIR: number,
   ): Promise<ExerciseNode[]> {
     // Obtener reglas de ejercicios según nivel del usuario
     const levelMap = {
@@ -178,7 +288,7 @@ export class GraphOptimizerService {
       nodes.push(node);
     }
 
-    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} nodos (ejercicios disponibles)`);
+    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} nodos (ejercicios disponibles desde BD)`);
     
     return nodes;
   }
@@ -227,16 +337,21 @@ export class GraphOptimizerService {
       };
     }
 
-    // Ordenar por eficiencia (XP por unidad de costo)
+    // Ordenar por eficiencia (XP por unidad de costo) con factor aleatorio
     const sortedExercises = [...feasibleExercises].sort((a, b) => {
       const costA = a.costoTiempo * 0.5 + a.costoFatiga * 0.5;
       const costB = b.costoTiempo * 0.5 + b.costoFatiga * 0.5;
       const effA = a.estimuloXP / costA;
       const effB = b.estimuloXP / costB;
-      return effB - effA;
+      
+      // Agregar factor de variabilidad (+/- 15% aleatorio)
+      const randomFactorA = 0.85 + Math.random() * 0.3; // 0.85 a 1.15
+      const randomFactorB = 0.85 + Math.random() * 0.3;
+      
+      return (effB * randomFactorB) - (effA * randomFactorA);
     });
 
-    // ALGORITMO GREEDY MEJORADO CON BALANCE MUSCULAR
+    // ALGORITMO GREEDY MEJORADO CON BALANCE MUSCULAR Y VARIABILIDAD
     const selectedNodes: ExerciseNode[] = [];
     let currentTime = 0;
     let currentFatigue = 0;
@@ -347,7 +462,6 @@ export class GraphOptimizerService {
   }
 
   /**
-  /**
    * Obtiene el número de series según el perfil (nivel del usuario)
    * Básico: 3 series, Intermedio: 4 series, Avanzado: 5 series
    */
@@ -384,6 +498,30 @@ export class GraphOptimizerService {
     if (rir === 2) return 1.0;
     if (rir === 3) return 0.85;
     return 0.7;
+  }
+
+  /**
+   * Verifica si un ejercicio coincide con los grupos musculares objetivo
+   * basándose en sus atributos RPG (STR, AGI, STA, etc.)
+   */
+  private exerciseMatchesMuscleGroups(
+    muscleTargets: Record<string, number>,
+    targetGroups: string[],
+    muscleGroupMap: Record<string, string[]>
+  ): boolean {
+    // Para cada grupo muscular objetivo
+    for (const group of targetGroups) {
+      const rpgAttributes = muscleGroupMap[group];
+      if (!rpgAttributes) continue;
+
+      // Verificar si el ejercicio trabaja alguno de los atributos de este grupo
+      for (const attr of rpgAttributes) {
+        if (muscleTargets[attr] && muscleTargets[attr] > 0.3) { // Umbral del 30%
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

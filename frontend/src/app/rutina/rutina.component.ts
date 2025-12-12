@@ -124,12 +124,18 @@ export class RutinaComponent implements OnInit {
       rir: ej.rir,
       hecho: false,
       completado: ej.completado || false,
-      notas: ej.notas
+      notas: ej.notas,
+      targetMuscles: ej.targetMuscles,
+      bodyParts: ej.bodyParts
     }));
+
+    const diaNombre = rutinaBackend.nombre || rutinaBackend.dia || `Día ${this.diaActual + 1}`;
+    const muscleGroups = rutinaBackend.muscleGroups || rutinaBackend.targetMuscleGroups || [];
+    const muscleGroupText = muscleGroups.length > 0 ? ` - ${muscleGroups.join(' + ')}` : '';
 
     return {
       _id: rutinaBackend._id,
-      dia: `Misión Diaria - ${new Date().toLocaleDateString()}`,
+      dia: `${diaNombre}${muscleGroupText}`,
       nombre: rutinaBackend.nombre,
       descripcion: rutinaBackend.descripcion,
       tiempoPlaneado: 120,
@@ -138,7 +144,8 @@ export class RutinaComponent implements OnInit {
       fatigaTotal: rutinaBackend.fatigaTotal,
       xpTotalEstimado: rutinaBackend.xpTotalEstimado,
       ejercicios,
-      volumeLandmarks: rutinaBackend.volumeLandmarks
+      volumeLandmarks: rutinaBackend.volumeLandmarks,
+      muscleGroups: muscleGroups
     };
   }
 
