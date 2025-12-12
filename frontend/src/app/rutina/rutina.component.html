@@ -2,9 +2,9 @@
 
   <!-- HEADER DEL DÍA + ENERGÍA -->
   <header class="header-dia">
-    <h1>{{ rutina.dia }}</h1>
+    <h1>{{ rutinaGenerada ? rutina.dia : 'Muscle RPG - Rutinas' }}</h1>
 
-    <div class="energia">
+    <div class="energia" *ngIf="rutinaGenerada">
       Energía: <strong>{{ energiaRestante() }} / {{ rutina.energiaMax }}</strong>
     </div>
 
@@ -14,12 +14,88 @@
     </div>
   </header>
 
-  <!-- ESTADO INICIAL -->
-  <div class="estado-inicial" *ngIf="!sesionActiva && !sesionFinalizada">
+  <!-- ERROR MESSAGE -->
+  <div class="error-message" *ngIf="errorMessage" style="background: #ff4444; color: white; padding: 1rem; margin: 1rem; border-radius: 8px;">
+    ⚠️ {{ errorMessage }}
+  </div>
+
+  <!-- SELECTOR DE DÍAS (cuando hay rutina semanal) -->
+  <div class="selector-dias" *ngIf="rutinaGenerada && rutinaSemanal.length > 0" style="margin: 1.5rem auto; max-width: 800px;">
+    <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; padding: 0 1rem;">
+      <button 
+        *ngFor="let r of rutinaSemanal; let i = index"
+        (click)="cambiarDia(i)"
+        [class.activo]="i === diaActual"
+        class="btn-dia"
+        [style.background]="i === diaActual ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent'"
+        [style.color]="i === diaActual ? 'white' : '#667eea'"
+        [style.border-color]="i === diaActual ? 'transparent' : '#667eea'">
+        {{ diasSemana[i] }}
+        <span style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
+          {{ r.ejercicios.length > 0 ? '💪 ' + r.ejercicios.length + ' ej.' : '😴 Descanso' }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTÓN GENERAR RUTINA (cuando no hay rutina generada) -->
+  <div class="generar-rutina" *ngIf="!rutinaGenerada && !loading">
+    <div class="card-generar">
+      <h2>📅 Rutina Semanal</h2>
+      <p>Genera tu rutina de entrenamiento personalizada optimizada por algoritmo de grafos DAG</p>
+      
+      <div class="info-stats" *ngIf="user">
+        <div class="stat-item">
+          <span class="stat-label">Stamina disponible:</span>
+          <span class="stat-value">{{ user.staminaActual || 100 }} / {{ user.staminaMaxima || 100 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Nivel:</span>
+          <span class="stat-value">{{ user.nivel || 1 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Tiempo disponible:</span>
+          <span class="stat-value">120 minutos</span>
+        </div>
+      </div>
+
+      <button class="btn-generar-rutina" (click)="generarRutinaDiaria()">
+        🚀 GENERAR RUTINA DIARIA
+      </button>
+
+      <div class="hint">
+        <small>El sistema calculará la rutina óptima basada en tu perfil, nivel y estado actual</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div class="loading" *ngIf="loading" style="text-align: center; padding: 3rem;">
+    <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+    <p style="margin-top: 1rem; color: #666;">Generando tu rutina óptima... 🤖</p>
+  </div>
+
+  <!-- ESTADO INICIAL (cuando la rutina está generada pero no iniciada) -->
+  <div class="estado-inicial" *ngIf="rutinaGenerada && !sesionActiva && !sesionFinalizada">
     <div class="card-inicial">
 
-      <h2>Rutina lista para hoy</h2>
-      <p>Entrenamiento generado en base a tu progreso.</p>
+      <h2>✅ Rutina generada exitosamente</h2>
+      <p *ngIf="rutina.descripcion">{{ rutina.descripcion }}</p>
+
+      <div class="stats-rutina" *ngIf="rutina.xpTotalEstimado">
+        <div class="stat">
+          <span class="label">XP Estimado:</span>
+          <span class="value">{{ rutina.xpTotalEstimado | number:'1.0-0' }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Ejercicios:</span>
+          <span class="value">{{ rutina.ejercicios.length }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Tiempo:</span>
+          <span class="value">{{ rutina.tiempoTotal || rutina.tiempoPlaneado }} min</span>
+        </div>
+      </div>
 
       <div class="info-energia">
         <strong>Energía disponible:</strong>
@@ -29,12 +105,12 @@
       </div>
 
       <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
-        COMENZAR ENTRENAMIENTO
+        💪 COMENZAR ENTRENAMIENTO
       </button>
 
-      <div class="tiempo-disponible">
-        Tienes 120 minutos disponibles
-      </div>
+      <button class="btn-secondary" (click)="rutinaGenerada = false; errorMessage = ''" style="margin-top: 1rem;">
+        🔄 Generar Nueva Rutina
+      </button>
     </div>
   </div>
 

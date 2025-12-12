@@ -1,11 +1,43 @@
 .container {
-  max-width: 720px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 16px;
   font-family: 'Segoe UI', system-ui, sans-serif;
   background: #0d1117;
   color: #c9d1d9;
   min-height: 100vh;
+}
+
+/* === SELECTOR DE DÍAS === */
+.selector-dias {
+  margin: 1.5rem auto;
+  max-width: 900px;
+}
+
+.btn-dia {
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #667eea;
+  background: transparent;
+  color: #667eea;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  min-width: 110px;
+  text-align: center;
+}
+
+.btn-dia:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-dia.activo {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 /* === HEADER DEL DÍA === */
@@ -48,6 +80,145 @@
 
 /* === ESTADO INICIAL === */
 .estado-inicial,
+.generar-rutina {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.card-inicial,
+.card-generar {
+  background: #161b22;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: 500px;
+  width: 100%;
+}
+
+.card-generar {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 2px solid #1e40af;
+}
+
+.card-generar h2 {
+  color: #60a5fa;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.info-stats {
+  background: rgba(30, 64, 175, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.stats-rutina {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(30, 64, 175, 0.1);
+  border-radius: 12px;
+}
+
+.stats-rutina .stat {
+  text-align: center;
+}
+
+.stats-rutina .label {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.stats-rutina .value {
+  display: block;
+  color: #60a5fa;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.btn-generar-rutina {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 18px 32px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  margin-top: 1.5rem;
+}
+
+.btn-generar-rutina:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+}
+
+.btn-generar-rutina:active {
+  transform: translateY(0);
+}
+
+.hint {
+  margin-top: 1rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.btn-secondary {
+  width: 100%;
+  background: transparent;
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(71, 85, 105, 0.2);
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 .durante {
   text-align: center;
   margin: 40px 0;

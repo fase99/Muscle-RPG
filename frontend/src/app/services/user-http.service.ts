@@ -105,4 +105,12 @@ export class UserHttpService {
   updateMetrics(id: string, metricas: any[]): Observable<UserFromDB> {
     return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/metricas`, { metricas });
   }
+
+  updateExperiencia(id: string, xpGanada: number): Observable<UserFromDB> {
+    return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/experiencia`, { xpGanada });
+  }
+
+  updateStamina(id: string, staminaCost: number): Observable<UserFromDB> {
+    return this.http.patch<UserFromDB>(`${this.apiUrl}/users/${id}/stamina`, { staminaCost });
+  }
 }
