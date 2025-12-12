@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth/auth.service';
-import { UserFromDB, UserHttpService } from '../services/user-http.service';
+import { UserFromDB, UserHttpService, ProfileFromDB } from '../services/user-http.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
     selector: 'app-perfil',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './perfil.component.html',
     styleUrls: ['./perfil.component.css'],
 })
@@ -15,9 +17,22 @@ export class PerfilComponent implements OnInit {
     userStats: any = null;
     loading = true;
 
+    // Modal states
+    showPersonalModal = false;
+    showPhysicalModal = false;
+    showExperienceModal = false;
+    
+    // Edit forms
+    editPersonalData = { nombre: '', apellido: '', edad: 0, email: '' };
+    editPhysicalData = { weight: 0, height: 0 };
+    editExperienceData = { experienceMonths: 0, nivelactividad: '' };
+    
+    saving = false;
+
     constructor(
         public authService: AuthService,
-        private userHttpService: UserHttpService
+        private userHttpService: UserHttpService,
+        private http: HttpClient
     ) {}
 
     ngOnInit() {
@@ -237,5 +252,119 @@ export class PerfilComponent implements OnInit {
 
     get totalTrainingTime(): number {
         return this.userStats?.rutinasStats?.tiempoTotalMinutos || 0;
+    }
+
+    // === MODAL HANDLERS ===
+    
+    openPersonalModal() {
+        this.editPersonalData = {
+            nombre: this.user?.nombre || '',
+            apellido: this.user?.apellido || '',
+            edad: this.user?.edad || 0,
+            email: this.user?.email || ''
+        };
+        this.showPersonalModal = true;
+    }
+
+    openPhysicalModal() {
+        this.editPhysicalData = {
+            weight: this.userStats?.profileData?.weight || 0,
+            height: this.userStats?.profileData?.height || 0
+        };
+        this.showPhysicalModal = true;
+    }
+
+    openExperienceModal() {
+        const profile = this.user?.profileId as any;
+        this.editExperienceData = {
+            experienceMonths: profile?.experienceMonths || 0,
+            nivelactividad: profile?.nivelactividad || ''
+        };
+        this.showExperienceModal = true;
+    }
+
+    closeModals() {
+        this.showPersonalModal = false;
+        this.showPhysicalModal = false;
+        this.showExperienceModal = false;
+    }
+
+    // === SAVE HANDLERS ===
+    
+    savePersonalData() {
+        if (!this.user?._id) return;
+        
+        this.saving = true;
+        this.userHttpService.updateUser(this.user._id, {
+            nombre: this.editPersonalData.nombre,
+            apellido: this.editPersonalData.apellido,
+            edad: this.editPersonalData.edad,
+            email: this.editPersonalData.email
+        } as any).subscribe({
+            next: (updatedUser) => {
+                this.user = updatedUser;
+                this.authService.refreshUser();
+                this.loadUserStats(this.user._id);
+                this.saving = false;
+                this.closeModals();
+            },
+            error: (error) => {
+                console.error('Error actualizando datos personales:', error);
+                this.saving = false;
+                alert('Error al actualizar los datos');
+            }
+        });
+    }
+
+    savePhysicalData() {
+        const profile = this.user?.profileId as any;
+        if (!profile?._id) {
+            alert('No se encontró el perfil del usuario');
+            return;
+        }
+
+        this.saving = true;
+        this.http.patch(`http://localhost:3000/users/profiles/${profile._id}`, {
+            weight: this.editPhysicalData.weight,
+            height: this.editPhysicalData.height
+        }).subscribe({
+            next: () => {
+                this.authService.refreshUser();
+                this.loadUserStats(this.user!._id);
+                this.saving = false;
+                this.closeModals();
+            },
+            error: (error) => {
+                console.error('Error actualizando datos físicos:', error);
+                this.saving = false;
+                alert('Error al actualizar los datos');
+            }
+        });
+    }
+
+    saveExperienceData() {
+        const profile = this.user?.profileId as any;
+        if (!profile?._id) {
+            alert('No se encontró el perfil del usuario');
+            return;
+        }
+
+        this.saving = true;
+        this.http.patch(`http://localhost:3000/users/profiles/${profile._id}`, {
+            experienceMonths: this.editExperienceData.experienceMonths,
+            nivelactividad: this.editExperienceData.nivelactividad
+        }).subscribe({
+            next: () => {
+                this.authService.refreshUser();
+                this.loadUserStats(this.user!._id);
+                this.saving = false;
+                this.closeModals();
+            },
+            error: (error) => {
+                console.error('Error actualizando experiencia:', error);
+                this.saving = false;
+                alert('Error al actualizar los datos');
+            }
+        });
     }
 }
