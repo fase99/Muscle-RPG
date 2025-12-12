@@ -1,4 +1,4 @@
-<nav class="navbar">
+<nav class="navbar" *ngIf="authService.isAuthenticated()">
   <div class="navbar-brand">
     <span class="logo-icon">💪</span>
     <h1>MUSCLE RPG</h1>
