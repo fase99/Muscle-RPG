@@ -98,32 +98,6 @@
   width: 100%;
 }
 
-/* === BOTONES DE MÉTRICAS === */
-.btn-metrics {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: 2px solid #667eea;
-  background: transparent;
-  color: #667eea;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-}
-
-.btn-metrics:hover {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-/* === ANIMACIÓN DE SPINNER === */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 .card-generar {
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border: 2px solid #1e40af;

@@ -153,16 +153,12 @@ export class GraphOptimizerService {
         const repeticiones = this.getRepetitionsForHypertrophy();
         const muRIR = this.calculateRIRMultiplier(targetRIR);
         
-        // Tiempo: ~2 minutos por serie (incluye ejecución + descanso)
-        const tiempoPorSerie = 2.0;
+        const tiempoPorSerie = 2.5;
         const costoTiempo = tiempoPorSerie * series;
         
-        // Fatiga: 5 puntos base por serie (ajustado para permitir más ejercicios)
-        // Con 100 de stamina y 4 series: 5*4 = 20 por ejercicio → ~5 ejercicios
-        const fatigaBasePorSerie = 5;
+        const fatigaBasePorSerie = 8;
         const costoFatiga = fatigaBasePorSerie * series * muRIR;
         
-        // XP: 15 puntos base por serie
         const xpBasePorSerie = 15;
         const estimuloXP = xpBasePorSerie * series * muRIR;
         
@@ -263,12 +259,12 @@ export class GraphOptimizerService {
       // Ajustar costos y XP según RIR y perfil
       const muRIR = this.calculateRIRMultiplier(targetRIR);
       
-      // Tiempo: ~2 minutos por serie (ejecución + descanso incluido)
-      const tiempoPorSerie = 2.0; // minutos
+      // Tiempo: 2-3 minutos por serie (descanso incluido)
+      const tiempoPorSerie = 2.5; // minutos
       const costoTiempo = tiempoPorSerie * series;
       
-      // Fatiga: 5 puntos base por serie (ajustado para rutinas más completas)
-      const fatigaBasePorSerie = 5; // stamina por serie
+      // Fatiga: depende del RIR (más bajo = más fatiga)
+      const fatigaBasePorSerie = 8; // stamina por serie
       const costoFatiga = fatigaBasePorSerie * series * muRIR;
       
       // XP: recompensa por el estímulo mecánico
@@ -298,12 +294,11 @@ export class GraphOptimizerService {
   }
 
   /**
-   * Encuentra el camino óptimo usando Algoritmo Greedy sobre Grafo Dirigido
+   * Encuentra el camino óptimo usando Programación Dinámica (0/1 Knapsack)
    * MAXIMIZA: XP_sesion = Σ(EstímuloXP_i · μ_RIR)
    * SUJETO A:
    *   - Σ CostoTime_i ≤ T_max (120 min)
    *   - Σ CostoFatiga_i ≤ S_actual (Stamina del día)
-   *   - Máximo 40% de ejercicios del mismo muscleGroup (restricción de balance)
    */
   private findOptimalPath(
     exercises: ExerciseNode[],
@@ -311,7 +306,7 @@ export class GraphOptimizerService {
     maxStamina: number,
     profile: ProfileDocument,
   ): GraphPath {
-    console.log(`[GraphOptimizer] Iniciando búsqueda de camino óptimo (Graph Greedy Algorithm)...`);
+    console.log(`[GraphOptimizer] Iniciando búsqueda de camino óptimo...`);
     console.log(`[GraphOptimizer] Restricciones: Tiempo=${maxTime}min, Stamina=${maxStamina}`);
     console.log(`[GraphOptimizer] Ejercicios candidatos: ${exercises.length}`);
 
@@ -342,90 +337,81 @@ export class GraphOptimizerService {
       };
     }
 
-    // ALGORITMO GREEDY: Ordenar por relación XP / (Time + Fatigue)
-    // Esta es la métrica de eficiencia que maximiza el retorno por recurso invertido
+    // Ordenar por eficiencia (XP por unidad de costo) con factor aleatorio
     const sortedExercises = [...feasibleExercises].sort((a, b) => {
-      // Calcular ratio: XP / (Tiempo + Fatiga)
-      // Normalizamos fatiga dividiéndola por 10 para equiparar con minutos
-      const ratioA = a.estimuloXP / (a.costoTiempo + a.costoFatiga / 10);
-      const ratioB = b.estimuloXP / (b.costoTiempo + b.costoFatiga / 10);
+      const costA = a.costoTiempo * 0.5 + a.costoFatiga * 0.5;
+      const costB = b.costoTiempo * 0.5 + b.costoFatiga * 0.5;
+      const effA = a.estimuloXP / costA;
+      const effB = b.estimuloXP / costB;
       
-      return ratioB - ratioA; // Orden descendente (mejor primero)
+      // Agregar factor de variabilidad (+/- 15% aleatorio)
+      const randomFactorA = 0.85 + Math.random() * 0.3; // 0.85 a 1.15
+      const randomFactorB = 0.85 + Math.random() * 0.3;
+      
+      return (effB * randomFactorB) - (effA * randomFactorA);
     });
 
-    console.log(`[GraphOptimizer] Top 3 ejercicios por ratio XP/(Time+Fatigue):`);
-    sortedExercises.slice(0, 3).forEach((ex, i) => {
-      const ratio = ex.estimuloXP / (ex.costoTiempo + ex.costoFatiga / 10);
-      console.log(`  ${i+1}. ${ex.name}: ${ratio.toFixed(2)}`);
-    });
-
-    // SELECCIÓN GREEDY CON RESTRICCIÓN DE BALANCE MUSCULAR
+    // ALGORITMO GREEDY MEJORADO CON BALANCE MUSCULAR Y VARIABILIDAD
     const selectedNodes: ExerciseNode[] = [];
-    const selectedExerciseIds = new Set<string>(); // Para evitar duplicados (grafo DAG)
     let currentTime = 0;
     let currentFatigue = 0;
     let currentXP = 0;
+    const muscleWork = { STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0 };
     
-    // Contador de grupos musculares trabajados
-    const muscleGroupCount = new Map<string, number>();
-    const MAX_MUSCLE_GROUP_PERCENTAGE = 0.40; // 40% máximo por grupo muscular
+    // Usar ~75% del tiempo disponible para permitir flexibilidad
+    const targetTime = maxTime * 0.75;
+    const minExercises = 5;
+    const maxExercises = 10;
 
-    // Intentar agregar ejercicios mientras se pueda (recorrido de grafo sin repetir nodos)
+    // Intentar agregar ejercicios mientras se pueda
     for (const exercise of sortedExercises) {
-      // VERIFICACIÓN DE GRAFO: No repetir ejercicios (cada nodo solo se visita una vez)
-      if (selectedExerciseIds.has(exercise.externalId || exercise.id)) {
-        console.log(`[GraphOptimizer] Ejercicio ${exercise.name} ya seleccionado (nodo visitado)`);
-        continue;
+      // Verificar si ya alcanzamos el máximo de ejercicios
+      if (selectedNodes.length >= maxExercises) {
+        console.log(`[GraphOptimizer] Límite de ${maxExercises} ejercicios alcanzado`);
+        break;
       }
 
-      // Verificar restricciones duras
+      // Verificar restricciones de recursos
       if (currentTime + exercise.costoTiempo > maxTime) {
-        continue; // Excede límite de tiempo
+        console.log(`[GraphOptimizer] Ejercicio ${exercise.name} excede tiempo`);
+        continue;
       }
       if (currentFatigue + exercise.costoFatiga > maxStamina) {
-        continue; // Excede límite de stamina
-      }
-
-      // Determinar grupo muscular principal del ejercicio
-      const primaryMuscleGroup = this.getPrimaryMuscleGroup(exercise);
-      
-      // Verificar restricción de balance: no más del 40% del mismo grupo
-      const currentCount = muscleGroupCount.get(primaryMuscleGroup) || 0;
-      const newCount = currentCount + 1;
-      const newTotal = selectedNodes.length + 1;
-      
-      if (newCount / newTotal > MAX_MUSCLE_GROUP_PERCENTAGE && selectedNodes.length >= 3) {
-        console.log(`[GraphOptimizer] Ejercicio ${exercise.name} (${primaryMuscleGroup}) rechazado: excede 40% de balance`);
+        console.log(`[GraphOptimizer] Ejercicio ${exercise.name} excede stamina`);
         continue;
       }
 
-      // AGREGAR EJERCICIO AL CAMINO (visitar nodo del grafo)
+      // Verificar balance muscular (máximo 60% por grupo muscular)
+      const wouldOverwork = this.wouldOverworkMuscleStrict(muscleWork, exercise.muscleTargets, currentXP + exercise.estimuloXP);
+      if (wouldOverwork && selectedNodes.length >= minExercises) {
+        console.log(`[GraphOptimizer] Ejercicio ${exercise.name} causaría desbalance muscular`);
+        continue;
+      }
+
+      // AGREGAR EJERCICIO
       selectedNodes.push(exercise);
-      selectedExerciseIds.add(exercise.externalId || exercise.id); // Marcar nodo como visitado
       currentTime += exercise.costoTiempo;
       currentFatigue += exercise.costoFatiga;
       currentXP += exercise.estimuloXP;
-      
-      // Actualizar contador de grupos musculares
-      muscleGroupCount.set(primaryMuscleGroup, newCount);
 
-      const ratio = exercise.estimuloXP / (exercise.costoTiempo + exercise.costoFatiga / 10);
-      console.log(`[GraphOptimizer] ✓ ${exercise.name} | Grupo: ${primaryMuscleGroup} | Ratio: ${ratio.toFixed(2)} | XP: ${exercise.estimuloXP.toFixed(1)}`);
+      // Actualizar trabajo muscular
+      for (const [muscle, value] of Object.entries(exercise.muscleTargets)) {
+        muscleWork[muscle] += value * exercise.estimuloXP;
+      }
+
+      console.log(`[GraphOptimizer] ✓ Agregado: ${exercise.name} (XP: ${exercise.estimuloXP.toFixed(1)}, Total: ${selectedNodes.length})`);
+
+      // Parar si alcanzamos ~75% del tiempo y tenemos al menos minExercises
+      if (selectedNodes.length >= minExercises && currentTime >= targetTime) {
+        console.log(`[GraphOptimizer] Objetivo de tiempo (~75%) alcanzado con ${selectedNodes.length} ejercicios`);
+        break;
+      }
     }
 
-    // Calcular balance muscular final
-    const muscleBalance = this.calculateMuscleGroupBalance(muscleGroupCount, selectedNodes.length);
+    const muscleBalance = this.calculateMuscleBalance(muscleWork);
 
     console.log(`[GraphOptimizer] ✅ Camino óptimo: ${selectedNodes.length} ejercicios`);
     console.log(`[GraphOptimizer] XP Total: ${currentXP.toFixed(1)}, Tiempo: ${currentTime}min, Fatiga: ${currentFatigue.toFixed(1)}`);
-    console.log(`[GraphOptimizer] Uso de recursos: Tiempo ${(currentTime/maxTime*100).toFixed(1)}%, Stamina ${(currentFatigue/maxStamina*100).toFixed(1)}%`);
-    console.log(`[GraphOptimizer] Balance Muscular: ${(muscleBalance*100).toFixed(1)}%`);
-    console.log(`[GraphOptimizer] Nodos visitados (sin duplicados): ${selectedExerciseIds.size}`);
-    console.log(`[GraphOptimizer] Distribución por grupo:`);
-    muscleGroupCount.forEach((count, group) => {
-      const percentage = (count / selectedNodes.length * 100).toFixed(1);
-      console.log(`  - ${group}: ${count} ejercicios (${percentage}%)`);
-    });
 
     return {
       nodes: selectedNodes,
@@ -434,58 +420,6 @@ export class GraphOptimizerService {
       totalFatigue: currentFatigue,
       muscleBalance,
     };
-  }
-
-  /**
-   * Determina el grupo muscular principal de un ejercicio
-   * Basado en targetMuscles o en el atributo RPG dominante
-   */
-  private getPrimaryMuscleGroup(exercise: ExerciseNode): string {
-    // Si el ejercicio tiene targetMuscles reales (de ExerciseDB)
-    if (exercise.targetMuscles && exercise.targetMuscles.length > 0) {
-      return exercise.targetMuscles[0]; // Primer músculo objetivo
-    }
-    
-    // Fallback: usar el atributo RPG dominante
-    const muscles = exercise.muscleTargets;
-    let maxValue = 0;
-    let primaryMuscle = 'general';
-    
-    for (const [muscle, value] of Object.entries(muscles)) {
-      if (value > maxValue) {
-        maxValue = value;
-        primaryMuscle = muscle;
-      }
-    }
-    
-    return primaryMuscle;
-  }
-
-  /**
-   * Calcula el balance entre grupos musculares
-   * Retorna un valor entre 0 y 1, donde 1 es balance perfecto
-   */
-  private calculateMuscleGroupBalance(muscleGroupCount: Map<string, number>, totalExercises: number): number {
-    if (totalExercises === 0) return 0;
-    
-    const counts = Array.from(muscleGroupCount.values());
-    if (counts.length === 0) return 0;
-    
-    // Calcular la distribución ideal (uniforme)
-    const idealPercentage = 1 / counts.length;
-    
-    // Calcular la desviación de cada grupo respecto al ideal
-    let totalDeviation = 0;
-    for (const count of counts) {
-      const actualPercentage = count / totalExercises;
-      totalDeviation += Math.abs(actualPercentage - idealPercentage);
-    }
-    
-    // Normalizar: balance perfecto = 1, peor balance = 0
-    const maxDeviation = 2; // Desviación máxima teórica
-    const balance = Math.max(0, 1 - (totalDeviation / maxDeviation));
-    
-    return balance;
   }
 
   /**
@@ -623,7 +557,7 @@ export class GraphOptimizerService {
     }
 
     // Ajustar según composición corporal (μ_comp)
-    const muComp = profile.compositionMultiplier || 1.0; 
+    const muComp = profile.compositionMultiplier || 1.0;
     
     return {
       MEV: Math.round(MEV * muComp),

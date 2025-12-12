@@ -34,16 +34,6 @@ export class RutinaComponent implements OnInit {
   errorMessage = '';
   rutinaGenerada = false;
 
-  // === Métricas de optimización ===
-  mostrarMetricas = false;
-  balanceMuscular = 0;
-  ratioEficiencia = 0;
-
-  // === Ciclo trimestral ===
-  mostrarCicloTrimestral = false;
-  cicloTrimestral: any = null;
-  loadingCiclo = false;
-
   constructor(
     private servicio: RutinaService,
     private userHttpService: UserHttpService,
@@ -95,86 +85,6 @@ export class RutinaComponent implements OnInit {
     });
   }
 
-  cargarCicloTrimestral() {
-    const userId = this.user?._id;
-    if (!userId) {
-      this.errorMessage = 'Usuario no autenticado';
-      return;
-    }
-
-    this.loadingCiclo = true;
-    this.errorMessage = '';
-
-    this.servicio.planQuarterlyCycle(userId).subscribe({
-      next: (cycle) => {
-        console.log('✅ Ciclo trimestral cargado:', cycle);
-        this.cicloTrimestral = cycle;
-        this.mostrarCicloTrimestral = true;
-        this.loadingCiclo = false;
-      },
-      error: (error) => {
-        console.error('❌ Error cargando ciclo trimestral:', error);
-        this.errorMessage = 'Error al cargar el ciclo trimestral';
-        this.loadingCiclo = false;
-      }
-    });
-  }
-
-  toggleMetricas() {
-    this.mostrarMetricas = !this.mostrarMetricas;
-  }
-
-  toggleCicloTrimestral() {
-    if (!this.cicloTrimestral) {
-      this.cargarCicloTrimestral();
-    } else {
-      this.mostrarCicloTrimestral = !this.mostrarCicloTrimestral;
-    }
-  }
-
-  calcularMetricas() {
-    if (!this.rutina || !this.rutina.ejercicios) return;
-
-    // Calcular balance muscular
-    const muscleGroups = new Map<string, number>();
-    let totalEjercicios = 0;
-
-    this.rutina.ejercicios.forEach(ej => {
-      if (ej.targetMuscles && ej.targetMuscles.length > 0) {
-        const primaryMuscle = ej.targetMuscles[0];
-        muscleGroups.set(primaryMuscle, (muscleGroups.get(primaryMuscle) || 0) + 1);
-        totalEjercicios++;
-      }
-    });
-
-    if (totalEjercicios > 0) {
-      const counts = Array.from(muscleGroups.values());
-      const idealPercentage = 1 / counts.length;
-      let totalDeviation = 0;
-
-      for (const count of counts) {
-        const actualPercentage = count / totalEjercicios;
-        totalDeviation += Math.abs(actualPercentage - idealPercentage);
-      }
-
-      this.balanceMuscular = Math.max(0, 1 - (totalDeviation / 2));
-    }
-
-    // Calcular ratio de eficiencia promedio
-    let totalRatio = 0;
-    let count = 0;
-
-    this.rutina.ejercicios.forEach(ej => {
-      if (ej.estimuloXP && ej.costoTiempo && ej.costoFatiga) {
-        const ratio = ej.estimuloXP / (ej.costoTiempo + ej.costoFatiga / 10);
-        totalRatio += ratio;
-        count++;
-      }
-    });
-
-    this.ratioEficiencia = count > 0 ? totalRatio / count : 0;
-  }
-
   generarRutinaDiaria() {
     const userId = this.user?._id;
     
@@ -201,9 +111,6 @@ export class RutinaComponent implements OnInit {
           this.sesionFinalizada = false;
           this.energiaGastada = 0;
           this.tiempoRealMinutos = 0;
-
-          // Calcular métricas automáticamente
-          this.calcularMetricas();
         },
         error: (error) => {
           console.error('❌ Error generando rutina:', error);
@@ -311,10 +218,6 @@ export class RutinaComponent implements OnInit {
 
   get userLevel(): number {
     return this.user?.nivel || 1;
-  }
-
-  getMaxVolume(progression: number[]): number {
-    return Math.max(...progression);
   }
 
   cargarRutina() {
