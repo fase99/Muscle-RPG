@@ -324,7 +324,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 24px;
-    align-items: start;
+    align-items: stretch;
 }
 
 .data-section {
@@ -332,9 +332,10 @@
     border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 12px;
     padding: 28px;
-    min-height: 260px;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
 .data-section-title {
