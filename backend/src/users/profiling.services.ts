@@ -135,17 +135,29 @@ export class profilingService{
         // Si se proporciona userId, agregarlo a la relación
         if (data.userId) {
           profileData.userId = data.userId;
+          console.log(`[ProfilingService] Vinculando perfil con usuario: ${data.userId}`);
         }
 
         const createdProfile = await this.profileModel.create(profileData);
+        console.log(`[ProfilingService] Perfil creado con ID: ${createdProfile._id}`);
 
-        // Si hay userId, actualizar el User con la referencia al Profile
+        // Si hay userId, actualizar el User con la referencia al Profile (relación bidireccional)
         if (data.userId) {
-          await this.userModel.findByIdAndUpdate(
-            data.userId,
-            { profileId: createdProfile._id },
-            { new: true }
-          );
+          try {
+            const updatedUser = await this.userModel.findByIdAndUpdate(
+              data.userId,
+              { profileId: createdProfile._id },
+              { new: true }
+            );
+            
+            if (!updatedUser) {
+              console.warn(`[ProfilingService] Usuario no encontrado: ${data.userId}`);
+            } else {
+              console.log(`[ProfilingService] Usuario actualizado con profileId: ${createdProfile._id}`);
+            }
+          } catch (error) {
+            console.error(`[ProfilingService] Error actualizando usuario:`, error);
+          }
         }
 
         return {
