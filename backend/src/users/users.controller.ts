@@ -97,6 +97,11 @@ export class UsersController {
             console.log('========== CREANDO PERFIL ==========');
             console.log('DTO recibido:', JSON.stringify(createProfileDto, null, 2));
             
+            // Validar que se proporcione el userId para vincular el perfil
+            if (!createProfileDto.userId) {
+                throw new BadRequestException('El campo userId es requerido para crear un perfil');
+            }
+            
             const result = await this.profilingService.calcularNivelUsuario(createProfileDto);
             
             console.log('========== PERFIL CREADO EXITOSAMENTE ==========');
@@ -139,6 +144,33 @@ export class UsersController {
     async checkHasProfile(@Param('id') id: string) {
         const hasProfile = await this.usersService.hasProfile(id);
         return { userId: id, hasProfile };
+    }
+
+    @Get(':id/profile-relationship')
+    async getProfileRelationship(@Param('id') id: string) {
+        const user = await this.usersService.findOne(id);
+        const profile = await this.usersService.getProfileByUserId(id);
+        
+        return {
+            userId: id,
+            userHasProfileId: !!user.profileId,
+            profileExists: !!profile,
+            profileHasUserId: profile ? !!(profile as any).userId : false,
+            relationshipComplete: !!(user.profileId && profile && (profile as any).userId),
+            details: {
+                user: {
+                    id: id,
+                    nombre: user.nombre,
+                    profileId: user.profileId || null
+                },
+                profile: profile ? {
+                    id: (profile as any)._id?.toString(),
+                    userId: (profile as any).userId?.toString() || null,
+                    level: profile.level,
+                    sRpg: profile.sRpg
+                } : null
+            }
+        };
     }
 
     // ========== ENDPOINTS DE PERFILES ==========
