@@ -147,4 +147,95 @@ export class PerfilComponent implements OnInit {
     get profileData() {
         return this.userStats?.profileData;
     }
+
+    get imc(): number {
+        const weight = this.weight;
+        const height = this.heightInMeters;
+        
+        if (weight > 0 && height > 0) {
+            // IMC = peso(kg) / altura(m)^2
+            return Math.round((weight / (height * height)) * 10) / 10;
+        }
+        return 0;
+    }
+
+    get imcCategory(): string {
+        const imc = this.imc;
+        if (imc === 0) return 'N/A';
+        if (imc < 18.5) return 'Bajo peso';
+        if (imc < 25) return 'Normal';
+        if (imc < 30) return 'Sobrepeso';
+        return 'Obesidad';
+    }
+
+    get weight(): number {
+        return this.userStats?.profileData?.weight || 0;
+    }
+
+    get height(): number {
+        const h = this.userStats?.profileData?.height || 0;
+        // Si el valor es menor a 3, asumimos que está en metros y convertimos a cm
+        // Si es mayor o igual a 3, asumimos que ya está en cm
+        if (h > 0 && h < 3) {
+            return Math.round(h * 100); // Convertir metros a cm
+        }
+        return Math.round(h);
+    }
+
+    get heightInMeters(): number {
+        const h = this.userStats?.profileData?.height || 0;
+        // Si el valor es menor a 3, ya está en metros
+        // Si es mayor, está en cm y lo convertimos a metros
+        if (h > 0 && h < 3) {
+            return h;
+        } else if (h >= 3) {
+            return h / 100;
+        }
+        return 0;
+    }
+
+    get bodyFat(): number {
+        const profile = this.user?.profileId as any;
+        return profile?.estimatedBodyFat || this.userStats?.profileData?.estimatedBodyFat || 0;
+    }
+
+    get trainingLevel(): string {
+        return this.userStats?.profileData?.level || 'Sin perfil';
+    }
+
+    get stamina(): string {
+        const actual = this.user?.staminaActual || 0;
+        const maxima = this.user?.staminaMaxima || 100;
+        return `${actual} / ${maxima}`;
+    }
+
+    get experienceMonths(): number {
+        const profile = this.user?.profileId as any;
+        return profile?.experienceMonths || 0;
+    }
+
+    get activityLevel(): string {
+        const profile = this.user?.profileId as any;
+        const nivel = profile?.nivelactividad;
+        const niveles: { [key: string]: string } = {
+            'SEDENTARIO': 'Sedentario',
+            'LIGERO': 'Ligero',
+            'MODERADO': 'Moderado',
+            'ACTIVO': 'Activo',
+            'MUY_ACTIVO': 'Muy Activo'
+        };
+        return niveles[nivel] || 'N/A';
+    }
+
+    get totalWorkouts(): number {
+        return this.userStats?.rutinasStats?.rutinasCompletadas || 0;
+    }
+
+    get totalExercises(): number {
+        return this.userStats?.rutinasStats?.ejerciciosCompletados || 0;
+    }
+
+    get totalTrainingTime(): number {
+        return this.userStats?.rutinasStats?.tiempoTotalMinutos || 0;
+    }
 }
