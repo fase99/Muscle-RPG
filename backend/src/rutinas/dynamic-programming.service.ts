@@ -39,12 +39,17 @@ interface QuarterlyCycle {
 export class DynamicProgrammingService {
   private readonly GAMMA = 0.95; // Factor de descuento (γ)
   private readonly WEEKS_PER_QUARTER = 12;
+  
+  // Cache para memoización (Top-Down DP)
+  private memoCache: Map<string, number>;
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
     @InjectModel(Rutina.name) private rutinaModel: Model<RutinaDocument>,
-  ) {}
+  ) {
+    this.memoCache = new Map();
+  }
 
   /**
    * NIVEL 2: PROGRAMACIÓN DINÁMICA PARA CICLO TRIMESTRAL
@@ -52,6 +57,9 @@ export class DynamicProgrammingService {
    */
   async planQuarterlyCycle(userId: string): Promise<QuarterlyCycle> {
     console.log('[DynamicProgramming] Planificando ciclo trimestral...');
+
+    // Limpiar cache de memoización para nueva planificación
+    this.memoCache.clear();
 
     // 1. Obtener datos del usuario y perfil
     const user = await this.userModel.findById(userId).exec();
@@ -100,8 +108,9 @@ export class DynamicProgrammingService {
   }
 
   /**
-   * Resuelve el problema usando la Ecuación de Bellman:
+   * Resuelve el problema usando la Ecuación de Bellman con Memoización (Top-Down):
    * J(S_t) = max_{a ∈ A} { Ganancia(S_t, a) + γ · J(S_{t+1}) }
+   * Función Objetivo: XP_esperada - (Fatiga^2)
    */
   private solveWithBellman(
     estadoInicial: Estado,
@@ -113,10 +122,12 @@ export class DynamicProgrammingService {
     let estadoActual = { ...estadoInicial };
 
     for (let semana = 1; semana <= weeksRemaining; semana++) {
+      console.log(`[DynamicProgramming] Semana ${semana}: Vol=${estadoActual.volumen}, Fatiga=${estadoActual.fatiga.toFixed(2)}`);
+      
       // Evaluar todas las acciones posibles
       const acciones = this.getPossibleActions(estadoActual, landmarks, userLevel);
       
-      // Seleccionar la mejor acción (maximizar J)
+      // Seleccionar la mejor acción usando memoización (maximizar J)
       let mejorAccion: Accion | null = null;
       let mejorValor = -Infinity;
       let mejorGanancia = 0;
@@ -124,9 +135,14 @@ export class DynamicProgrammingService {
       for (const accion of acciones) {
         const nuevoEstado = this.aplicarAccion(estadoActual, accion, landmarks);
         const ganancia = this.calcularGanancia(estadoActual, accion, landmarks);
-        const valorFuturo = this.estimarValorFuturo(nuevoEstado, landmarks, weeksRemaining - semana);
         
+        // Usar memoización para calcular el valor futuro
+        const valorFuturo = this.bellmanValue(nuevoEstado, landmarks, weeksRemaining - semana, userLevel);
+        
+        // Función objetivo: Ganancia inmediata + Valor futuro descontado
         const valor = ganancia + this.GAMMA * valorFuturo;
+
+        console.log(`  Acción ${accion.tipo}: Ganancia=${ganancia.toFixed(1)}, ValorFuturo=${valorFuturo.toFixed(1)}, Total=${valor.toFixed(1)}`);
 
         if (valor > mejorValor) {
           mejorValor = valor;
@@ -138,6 +154,8 @@ export class DynamicProgrammingService {
       // Aplicar la mejor acción
       if (mejorAccion) {
         estadoActual = this.aplicarAccion(estadoActual, mejorAccion, landmarks);
+        
+        console.log(`  ✓ Mejor acción: ${mejorAccion.tipo} (delta=${mejorAccion.delta})`);
         
         decisions.push({
           semana,
@@ -160,7 +178,70 @@ export class DynamicProgrammingService {
   }
 
   /**
+   * Función de valor de Bellman con Memoización (Top-Down DP)
+   * Calcula el valor óptimo esperado desde un estado dado
+   */
+  private bellmanValue(
+    estado: Estado,
+    landmarks: { MEV: number; MAV: number; MRV: number },
+    weeksRemaining: number,
+    userLevel: string,
+  ): number {
+    // Caso base: no hay semanas restantes
+    if (weeksRemaining <= 0) {
+      return 0;
+    }
+
+    // Generar clave para memoización
+    const key = this.generateStateKey(estado, weeksRemaining);
+    
+    // Verificar si ya calculamos este estado
+    if (this.memoCache.has(key)) {
+      return this.memoCache.get(key)!;
+    }
+
+    // Obtener acciones posibles
+    const acciones = this.getPossibleActions(estado, landmarks, userLevel);
+    
+    let maxValor = -Infinity;
+
+    // Evaluar cada acción
+    for (const accion of acciones) {
+      const nuevoEstado = this.aplicarAccion(estado, accion, landmarks);
+      const ganancia = this.calcularGanancia(estado, accion, landmarks);
+      
+      // Recursión con memoización
+      const valorFuturo = this.bellmanValue(nuevoEstado, landmarks, weeksRemaining - 1, userLevel);
+      
+      const valor = ganancia + this.GAMMA * valorFuturo;
+      
+      if (valor > maxValor) {
+        maxValor = valor;
+      }
+    }
+
+    // Guardar en cache
+    this.memoCache.set(key, maxValor);
+    
+    return maxValor;
+  }
+
+  /**
+   * Genera una clave única para el estado (para memoización)
+   */
+  private generateStateKey(estado: Estado, weeksRemaining: number): string {
+    // Discretizar volumen y fatiga para reducir espacio de estados
+    const volDiscrete = Math.round(estado.volumen);
+    const fatigaDiscrete = Math.round(estado.fatiga * 10) / 10; // 1 decimal
+    
+    return `v${volDiscrete}_f${fatigaDiscrete}_w${weeksRemaining}`;
+  }
+
+  /**
    * Obtiene las acciones posibles según el estado actual y el perfil del usuario
+   * SOBRECARGA: Aumentar volumen 10%
+   * MANTENER: Mantener volumen actual
+   * DESCARGA: Reducir a MEV
    */
   private getPossibleActions(
     estado: Estado,
@@ -169,20 +250,26 @@ export class DynamicProgrammingService {
   ): Accion[] {
     const acciones: Accion[] = [];
 
-    // Acción 1: AUMENTAR (Sobrecarga Progresiva)
-    if (estado.volumen < landmarks.MRV && estado.fatiga < 0.75) {
-      const incremento = userLevel === 'Básico' ? 1 : userLevel === 'Intermedio' ? 2 : 3;
-      acciones.push({ tipo: 'increase', delta: incremento });
+    // Acción 1: SOBRECARGA (Aumentar 10%)
+    // Solo permitir si no estamos en MRV y la fatiga es manejable
+    const volumenMaxPermitido = userLevel === 'Básico' ? landmarks.MAV : landmarks.MRV;
+    
+    if (estado.volumen < volumenMaxPermitido && estado.fatiga < 0.75) {
+      const incremento = Math.round(estado.volumen * 0.10); // +10%
+      acciones.push({ tipo: 'increase', delta: Math.max(1, incremento) });
     }
 
     // Acción 2: MANTENER
-    if (estado.volumen >= landmarks.MEV && estado.volumen <= landmarks.MAV) {
+    // Siempre disponible si estamos dentro de rangos razonables
+    if (estado.volumen >= landmarks.MEV && estado.volumen <= volumenMaxPermitido) {
       acciones.push({ tipo: 'maintain', delta: 0 });
     }
 
-    // Acción 3: DESCARGA (Deload)
+    // Acción 3: DESCARGA (Reducir a MEV)
+    // Necesaria cuando fatiga es alta o volumen excede MAV
     if (estado.fatiga > 0.6 || estado.volumen > landmarks.MAV) {
-      acciones.push({ tipo: 'deload', delta: -Math.floor(estado.volumen * 0.4) });
+      const deltaDescarga = landmarks.MEV - estado.volumen;
+      acciones.push({ tipo: 'deload', delta: deltaDescarga });
     }
 
     return acciones;
@@ -223,6 +310,7 @@ export class DynamicProgrammingService {
 
   /**
    * Calcula la ganancia inmediata (XP/Hipertrofia) de tomar una acción
+   * Función Objetivo: XP_esperada - (Fatiga^2)
    */
   private calcularGanancia(
     estado: Estado,
@@ -231,54 +319,38 @@ export class DynamicProgrammingService {
   ): number {
     const nuevoEstado = this.aplicarAccion(estado, accion, landmarks);
     
-    // Ganancia base: proporcional al volumen
-    let ganancia = nuevoEstado.volumen * 10;
+    // XP_esperada: proporcional al volumen
+    let xpEsperada = nuevoEstado.volumen * 10;
 
     // Bonus si estamos en el rango MAV (zona óptima)
     if (nuevoEstado.volumen >= landmarks.MAV * 0.9 && nuevoEstado.volumen <= landmarks.MAV * 1.1) {
-      ganancia *= 1.2; // +20% en zona óptima
+      xpEsperada *= 1.2; // +20% en zona óptima
     }
 
-    // Penalización por fatiga excesiva
-    if (nuevoEstado.fatiga > 0.8) {
-      ganancia *= (1 - nuevoEstado.fatiga); // Reducción drástica
+    // Bonus adicional si estamos cerca de MRV (pero no demasiado)
+    if (nuevoEstado.volumen >= landmarks.MRV * 0.85 && nuevoEstado.volumen <= landmarks.MRV * 0.95) {
+      xpEsperada *= 1.1; // +10% cerca de MRV
     }
 
     // Penalización por volumen insuficiente
     if (nuevoEstado.volumen < landmarks.MEV) {
-      ganancia *= 0.5; // -50% si estamos por debajo del mínimo
+      xpEsperada *= 0.5; // -50% si estamos por debajo del mínimo
     }
+
+    // FUNCIÓN OBJETIVO: XP_esperada - (Fatiga^2)
+    // Penalización cuadrática por fatiga (crece rápidamente)
+    const penalizacionFatiga = Math.pow(nuevoEstado.fatiga, 2) * 100; // Escalar para equilibrar con XP
+    
+    const ganancia = xpEsperada - penalizacionFatiga;
 
     // Deload tiene ganancia reducida pero es necesario para la recuperación
     if (accion.tipo === 'deload') {
-      ganancia *= 0.3; // Solo 30% de ganancia, pero recupera fatiga
+      // La reducción de fatiga es valiosa a largo plazo
+      const valorRecuperacion = (estado.fatiga - nuevoEstado.fatiga) * 50;
+      return ganancia * 0.3 + valorRecuperacion; // Valorar la recuperación
     }
 
     return ganancia;
-  }
-
-  /**
-   * Estima el valor futuro de un estado (heurística)
-   */
-  private estimarValorFuturo(
-    estado: Estado,
-    landmarks: { MEV: number; MAV: number; MRV: number },
-    weeksRemaining: number,
-  ): number {
-    if (weeksRemaining <= 0) return 0;
-
-    // Valor futuro basado en el potencial de ganancia
-    let valorFuturo = estado.volumen * 10 * weeksRemaining;
-
-    // Ajustar por fatiga (alta fatiga limita el futuro)
-    valorFuturo *= (1 - estado.fatiga * 0.5);
-
-    // Ajustar por proximidad al MAV
-    const distanciaMAV = Math.abs(estado.volumen - landmarks.MAV);
-    const factorOptimalidad = Math.max(0, 1 - (distanciaMAV / landmarks.MAV));
-    valorFuturo *= (0.8 + 0.4 * factorOptimalidad);
-
-    return valorFuturo;
   }
 
   /**
