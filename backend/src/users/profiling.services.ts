@@ -24,6 +24,12 @@ export class profilingService{
      * Algoritmo de Clasificación Multifactorial del Usuario
      * Calcula el Score de Capacidad (S_RPG) y determina el perfil de entrenamiento
      */
+    // ...existing code...
+    async updateProfile(profileId: string, updateData: Partial<CreateProfileDto>) {
+    // Suponiendo que tienes un modelo ProfileModel para interactuar con la base de datos
+    return await this.profileModel.findByIdAndUpdate(profileId, updateData, { new: true });
+    }
+// ...existing code...
     async calcularNivelUsuario(data: CreateProfileDto){
         // ========== FACTOR DE SEGURIDAD (δ_salud) ==========
         // δ = 0 si hay patologías de riesgo, δ = 1 si está sano
