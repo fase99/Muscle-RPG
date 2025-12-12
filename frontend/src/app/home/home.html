@@ -1,15 +1,15 @@
 <div class="home-container">
   <section class="hero-section">
     <div class="hero-content">
-      <h1 class="hero-title">WELCOME BACK, <span class="highlight">{{ userName.toUpperCase() }}</span></h1>
-      <p class="hero-subtitle">Your fitness journey continues. Every rep counts.</p>
+      <h1 class="hero-title">BIENVENIDO DE NUEVO, <span class="highlight">{{ userName.toUpperCase() }}</span></h1>
+      <p class="hero-subtitle">Tu viaje de fitness continúa. Cada repetición cuenta.</p>
     </div>
     <div class="hero-stats">
       <div class="stat-card primary">
         <div class="stat-icon">🔥</div>
         <div class="stat-info">
-          <span class="stat-label">STREAK</span>
-          <span class="stat-value">{{ userStats.streak }} days</span>
+          <span class="stat-label">RACHA</span>
+          <span class="stat-value">{{ userStats.streak }} días</span>
         </div>
       </div>
     </div>
@@ -19,13 +19,13 @@
     <!-- XP Progress -->
     <div class="card progress-card">
       <div class="card-header">
-        <h2 class="card-title">PROGRESS OVERVIEW</h2>
-        <span class="card-badge">LVL {{ userStats.level }}</span>
+        <h2 class="card-title">RESUMEN DE PROGRESO</h2>
+        <span class="card-badge">NIV {{ userStats.level }}</span>
       </div>
       <div class="card-content">
         <div class="xp-container">
           <div class="xp-info">
-            <span class="xp-label">EXPERIENCE POINTS</span>
+            <span class="xp-label">PUNTOS DE EXPERIENCIA</span>
             <span class="xp-numbers">{{ userStats.currentXP }} / {{ userStats.maxXP }} XP</span>
           </div>
           <div class="xp-bar-large">
@@ -33,7 +33,7 @@
           </div>
         </div>
         <div class="level-info">
-          <span class="next-level">{{ userStats.xpToNextLevel }} XP to level {{ userStats.level + 1 }}</span>
+          <span class="next-level">{{ userStats.xpToNextLevel }} XP para nivel {{ userStats.level + 1 }}</span>
         </div>
       </div>
     </div>
@@ -41,21 +41,21 @@
     <!-- Profile Overview -->
     <div class="card profile-card">
       <div class="card-header">
-        <h2 class="card-title">PROFILE OVERVIEW</h2>
+        <h2 class="card-title">RESUMEN DEL PERFIL</h2>
       </div>
       <div class="card-content">
         <div class="profile-info">
           <div class="info-item">
-            <span class="info-label">Profile Level</span>
+            <span class="info-label">Nivel de Perfil</span>
             <span class="info-value">{{ profileInfo.profileLevel }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label">Age</span>
-            <span class="info-value">{{ profileInfo.age }} years</span>
+            <span class="info-label">Edad</span>
+            <span class="info-value">{{ profileInfo.age }} años</span>
           </div>
           <div class="info-item">
-            <span class="info-label">Week Activity</span>
-            <span class="info-value">{{ weekActivity.daysActive }}/{{ weekActivity.totalDays }} days</span>
+            <span class="info-label">Actividad Semanal</span>
+            <span class="info-value">{{ weekActivity.daysActive }}/{{ weekActivity.totalDays }} días</span>
           </div>
           <div class="activity-bar">
             <div class="activity-fill" [style.width.%]="weekActivity.percentage"></div>
@@ -107,7 +107,7 @@
     <!-- Quick Actions -->
     <div class="card actions-card">
       <div class="card-header">
-        <h2 class="card-title">QUICK START</h2>
+        <h2 class="card-title">INICIO RÁPIDO</h2>
       </div>
       <div class="card-content">
         <button class="action-btn primary" routerLink="/rutina">
@@ -116,7 +116,7 @@
         </button>
         <button class="action-btn primary" routerLink="/setup">
           <span class="btn-icon">🛠️</span>
-          <span>SETUP PERFIL</span>
+          <span>CONFIGURAR PERFIL</span>
         </button>
       </div>
     </div>
