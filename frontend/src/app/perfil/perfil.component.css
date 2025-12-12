@@ -313,9 +313,62 @@
 }
 
 .radar-content {
+    display: block;
+}
+
+/* Profile Data Grid */
+.profile-data-grid {
     display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.data-section {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.data-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.data-value {
+    font-size: 14px;
+    color: #e0e7ff;
+    font-weight: 600;
+}
+
+.data-value.highlight {
+    color: #3b82f6;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .radar-chart {
@@ -507,7 +560,7 @@
         grid-template-columns: 1fr;
     }
 
-    .radar-content {
+    .profile-data-grid {
         grid-template-columns: 1fr;
     }
 
