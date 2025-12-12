@@ -14,6 +14,9 @@ export enum NivelActividad {
 }
 
 export class CreateProfileDto{
+    @IsOptional()
+    userId?: string; // ObjectId del usuario (opcional en creación)
+
     @IsNumber()
     age: number;
 

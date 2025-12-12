@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -19,6 +19,10 @@ export class User {
 
     @Prop({ required: true })
     password: string;
+
+    // ========== RELACIÓN CON PROFILE ==========
+    @Prop({ type: Types.ObjectId, ref: 'Profile' })
+    profileId?: Types.ObjectId; // Referencia al perfil de perfilamiento
 
     @Prop({ default: 1 })
     nivel: number;
@@ -94,3 +98,7 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Índices para optimizar queries
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ profileId: 1 });

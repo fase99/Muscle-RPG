@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from '../schemas/user.schema';
+import { Profile, ProfileDocument } from '../schemas/profile.schema';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
+        @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
     ) { }
 
     async create(createUserDto: {
@@ -180,5 +182,59 @@ export class UsersService {
 
     async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
         return bcrypt.compare(plainPassword, hashedPassword);
+    }
+
+    // ========== MÉTODOS DE RELACIÓN CON PROFILE ==========
+
+    /**
+     * Obtiene un usuario con su perfil de perfilamiento poblado
+     */
+    async findOneWithProfile(userId: string): Promise<any> {
+        const user = await this.userModel
+            .findById(userId)
+            .populate('profileId')
+            .select('-password')
+            .exec();
+
+        if (!user) {
+            throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        return user;
+    }
+
+    /**
+     * Obtiene el perfil asociado a un usuario
+     */
+    async getProfileByUserId(userId: string): Promise<Profile | null> {
+        return this.profileModel.findOne({ userId }).exec();
+    }
+
+    /**
+     * Verifica si un usuario tiene perfil de perfilamiento
+     */
+    async hasProfile(userId: string): Promise<boolean> {
+        const profile = await this.profileModel.findOne({ userId }).exec();
+        return !!profile;
+    }
+
+    /**
+     * Actualiza la referencia al perfil en el usuario
+     */
+    async linkProfileToUser(userId: string, profileId: string): Promise<User> {
+        const updatedUser = await this.userModel
+            .findByIdAndUpdate(
+                userId,
+                { profileId },
+                { new: true }
+            )
+            .select('-password')
+            .exec();
+
+        if (!updatedUser) {
+            throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        return updatedUser;
     }
 }

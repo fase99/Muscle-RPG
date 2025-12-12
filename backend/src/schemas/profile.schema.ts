@@ -1,10 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type ProfileDocument = Profile & Document;
 
 @Schema({ timestamps: true })
 export class Profile {
+  // ========== RELACIÓN CON USER ==========
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  userId?: Types.ObjectId; // Referencia al usuario propietario (opcional para perfiles independientes)
+
   @Prop({ required: true })
   age: number;
 
@@ -80,3 +84,8 @@ export class Profile {
 }
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);
+
+// Índices para optimizar queries
+ProfileSchema.index({ userId: 1 }, { unique: true }); // Un usuario solo puede tener un perfil
+ProfileSchema.index({ level: 1 }); // Búsqueda por nivel
+ProfileSchema.index({ sRpg: -1 }); // Ordenar por score descendente

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateMetricsDto } from './dto/update-metrics.dto';
@@ -91,17 +91,65 @@ export class UsersController {
     }
 
     @Post('profile')
+    @HttpCode(HttpStatus.CREATED)
     async createProfile(@Body() createProfileDto: CreateProfileDto) {
         try {
-            console.log('Incoming profile DTO:', createProfileDto);
-            return await this.profilingService.calcularNivelUsuario(createProfileDto);
+            console.log('========== CREANDO PERFIL ==========');
+            console.log('DTO recibido:', JSON.stringify(createProfileDto, null, 2));
+            
+            const result = await this.profilingService.calcularNivelUsuario(createProfileDto);
+            
+            console.log('========== PERFIL CREADO EXITOSAMENTE ==========');
+            console.log('Resultado:', JSON.stringify(result, null, 2));
+            
+            return result;
         } catch (err) {
-            console.error('Error creating profile:', err);
+            console.error('========== ERROR CREANDO PERFIL ==========');
+            console.error('Error completo:', err);
+            console.error('Stack:', err?.stack);
+            
+            throw new BadRequestException({
+                message: 'Error al crear el perfil',
+                error: err?.message ?? 'Unknown error',
+                details: err
+            });
+        }
+    }
+
+    // ========== ENDPOINTS DE RELACIÓN USER-PROFILE ==========
+
+    @Get(':id/with-profile')
+    async getUserWithProfile(@Param('id') id: string) {
+        return this.usersService.findOneWithProfile(id);
+    }
+
+    @Get(':id/profile')
+    async getUserProfile(@Param('id') id: string) {
+        const profile = await this.usersService.getProfileByUserId(id);
+        if (!profile) {
             return {
-                statusCode: 500,
-                message: 'Internal Server Error',
-                error: err?.message ?? 'Unknown error'
+                message: 'Este usuario no tiene un perfil de perfilamiento creado',
+                hasProfile: false
             };
         }
+        return profile;
+    }
+
+    @Get(':id/has-profile')
+    async checkHasProfile(@Param('id') id: string) {
+        const hasProfile = await this.usersService.hasProfile(id);
+        return { userId: id, hasProfile };
+    }
+
+    // ========== ENDPOINTS DE PERFILES ==========
+
+    @Get('profiles/stats')
+    async getProfileStats() {
+        return this.profilingService.getProfileStats();
+    }
+
+    @Get('profiles/level/:level')
+    async getProfilesByLevel(@Param('level') level: string) {
+        return this.profilingService.getProfilesByLevel(level);
     }
 }

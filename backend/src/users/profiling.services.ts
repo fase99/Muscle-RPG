@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Profile, ProfileDocument } from '../schemas/profile.schema';
+import { User, UserDocument } from '../schemas/user.schema';
 import { CreateProfileDto, Genero, NivelActividad } from './dto/create-profile.dto';
 
 // Interfaz para parámetros de carga según perfil
@@ -15,6 +16,7 @@ interface PerfilParametros {
 export class profilingService{
     constructor(
       @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
+      @InjectModel(User.name) private userModel: Model<UserDocument>,
     ) {}
 
 
@@ -108,8 +110,8 @@ export class profilingService{
           cargaEstimada: parametrosCarga.cargaEstimada,
         };
 
-        // Persist profile + result
-        await this.profileModel.create({
+        // Persist profile + result con relación al usuario
+        const profileData: any = {
           age: data.age,
           gender: data.gender,
           experienceMonths: data.experienceMonths,
@@ -128,9 +130,29 @@ export class profilingService{
             gastronemio: data.pliegue_gastronemio,
           } : undefined,
           ...result,
-        });
+        };
 
-        return result;
+        // Si se proporciona userId, agregarlo a la relación
+        if (data.userId) {
+          profileData.userId = data.userId;
+        }
+
+        const createdProfile = await this.profileModel.create(profileData);
+
+        // Si hay userId, actualizar el User con la referencia al Profile
+        if (data.userId) {
+          await this.userModel.findByIdAndUpdate(
+            data.userId,
+            { profileId: createdProfile._id },
+            { new: true }
+          );
+        }
+
+        return {
+          ...result,
+          profileId: createdProfile._id.toString(),
+          userId: data.userId
+        };
     }
 
     /**
@@ -249,5 +271,48 @@ export class profilingService{
                     cargaEstimada: { min: 70, max: 75 },
                 };
         }
+    }
+
+    // ========== MÉTODOS DE CONSULTA CON RELACIONES ==========
+
+    /**
+     * Obtiene un perfil por ID con el usuario asociado
+     */
+    async getProfileWithUser(profileId: string): Promise<any> {
+        return this.profileModel
+            .findById(profileId)
+            .populate('userId', '-password') // Populate del usuario sin password
+            .exec();
+    }
+
+    /**
+     * Obtiene todos los perfiles de un nivel específico
+     */
+    async getProfilesByLevel(level: string): Promise<Profile[]> {
+        return this.profileModel.find({ level }).exec();
+    }
+
+    /**
+     * Obtiene estadísticas de perfiles
+     */
+    async getProfileStats(): Promise<any> {
+        const total = await this.profileModel.countDocuments().exec();
+        const basico = await this.profileModel.countDocuments({ level: 'Básico' }).exec();
+        const intermedio = await this.profileModel.countDocuments({ level: 'Intermedio' }).exec();
+        const avanzado = await this.profileModel.countDocuments({ level: 'Avanzado' }).exec();
+
+        return {
+            total,
+            porNivel: {
+                basico,
+                intermedio,
+                avanzado
+            },
+            porcentajes: {
+                basico: total > 0 ? ((basico / total) * 100).toFixed(2) : 0,
+                intermedio: total > 0 ? ((intermedio / total) * 100).toFixed(2) : 0,
+                avanzado: total > 0 ? ((avanzado / total) * 100).toFixed(2) : 0
+            }
+        };
     }
 }
