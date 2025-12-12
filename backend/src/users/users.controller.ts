@@ -148,6 +148,11 @@ export class UsersController {
         return { userId: id, hasProfile };
     }
 
+    @Get(':id/stats')
+    async getUserStats(@Param('id') id: string) {
+        return this.usersService.getUserStats(id);
+    }
+
     @Get(':id/profile-relationship')
     async getProfileRelationship(@Param('id') id: string) {
         const user = await this.usersService.findOne(id);
