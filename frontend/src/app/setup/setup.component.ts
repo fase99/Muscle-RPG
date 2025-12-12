@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, UpperCasePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-setup',
@@ -12,14 +13,19 @@ import { RouterModule } from '@angular/router';
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.css']
 })
-export class SetupComponent {
+export class SetupComponent implements OnInit {
   profileForm: FormGroup;
   result: any = null;
   currentStep: number = 1;
   totalSteps: number = 4;
   usarMetodo7Pliegues: boolean = false;
+  userId: string | null = null;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder, 
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
     this.profileForm = this.fb.group({
       // Paso 1: Datos Personales
       age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
@@ -46,6 +52,15 @@ export class SetupComponent {
       pliegue_gluteo: [''],
       pliegue_cuadriceps: [''],
       pliegue_gastronemio: ['']
+    });
+  }
+
+  ngOnInit() {
+    // Obtener el userId del usuario actual
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.userId = user._id;
+      }
     });
   }
 
@@ -123,7 +138,8 @@ export class SetupComponent {
         weight: Number(formValue.weight),
         height: Number(formValue.height) / 100, // Convertir cm a metros
         nivelactividad: formValue.activityLevel,
-        condicionmedica: formValue.hasMedicalConditions
+        condicionmedica: formValue.hasMedicalConditions,
+        userId: this.userId // Agregar el userId para vincular el perfil al usuario
       };
 
       // Agregar datos opcionales según el método seleccionado
@@ -152,6 +168,9 @@ export class SetupComponent {
           next: (response) => {
             this.result = response;
             console.log('Tu Perfil RPG:', this.result);
+            
+            // Refrescar el usuario en el AuthService para que el perfil se muestre
+            this.authService.refreshUser();
           },
           error: (err) => {
             console.error('Error calculando clase:', err);

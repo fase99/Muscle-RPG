@@ -2,6 +2,25 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface ProfileFromDB {
+  _id: string;
+  userId?: string;
+  age: number;
+  gender: number;
+  experienceMonths: number;
+  weight: number;
+  height: number;
+  nivelactividad: string;
+  condicionmedica: boolean;
+  knownBodyFat?: number;
+  sRpg: number;
+  level: string; // Básico | Intermedio | Avanzado
+  estimatedBodyFat: number;
+  compositionMultiplier: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface UserFromDB {
   _id: string;
   nombre: string;
@@ -22,6 +41,7 @@ export interface UserFromDB {
     DEX: number;
     END: number;
   };
+  profileId?: ProfileFromDB;
   rutinas?: string[];
   metricas?: {
     icon: string;

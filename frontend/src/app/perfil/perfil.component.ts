@@ -33,6 +33,10 @@ export class PerfilComponent implements OnInit {
         return this.user?.nivel || 1;
     }
 
+    get profileLevel(): string {
+        return this.user?.profileId?.level || 'SIN ASIGNAR';
+    }
+
     get xpCurrent(): number {
         return this.user?.experiencia || 0;
     }

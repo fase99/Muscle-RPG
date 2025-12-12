@@ -38,7 +38,7 @@ export class UsersService {
     }
 
     async findOne(id: string): Promise<User> {
-        const user = await this.userModel.findById(id).select('-password').exec();
+        const user = await this.userModel.findById(id).populate('profileId').select('-password').exec();
         if (!user) {
             throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
         }
@@ -47,6 +47,13 @@ export class UsersService {
 
     async findByEmail(email: string): Promise<UserDocument | null> {
         return this.userModel.findOne({ email, activo: true }).exec();
+    }
+
+    async findByEmailWithProfile(email: string): Promise<UserDocument | null> {
+        return this.userModel
+            .findOne({ email, activo: true })
+            .populate('profileId')
+            .exec();
     }
 
     async update(id: string, updateUserDto: Partial<User>): Promise<User> {
