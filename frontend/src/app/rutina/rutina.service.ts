@@ -29,6 +29,7 @@ export interface Rutina {
   dia: string;
   nombre?: string;
   descripcion?: string;
+  scheduledDate?: Date | string; // Fecha programada para la rutina
   tiempoPlaneado: number;  // siempre 120
   tiempoTotal?: number;
   energiaMax: number;

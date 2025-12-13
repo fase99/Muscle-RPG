@@ -19,10 +19,15 @@ export class RutinaComponent implements OnInit, OnDestroy {
   rutina!: Rutina;
   user: UserFromDB | null = null;
 
+  // === Fecha actual ===
+  fechaActual = new Date();
+
   // === Rutina semanal ===
   rutinaSemanal: Rutina[] = [];
+  rutinaDelDia: Rutina | null = null; // Solo la rutina de HOY
   diaActual: number = 0;
   diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  esDescansoProgramado = false; // Si hoy es día de descanso
 
   // === Estados de la sesión ===
   tiempoInicio = 0;
@@ -108,8 +113,10 @@ ngOnDestroy() {
           const rutinasRecientes = rutinas.slice(0, 7);
           rutinasRecientes.reverse(); // ← Esto arregla el orden de los días
           this.rutinaSemanal = rutinasRecientes.map((r: any) => this.convertirRutinaBackend(r));
-          this.diaActual = 0;
-          this.rutina = this.rutinaSemanal[this.diaActual];
+          
+          // Filtrar SOLO la rutina de hoy según el modelo teórico del paper
+          this.filterTodayRoutine();
+          
           this.rutinaGenerada = true;
           this.loading = false;
         } else {
@@ -141,8 +148,10 @@ ngOnDestroy() {
           console.log('✅ Rutina semanal generada:', response);
           
           this.rutinaSemanal = response.rutinas.map((r: any) => this.convertirRutinaBackend(r));
-          this.diaActual = 0;
-          this.rutina = this.rutinaSemanal[this.diaActual];
+          
+          // Filtrar SOLO la rutina de hoy según el modelo teórico del paper
+          this.filterTodayRoutine();
+          
           this.rutinaGenerada = true;
           this.loading = false;
 
@@ -173,19 +182,21 @@ ngOnDestroy() {
     this.rutinaGenerada = false;
     this.errorMessage = '';
     this.rutinaSemanal = [];
+    this.rutinaDelDia = null;
+    this.esDescansoProgramado = false;
     this.sesionActiva = false;
     this.sesionFinalizada = false;
     this.energiaGastada = 0;
     this.tiempoRealMinutos = 0;
   }
 
+  /**
+   * Método deshabilitado - El sistema solo muestra la rutina del día actual
+   * según el modelo teórico del paper (Sección VII.D)
+   */
   cambiarDia(dia: number) {
-    if (dia >= 0 && dia < this.rutinaSemanal.length) {
-      this.diaActual = dia;
-      this.rutina = this.rutinaSemanal[dia];
-      this.sesionActiva = false;
-      this.sesionFinalizada = false;
-    }
+    // Funcionalidad deshabilitada - solo se permite ver la rutina de HOY
+    console.warn('[RutinaComponent] ⚠️ Cambio de día deshabilitado. Solo se muestra la rutina del día actual.');
   }
 
   private convertirRutinaBackend(rutinaBackend: any): Rutina {
@@ -220,6 +231,7 @@ ngOnDestroy() {
       dia: `${diaNombre}${muscleGroupText}`,
       nombre: rutinaBackend.nombre,
       descripcion: rutinaBackend.descripcion,
+      scheduledDate: rutinaBackend.scheduledDate, // Fecha programada del backend
       tiempoPlaneado: 120,
       tiempoTotal: rutinaBackend.tiempoTotal,
       energiaMax: this.user?.staminaMaxima || 100,
@@ -229,6 +241,80 @@ ngOnDestroy() {
       volumeLandmarks: rutinaBackend.volumeLandmarks,
       muscleGroups: muscleGroups
     };
+  }
+
+  /**
+   * FILTRADO DE RUTINA DIARIA según Modelo Teórico del Paper
+   * Sección VII.D: "genera una sesión personalizada para cada día"
+   * Solo se debe mostrar la rutina programada para HOY
+   */
+  private filterTodayRoutine(): void {
+    const today = this.getDateWithoutTime(new Date());
+    const dayIndex = today.getDay(); // 0=Domingo, 1=Lunes, ..., 5=Viernes, 6=Sábado
+    
+    console.log('[RutinaComponent] 📅 Filtrando rutina para hoy:', today.toLocaleDateString('es-ES'));
+    console.log('[RutinaComponent] 📅 Día de la semana (0=Dom, 1=Lun...6=Sáb):', dayIndex);
+    console.log('[RutinaComponent] 📅 Total rutinas disponibles:', this.rutinaSemanal.length);
+    
+    // Buscar la rutina que corresponde al día actual
+    const todayRoutine = this.rutinaSemanal.find((r, index) => {
+      if (r.scheduledDate) {
+        // Si tiene fecha programada, usar esa
+        const rutinaDate = this.getDateWithoutTime(new Date(r.scheduledDate));
+        const matches = rutinaDate.getTime() === today.getTime();
+        console.log(`[RutinaComponent] Rutina ${index}: ${r.nombre}, scheduledDate: ${rutinaDate.toLocaleDateString()}, matches: ${matches}`);
+        return matches;
+      } else {
+        // Si no tiene fecha programada, usar el índice del array
+        // Ajustar índice: array [0,1,2,3,4,5,6] = [Lun,Mar,Mie,Jue,Vie,Sab,Dom]
+        // dayIndex: [1,2,3,4,5,6,0] = [Lun,Mar,Mie,Jue,Vie,Sab,Dom]
+        const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Convertir domingo=0 a domingo=6
+        const matches = index === adjustedIndex;
+        console.log(`[RutinaComponent] Rutina ${index}: ${r.nombre}, sin scheduledDate, index match (${adjustedIndex}): ${matches}`);
+        return matches;
+      }
+    });
+    
+    if (todayRoutine) {
+      this.rutinaDelDia = todayRoutine;
+      this.rutina = todayRoutine;
+      this.esDescansoProgramado = todayRoutine.ejercicios.length === 0;
+      this.diaActual = this.rutinaSemanal.indexOf(todayRoutine);
+      
+      console.log('[RutinaComponent] ✅ Rutina de hoy encontrada:', {
+        nombre: todayRoutine.nombre,
+        ejercicios: todayRoutine.ejercicios.length,
+        esDescanso: this.esDescansoProgramado,
+        index: this.diaActual
+      });
+    } else {
+      // No hay rutina programada para hoy
+      this.rutinaDelDia = null;
+      this.esDescansoProgramado = true;
+      
+      console.log('[RutinaComponent] ⚠️ No hay rutina programada para hoy - Día de descanso');
+    }
+  }
+  
+  /**
+   * Elimina la hora de una fecha para comparar solo día/mes/año
+   */
+  private getDateWithoutTime(date: Date): Date {
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    return dateOnly;
+  }
+  
+  /**
+   * Verifica si una rutina está disponible para el día actual
+   */
+  isRoutineAvailable(routineDate?: Date | string): boolean {
+    if (!routineDate) return false;
+    
+    const today = this.getDateWithoutTime(new Date());
+    const schedDate = this.getDateWithoutTime(new Date(routineDate));
+    
+    return today.getTime() === schedDate.getTime();
   }
 
   // === Convertir RIR a % de intensidad aproximado ===
