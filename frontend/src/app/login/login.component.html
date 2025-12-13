@@ -9,41 +9,39 @@
             <div *ngIf="!isLoginMode">
                 <div class="form-group">
                     <label for="nombre">NOMBRE *</label>
-                    <input type="text" id="nombre" name="nombre" [(ngModel)]="nombre" 
-                           placeholder="Nombre" required />
+                    <input type="text" id="nombre" name="nombre" [(ngModel)]="nombre" placeholder="Nombre" required />
                 </div>
 
                 <div class="form-group">
                     <label for="apellido">APELLIDO *</label>
-                    <input type="text" id="apellido" name="apellido" [(ngModel)]="apellido" 
-                           placeholder="Apellido" required />
+                    <input type="text" id="apellido" name="apellido" [(ngModel)]="apellido" placeholder="Apellido"
+                        required />
                 </div>
 
                 <div class="form-group">
                     <label for="edad">EDAD *</label>
-                    <input type="number" id="edad" name="edad" [(ngModel)]="edad" 
-                           placeholder="Ingresa tu edad" min="13" max="120" required />
+                    <input type="number" id="edad" name="edad" [(ngModel)]="edad" placeholder="Ingresa tu edad" min="13"
+                        max="120" required />
                 </div>
 
                 <div class="form-group">
                     <label for="username">NOMBRE DE USUARIO</label>
-                    <input type="text" id="username" name="username" [(ngModel)]="username" 
-                           placeholder="Usuario" />
+                    <input type="text" id="username" name="username" [(ngModel)]="username" placeholder="Usuario" />
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="email">EMAIL *</label>
-                <input type="email" id="email" name="email" [(ngModel)]="email" 
-                       placeholder="correo@ejemplo.com" autocomplete="email" required />
+                <input type="email" id="email" name="email" [(ngModel)]="email" placeholder="correo@ejemplo.com"
+                    autocomplete="email" required />
             </div>
 
             <div class="form-group">
                 <label for="password">CONTRASEÑA *</label>
                 <div class="password-input">
                     <input [type]="showPassword ? 'text' : 'password'" id="password" name="password"
-                        [(ngModel)]="password" placeholder="Mínimo 6 caracteres" 
-                        autocomplete="current-password" required />
+                        [(ngModel)]="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password"
+                        required />
                     <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" tabindex="-1">
                         {{ showPassword ? '👁️' : '👁️‍🗨️' }}
                     </button>

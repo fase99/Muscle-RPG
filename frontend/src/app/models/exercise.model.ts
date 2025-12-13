@@ -2,13 +2,13 @@ export interface Exercise {
   id: string;
   name: string;
   description: string;
-  level: number; // 1: Principiante, 2: Intermedio, 3: Avanzado, 4: Experto
+  level: number; 
   xpReward: number;
-  prerequisites?: string[]; // IDs de ejercicios que debes completar primero
+  prerequisites?: string[]; 
   muscleGroup: MuscleGroup;
   sets: number;
   reps: string;
-  restTime: number; // en segundos
+  restTime: number; 
   imageUrl?: string;
   unlocked: boolean;
   completed: boolean;

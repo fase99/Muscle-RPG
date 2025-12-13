@@ -12,14 +12,11 @@ import { AuthService } from '../auth/auth.service';
     styleUrl: './login.component.css'
 })
 export class LoginComponent {
-    // Login mode
     isLoginMode = true;
     
-    // Login fields
     email = '';
     password = '';
     
-    // Register fields
     nombre = '';
     apellido = '';
     edad: number | null = null;

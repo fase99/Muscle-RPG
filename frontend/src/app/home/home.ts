@@ -44,7 +44,6 @@ export class Home implements OnInit {
     return this.user?.nombre || 'Invitado';
   }
 
-  // User Stats
   get userStats() {
     const currentXP = this.user?.experiencia || 0;
     const maxXP = this.user?.experienciaMaxima || 100;
@@ -63,7 +62,6 @@ export class Home implements OnInit {
     };
   }
 
-  // Profile Info
   get profileInfo() {
     const attrs = this.user?.atributos || { STR: 50, AGI: 50, STA: 50, INT: 50, DEX: 50, END: 50 };
     const sorted = Object.entries(attrs)
@@ -78,9 +76,7 @@ export class Home implements OnInit {
     };
   }
 
-  // Week Activity
   get weekActivity() {
-    // Estimado basado en streak
     const daysThisWeek = Math.min(this.user?.rachasDias || 0, 7);
     const percentage = (daysThisWeek / 7) * 100;
     return {

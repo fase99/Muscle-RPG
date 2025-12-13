@@ -7,7 +7,6 @@
   justify-content: center;
 }
 
-/* Hero Section */
 .hero-section {
   display: flex;
   justify-content: space-between;
@@ -71,14 +70,12 @@
   color: #fff;
 }
 
-/* Dashboard Grid */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
 }
 
-/* Card Base */
 .card {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border: 2px solid #334155;
@@ -138,7 +135,6 @@
   flex: 1;
 } 
 
-/* Progress Card */
 .xp-container {
   margin-bottom: 1rem;
 }
@@ -190,7 +186,6 @@
   font-weight: 600;
 }
 
-/* Workout Card */
 .workout-item {
   display: flex;
   align-items: center;
@@ -237,7 +232,6 @@
   accent-color: #2563eb;
 }
 
-/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -274,7 +268,6 @@
   color: #64748b;
 }
 
-/* Achievements */
 .achievement-item {
   display: flex;
   align-items: center;
@@ -313,7 +306,6 @@
   color: #64748b;
 }
 
-/* Quick Actions */
 .actions-card {
   display: flex;
   flex-direction: column;
@@ -368,7 +360,6 @@
   font-size: 1.25rem;
 }
 
-/* Profile Card */
 .profile-card .profile-info {
   display: flex;
   flex-direction: column;
@@ -414,7 +405,6 @@
   transition: width 0.5s ease;
 }
 
-/* Attributes Card */
 .attributes-card .attributes-list {
   display: flex;
   flex-direction: column;
@@ -458,7 +448,6 @@
   font-weight: 600;
 }
 
-/* Goals Card */
 .goals-card .goals-info {
   display: flex;
   flex-direction: column;
@@ -502,7 +491,6 @@
   font-size: 0.75rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .home-container {
     padding: 1rem;
