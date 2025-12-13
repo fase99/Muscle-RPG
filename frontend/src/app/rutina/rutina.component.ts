@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { RutinaService, Rutina } from './rutina.service';
 import { AuthService } from '../auth/auth.service';
 import { UserFromDB, UserHttpService } from '../services/user-http.service';
+import { WorkoutStateService, WorkoutSession } from '../services/workout-state.service';
 
 @Component({
   selector: 'app-rutina',
@@ -13,7 +15,7 @@ import { UserFromDB, UserHttpService } from '../services/user-http.service';
   templateUrl: './rutina.component.html',
   styleUrls: ['./rutina.component.css']
 })
-export class RutinaComponent implements OnInit {
+export class RutinaComponent implements OnInit, OnDestroy {
   rutina!: Rutina;
   user: UserFromDB | null = null;
 
@@ -34,14 +36,36 @@ export class RutinaComponent implements OnInit {
   errorMessage = '';
   rutinaGenerada = false;
 
+  // === State management ===
+  private sessionSubscription?: Subscription;
+  currentSession: WorkoutSession | null = null;
+
   constructor(
     private servicio: RutinaService,
     private userHttpService: UserHttpService,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private workoutState: WorkoutStateService
   ) {}
 
 ngOnInit() {
+  // Suscribirse al estado de la sesión
+  this.sessionSubscription = this.workoutState.session$.subscribe(session => {
+    this.currentSession = session;
+    
+    // Si hay una sesión activa, restaurar el estado de la UI
+    if (session && session.activa) {
+      console.log('[RutinaComponent] 📥 Restaurando sesión activa:', session);
+      this.sesionActiva = true;
+      this.tiempoInicio = session.tiempoInicio;
+      
+      // Restaurar la rutina si existe
+      if (this.rutinaSemanal.length > 0) {
+        this.actualizarEjerciciosDesdeSession(session);
+      }
+    }
+  });
+
   this.authService.currentUser$
     .subscribe(user => {
       this.user = user;
@@ -56,6 +80,13 @@ ngOnInit() {
         this.cargarRutinasExistentes();
       }
     });
+}
+
+ngOnDestroy() {
+  // Limpiar suscripciones
+  if (this.sessionSubscription) {
+    this.sessionSubscription.unsubscribe();
+  }
 }
 
   cargarRutinasExistentes() {
@@ -241,17 +272,45 @@ ngOnInit() {
 
   // === Comenzar sesión (del primer componente) ===
   comenzarEntrenamiento() {
+    if (!this.user?._id || !this.rutina) {
+      console.error('[RutinaComponent] ❌ No hay usuario o rutina para comenzar');
+      return;
+    }
+
     this.sesionActiva = true;
     this.sesionFinalizada = false;
     this.tiempoInicio = Date.now();
+
+    // Iniciar sesión en WorkoutStateService
+    const ejercicios = this.rutina.ejercicios.map(ej => ({
+      externalId: ej.externalId || '',
+      nombre: ej.nombre,
+      series: ej.series,
+      repeticiones: ej.repeticiones,
+      pesoPlaneado: ej.peso || 0,
+      pesoReal: 0,
+      rirPlaneado: ej.rir || 2,
+      rirReal: 0,
+      completado: false,
+      notas: undefined,
+    }));
+
+    this.workoutState.startSession({
+      userId: this.user._id,
+      rutinaId: this.rutina._id,
+      ejercicios,
+      staminaInicial: this.rutina.energiaMax || 100,
+    });
+
+    console.log('[RutinaComponent] 🏁 Sesión iniciada y guardada en WorkoutStateService');
   }
 
-  // === Finalizar sesión (mantiene lógica del primero) ===
+  // === Finalizar sesión ===
   finalizarEntrenamiento() {
     if (!this.sesionActiva) return;
 
-    this.sesionActiva = false;
-    this.sesionFinalizada = true;
+    // Llamar al método que envía datos al backend
+    this.finalizarEntrenamientoConBackend();
     
     // Ahora en minutos
     this.tiempoRealMinutos = Math.round((Date.now() - this.tiempoInicio) / 60000);
@@ -295,15 +354,22 @@ ngOnInit() {
     }
   }
 
-  // === Marcar ejercicios como el PRIMERO ===
-  marcarEjercicio(ej: any) {
+  // === Marcar ejercicios ===
+  marcarEjercicio(ej: any, index: number) {
     if (this.sesionFinalizada || !this.sesionActiva) return;
     if (ej.hecho) return;
 
     ej.hecho = true;
 
-    // Mantener gasto de energía del SEGUNDO
+    // Mantener gasto de energía
     this.energiaGastada += ej.energia ?? 0;
+
+    // Actualizar en WorkoutStateService
+    const pesoReal = ej.peso || 0;
+    const rirReal = ej.rir || 2;
+
+    this.workoutState.completeExercise(index, pesoReal, rirReal, ej.notas);
+    console.log(`[RutinaComponent] ✅ Ejercicio ${index} marcado como completado en WorkoutStateService`);
   }
 
   // === Tiempo transcurrido (del PRIMERO) ===
@@ -344,5 +410,106 @@ ngOnInit() {
     
     const sumaTotal = ejerciciosConRIR.reduce((sum, ej) => sum + (ej.rir || 0), 0);
     return sumaTotal / ejerciciosConRIR.length;
+  }
+
+  // === Métodos para WorkoutStateService ===
+
+  /**
+   * Actualiza los ejercicios de la rutina desde la sesión guardada
+   */
+  private actualizarEjerciciosDesdeSession(session: WorkoutSession): void {
+    if (!this.rutina?.ejercicios) return;
+
+    // Actualizar el estado de los ejercicios desde la sesión
+    session.ejercicios.forEach((sessionEj, index) => {
+      if (index < this.rutina.ejercicios.length) {
+        this.rutina.ejercicios[index].hecho = sessionEj.completado;
+        this.rutina.ejercicios[index].completado = sessionEj.completado;
+        this.rutina.ejercicios[index].peso = sessionEj.pesoReal || sessionEj.pesoPlaneado;
+        this.rutina.ejercicios[index].notas = sessionEj.notas;
+      }
+    });
+
+    console.log('[RutinaComponent] 🔄 Ejercicios actualizados desde sesión');
+  }
+
+  /**
+   * Finaliza el entrenamiento y envía los datos al backend
+   */
+  async finalizarEntrenamientoConBackend(): Promise<void> {
+    if (!this.user?._id || !this.rutina) {
+      console.error('[RutinaComponent] ❌ No hay usuario o rutina para finalizar');
+      alert('Error: No hay usuario o rutina activa');
+      return;
+    }
+
+    const session = this.currentSession;
+    if (!session) {
+      console.error('[RutinaComponent] ❌ No hay sesión activa');
+      alert('Error: No hay sesión de entrenamiento activa');
+      return;
+    }
+
+    // Validar que todos los ejercicios tengan externalId
+    const ejerciciosSinId = session.ejercicios.filter(ej => !ej.externalId);
+    if (ejerciciosSinId.length > 0) {
+      console.error('[RutinaComponent] ❌ Ejercicios sin externalId:', ejerciciosSinId);
+      alert(`Error: ${ejerciciosSinId.length} ejercicio(s) no tienen ID. No se puede completar el entrenamiento.`);
+      return;
+    }
+
+    // Actualizar duración y stamina en la sesión
+    const duracion = this.tiempoTranscurrido();
+    this.workoutState.updateSessionStats(duracion, this.energiaGastada);
+
+    this.loading = true;
+
+    try {
+      // Preparar datos para el backend
+      const completeData = {
+        userId: this.user._id,
+        rutinaId: this.rutina._id,
+        ejercicios: session.ejercicios,
+        duration: duracion,
+        staminaUsada: this.energiaGastada,
+      };
+
+      console.log('[RutinaComponent] 📤 Enviando datos de finalización:', completeData);
+
+      // Enviar al backend
+      const result = await this.servicio.completeWorkout(completeData).toPromise();
+
+      console.log('[RutinaComponent] ✅ Respuesta del backend:', result);
+
+      // Mostrar mensaje de éxito
+      if (result.levelUp) {
+        alert(`🎉 ¡Entrenamiento completado! ¡Subiste a ${result.newProfileLevel}!\\n\\nXP ganada: ${result.xpGanada}\\nVolumen total: ${result.totalVolumeLifted}kg`);
+      } else {
+        alert(`✅ ¡Entrenamiento completado!\\n\\nXP ganada: ${result.xpGanada}\\nVolumen total: ${result.totalVolumeLifted}kg`);
+      }
+
+      // Limpiar sesión
+      this.workoutState.clearSession();
+      
+      // Actualizar estado de UI
+      this.sesionFinalizada = true;
+      this.sesionActiva = false;
+
+    } catch (error: any) {
+      console.error('[RutinaComponent] ❌ Error finalizando entrenamiento:', error);
+      console.error('[RutinaComponent] ❌ Error completo:', JSON.stringify(error, null, 2));
+      
+      let errorMessage = 'Error al guardar el entrenamiento. Por favor, intenta de nuevo.';
+      
+      if (error?.error?.message) {
+        errorMessage = `Error: ${error.error.message}`;
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      this.loading = false;
+    }
   }
 }

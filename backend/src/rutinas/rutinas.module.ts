@@ -8,6 +8,7 @@ import { LoadManagementService } from './load-management.service';
 import { Rutina, RutinaSchema } from '../schemas/rutina.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Profile, ProfileSchema } from '../schemas/profile.schema';
+import { WorkoutHistory, WorkoutHistorySchema } from '../schemas/workout-history.schema';
 import { RpgExerciseRule, RpgExerciseRuleSchema } from '../exercises/schemas/rpg-exercise-rule.schema';
 import { ExercisesModule } from '../exercises/exercises.module';
 
@@ -17,6 +18,7 @@ import { ExercisesModule } from '../exercises/exercises.module';
             { name: Rutina.name, schema: RutinaSchema },
             { name: User.name, schema: UserSchema },
             { name: Profile.name, schema: ProfileSchema },
+            { name: WorkoutHistory.name, schema: WorkoutHistorySchema },
             { name: RpgExerciseRule.name, schema: RpgExerciseRuleSchema },
         ]),
         ExercisesModule, // Importar ExercisesModule para usar ExerciseDbService

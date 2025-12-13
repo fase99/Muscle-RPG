@@ -171,7 +171,7 @@
       *ngFor="let ej of rutina.ejercicios; let i = index"
       class="ejercicio"
       [class.hecho]="ej.hecho"
-      (click)="marcarEjercicio(ej)"
+      (click)="marcarEjercicio(ej, i)"
       [style.cursor]="sesionFinalizada ? 'default' : 'pointer'"
       [style.opacity]="sesionFinalizada && !ej.hecho ? 0.5 : 1">
 

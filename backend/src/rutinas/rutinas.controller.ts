@@ -62,6 +62,50 @@ export class RutinasController {
     }
 
     /**
+     * COMPLETA UNA RUTINA DE ENTRENAMIENTO
+     * POST /rutinas/complete
+     * 
+     * Registra la sesión completada en el historial, calcula XP y actualiza el perfil del usuario
+     */
+    @Post('complete')
+    @HttpCode(HttpStatus.OK)
+    async completeWorkout(@Body() completeWorkoutDto: {
+        userId: string;
+        rutinaId?: string;
+        ejercicios: {
+            externalId: string;
+            nombre: string;
+            series: number;
+            repeticiones: number;
+            pesoPlaneado: number;
+            pesoReal: number;
+            rirPlaneado: number;
+            rirReal: number;
+            completado: boolean;
+            notas?: string;
+        }[];
+        duration: number;
+        staminaUsada?: number;
+    }) {
+        const result = await this.rutinasService.completeWorkout(
+            completeWorkoutDto.userId,
+            completeWorkoutDto,
+        );
+
+        return {
+            message: result.levelUp 
+                ? `🎉 ¡Entrenamiento completado! ¡Subiste a ${result.newProfileLevel}!` 
+                : '✅ Entrenamiento completado exitosamente',
+            ...result,
+            stats: {
+                xpGanada: result.xpGanada,
+                volumenTotal: `${result.totalVolumeLifted}kg`,
+                historialId: (result.workoutHistory as any)._id,
+            },
+        };
+    }
+
+    /**
      * PLANIFICA UN CICLO TRIMESTRAL (NIVEL 2: PROGRAMACIÓN DINÁMICA)
      * POST /rutinas/plan/quarterly/:userId
      */
