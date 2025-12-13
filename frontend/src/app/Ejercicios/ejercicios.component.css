@@ -26,7 +26,6 @@
   z-index: 1;
 }
 
-/* ========== VISTA DE TODOS LOS ÁRBOLES ========== */
 .all-trees-view {
   max-width: 100%;
   margin: 0 auto;
@@ -153,7 +152,6 @@
   box-shadow: 0 0 8px currentColor;
 }
 
-/* ========== VISTA DE ÁRBOL DE HABILIDADES ========== */
 .exercise-tree-view {
   max-width: 800px;
   margin: 0 auto;
@@ -308,7 +306,6 @@
   border: none;
 }
 
-/* Hexágono usando clip-path */
 .skill-node::before {
   content: '';
   position: absolute;
@@ -437,7 +434,6 @@
   filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));
 }
 
-/* ========== VISTA DE DETALLE ========== */
 .exercise-detail-view {
   max-width: 700px;
   margin: 0 auto;
@@ -601,7 +597,6 @@
   margin: 0;
 }
 
-/* ========== RESPONSIVE ========== */
 @media (max-width: 1400px) {
   .trees-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

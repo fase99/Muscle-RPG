@@ -45,7 +45,6 @@ export class EjerciciosComponent implements OnInit {
   private loadMuscleGroups() {
     const groupsMap = new Map<MuscleGroup, MuscleGroupNode>();
 
-    // Configuración de cada grupo muscular
     const groupConfig: Record<MuscleGroup, { name: string; icon: string; color: string }> = {
       [MuscleGroup.PECHO]: { name: 'Pecho', icon: '💪', color: '#e74c3c' },
       [MuscleGroup.ESPALDA]: { name: 'Espalda', icon: '🦾', color: '#3498db' },
@@ -56,7 +55,6 @@ export class EjerciciosComponent implements OnInit {
       [MuscleGroup.CARDIO]: { name: 'Cardio', icon: '❤️', color: '#e91e63' }
     };
 
-    // Organizar ejercicios por grupo
     EXERCISE_TREE.forEach(exercise => {
       if (!groupsMap.has(exercise.muscleGroup)) {
         const config = groupConfig[exercise.muscleGroup];
@@ -97,7 +95,6 @@ export class EjerciciosComponent implements OnInit {
   completeExercise(exercise: Exercise) {
     exercise.completed = true;
     
-    // Desbloquear ejercicios dependientes
     EXERCISE_TREE.forEach(ex => {
       if (ex.prerequisites?.includes(exercise.id)) {
         const allPrerequisitesMet = ex.prerequisites.every(prereqId => {
@@ -110,7 +107,6 @@ export class EjerciciosComponent implements OnInit {
       }
     });
 
-    // Actualizar grupos
     this.loadMuscleGroups();
   }
 

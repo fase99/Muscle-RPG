@@ -1,7 +1,6 @@
 import { Exercise, MuscleGroup } from '../models/exercise.model';
 
 export const EXERCISE_TREE: Exercise[] = [
-  // ========== PECHO ==========
   {
     id: 'pecho-1',
     name: 'Flexiones de Rodillas',
@@ -58,7 +57,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== ESPALDA ==========
   {
     id: 'espalda-1',
     name: 'Superman',
@@ -115,7 +113,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== PIERNAS ==========
   {
     id: 'piernas-1',
     name: 'Sentadillas Básicas',
@@ -172,7 +169,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== HOMBROS ==========
   {
     id: 'hombros-1',
     name: 'Elevaciones Laterales (Sin peso)',
@@ -229,7 +225,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== BRAZOS ==========
   {
     id: 'brazos-1',
     name: 'Fondos en Silla',
@@ -286,7 +281,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== CORE ==========
   {
     id: 'core-1',
     name: 'Plancha Básica',
@@ -343,7 +337,6 @@ export const EXERCISE_TREE: Exercise[] = [
     completed: false
   },
 
-  // ========== CARDIO ==========
   {
     id: 'cardio-1',
     name: 'Marcha en Sitio',

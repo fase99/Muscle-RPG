@@ -1,5 +1,4 @@
 <div class="ejercicios-container">
-  <!-- Vista de todos los árboles -->
   @if (!selectedExercise()) {
     <div class="all-trees-view">
       <h1 class="main-title">Muscle RPG - {{ userName }}</h1>
@@ -65,7 +64,6 @@
     </div>
   }
 
-  <!-- Vista de Detalle del Ejercicio -->
   @if (selectedExercise()) {
     <div class="exercise-detail-view">
       <button class="back-button" (click)="backToTree()">← Volver a los Árboles</button>
