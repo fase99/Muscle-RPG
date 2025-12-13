@@ -31,6 +31,22 @@ export class profilingService{
     }
 // ...existing code...
     async calcularNivelUsuario(data: CreateProfileDto){
+        // Obtener la edad del usuario si no se proporciona en el DTO
+        let age = data.age;
+        if (!age && data.userId) {
+            const user = await this.userModel.findById(data.userId);
+            if (user) {
+                age = user.edad;
+                console.log(`[ProfilingService] Edad obtenida del usuario: ${age}`);
+            } else {
+                throw new Error('Usuario no encontrado y edad no proporcionada');
+            }
+        }
+        
+        if (!age) {
+            throw new Error('Edad es requerida para calcular el perfil');
+        }
+
         // ========== FACTOR DE SEGURIDAD (δ_salud) ==========
         // δ = 0 si hay patologías de riesgo, δ = 1 si está sano
         const deltaSalud = data.condicionmedica ? 0 : 1;
@@ -70,7 +86,7 @@ export class profilingService{
 
         // Método B: Precisión Antropométrica (7 Pliegues) - Gold Standard
         if (this.tiene7Pliegues(data)) {
-            pgc = this.calcularPGC7Pliegues(data);
+            pgc = this.calcularPGC7Pliegues(data, age);
             metodoUtilizado = '7 Pliegues (Gold Standard)';
         }
         // Método A alternativo: Si se proporciona PGC conocido directamente
@@ -81,7 +97,7 @@ export class profilingService{
         // Método A: Estimación General (Deurenberg)
         else {
             const imc = data.weight / (data.height * data.height);
-            pgc = (1.20 * imc) + (0.23 * data.age) - (10.8 * data.gender) - 5.4;
+            pgc = (1.20 * imc) + (0.23 * age) - (10.8 * data.gender) - 5.4;
             metodoUtilizado = 'Estimación Deurenberg (IMC)';
         }
 
@@ -118,7 +134,7 @@ export class profilingService{
 
         // Persist profile + result con relación al usuario
         const profileData: any = {
-          age: data.age,
+          age: age,
           gender: data.gender,
           experienceMonths: data.experienceMonths,
           weight: data.weight,
@@ -144,22 +160,50 @@ export class profilingService{
           console.log(`[ProfilingService] Vinculando perfil con usuario: ${data.userId}`);
         }
 
-        const createdProfile = await this.profileModel.create(profileData);
-        console.log(`[ProfilingService] Perfil creado con ID: ${createdProfile._id}`);
+        // Verificar si ya existe un perfil para este usuario
+        let profileDocument: ProfileDocument;
+        
+        if (data.userId) {
+          const existingProfile = await this.profileModel.findOne({ userId: data.userId });
+          
+          if (existingProfile) {
+            // Actualizar el perfil existente
+            console.log(`[ProfilingService] Actualizando perfil existente: ${existingProfile._id}`);
+            const updated = await this.profileModel.findByIdAndUpdate(
+              existingProfile._id,
+              profileData,
+              { new: true }
+            );
+            
+            if (!updated) {
+              throw new Error(`No se pudo actualizar el perfil ${existingProfile._id}`);
+            }
+            profileDocument = updated;
+          } else {
+            // Crear un nuevo perfil
+            console.log(`[ProfilingService] Creando nuevo perfil para usuario: ${data.userId}`);
+            profileDocument = await this.profileModel.create(profileData);
+          }
+        } else {
+          // Sin userId, crear nuevo perfil
+          profileDocument = await this.profileModel.create(profileData);
+        }
+
+        console.log(`[ProfilingService] Perfil guardado con ID: ${profileDocument._id}`);
 
         // Si hay userId, actualizar el User con la referencia al Profile (relación bidireccional)
         if (data.userId) {
           try {
             const updatedUser = await this.userModel.findByIdAndUpdate(
               data.userId,
-              { profileId: createdProfile._id },
+              { profileId: profileDocument._id },
               { new: true }
             );
             
             if (!updatedUser) {
               console.warn(`[ProfilingService] Usuario no encontrado: ${data.userId}`);
             } else {
-              console.log(`[ProfilingService] Usuario actualizado con profileId: ${createdProfile._id}`);
+              console.log(`[ProfilingService] Usuario actualizado con profileId: ${profileDocument._id}`);
             }
           } catch (error) {
             console.error(`[ProfilingService] Error actualizando usuario:`, error);
@@ -168,7 +212,7 @@ export class profilingService{
 
         return {
           ...result,
-          profileId: createdProfile._id.toString(),
+          profileId: profileDocument._id.toString(),
           userId: data.userId
         };
     }
@@ -195,7 +239,7 @@ export class profilingService{
      * Σ₇ = P_tri + P_del + P_pec + P_cin + P_glu + P_cua + P_gem
      * PGC_real = (495 / D) - 450
      */
-    private calcularPGC7Pliegues(data: CreateProfileDto): number {
+    private calcularPGC7Pliegues(data: CreateProfileDto, age: number): number {
         // Suma de los 7 pliegues cutáneos (en mm)
         const suma7 = 
             data.pliegue_triceps! +
@@ -208,15 +252,14 @@ export class profilingService{
 
         // Cálculo de la densidad corporal (D) - Fórmula de Jackson & Pollock
         let densidad: number;
-        const edad = data.age;
         const genero = data.gender;
 
         if (genero === Genero.Male) {
             // Fórmula para hombres (7 pliegues)
-            densidad = 1.112 - (0.00043499 * suma7) + (0.00000055 * suma7 * suma7) - (0.00028826 * edad);
+            densidad = 1.112 - (0.00043499 * suma7) + (0.00000055 * suma7 * suma7) - (0.00028826 * age);
         } else {
             // Fórmula para mujeres (7 pliegues)
-            densidad = 1.097 - (0.00046971 * suma7) + (0.00000056 * suma7 * suma7) - (0.00012828 * edad);
+            densidad = 1.097 - (0.00046971 * suma7) + (0.00000056 * suma7 * suma7) - (0.00012828 * age);
         }
 
         // Ecuación de Siri para calcular el porcentaje de grasa corporal
