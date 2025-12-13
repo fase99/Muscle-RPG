@@ -2,15 +2,16 @@
 
   <!-- HEADER DEL DÍA + ENERGÍA -->
   <header class="header-dia">
-    <h1>{{ rutinaGenerada ? rutina.dia : 'Muscle RPG - Rutinas' }}</h1>
+    <h1>{{ rutinaGenerada ? rutina.dia : 'Muscle RPG - Misión Diaria' }}</h1>
 
-    <div class="energia" *ngIf="rutinaGenerada">
+    <div class="energia" *ngIf="rutinaGenerada && !esDescansoProgramado">
       Energía: <strong>{{ energiaRestante() }} / {{ rutina.energiaMax }}</strong>
     </div>
 
     <div class="usuario-info">
       <p>Usuario: <strong>{{ userName }}</strong></p>
       <p>Nivel: <strong>{{ userLevel }}</strong></p>
+      <p style="font-size: 0.9rem; color: #888;">📅 {{ fechaActual | date:'fullDate':'':'es-ES' }}</p>
     </div>
   </header>
 
@@ -19,30 +20,27 @@
     ⚠️ {{ errorMessage }}
   </div>
 
-  <!-- SELECTOR DE DÍAS (cuando hay rutina semanal) -->
-  <div class="selector-dias" *ngIf="rutinaGenerada && rutinaSemanal.length > 0" style="margin: 1.5rem auto; max-width: 800px;">
-    <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; padding: 0 1rem;">
-      <button 
-        *ngFor="let r of rutinaSemanal; let i = index"
-        (click)="cambiarDia(i)"
-        [class.activo]="i === diaActual"
-        class="btn-dia"
-        [style.background]="i === diaActual ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent'"
-        [style.color]="i === diaActual ? 'white' : '#667eea'"
-        [style.border-color]="i === diaActual ? 'transparent' : '#667eea'">
-        {{ diasSemana[i] }}
-        <span style="font-size: 0.75rem; display: block; margin-top: 0.25rem;">
-          {{ r.ejercicios.length > 0 ? '💪 ' + r.ejercicios.length + ' ej.' : '😴 Descanso' }}
-        </span>
-      </button>
-    </div>
+  <!-- SELECTOR DE DÍAS DESHABILITADO - Solo se muestra la rutina de HOY según el paper -->
+  <!-- Sección VII.D: "genera una sesión personalizada para cada día, diseñada específicamente según el estado real del usuario en ese momento" -->
+  
+  <!-- MENSAJE INFORMATIVO: Solo se muestra la misión de hoy -->
+  <div *ngIf="rutinaGenerada" style="text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); margin: 1rem auto; max-width: 600px; border-radius: 12px; border-left: 4px solid #667eea;">
+    <p style="margin: 0; color: #667eea; font-weight: 600;">
+      🎯 Misión del Día - Modelo de Optimización Diaria
+    </p>
+    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666;">
+      El sistema solo muestra la rutina programada para HOY basada en tu estado actual
+    </p>
   </div>
 
   <!-- BOTÓN GENERAR RUTINA (cuando no hay rutina generada) -->
   <div class="generar-rutina" *ngIf="!rutinaGenerada && !loading">
     <div class="card-generar">
-      <h2>📅 Rutina Semanal</h2>
+      <h2>📅 Misión Diaria</h2>
       <p>Genera tu rutina de entrenamiento personalizada optimizada por algoritmo de grafos DAG</p>
+      <p style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">
+        El sistema calculará la rutina óptima solo para HOY según tu estado actual
+      </p>
       
       <div class="info-stats" *ngIf="user">
         <div class="stat-item">
@@ -60,11 +58,11 @@
       </div>
 
       <button class="btn-generar-rutina" (click)="generarRutinaDiaria()">
-        🚀 GENERAR RUTINA
+        🚀 GENERAR MISIÓN DE HOY
       </button>
 
       <div class="hint">
-        <small>El sistema calculará la rutina óptima basada en tu perfil, nivel y estado actual</small>
+        <small>El sistema calculará la rutina óptima basada en tu perfil, nivel y estado actual del día</small>
       </div>
     </div>
   </div>
@@ -77,84 +75,86 @@
 
 <!-- ESTADO INICIAL: ENTRENAMIENTO O DESCANSO -->
 <div class="estado-inicial" *ngIf="rutinaGenerada && !sesionActiva && !sesionFinalizada">
-  <div class="card-inicial">
+  
+  <!-- CASO ESPECIAL: DÍA DE DESCANSO PROGRAMADO -->
+  <div *ngIf="esDescansoProgramado" class="card-descanso" style="max-width: 600px; margin: 2rem auto; padding: 3rem; background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border-radius: 16px; text-align: center;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">😴</div>
+    <h2 style="color: #667eea; margin-bottom: 1rem;">Día de Descanso</h2>
+    <p style="font-size: 1.1rem; color: #666; margin-bottom: 2rem;">
+      Hoy está programado para recuperación y regeneración de stamina
+    </p>
+    
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+      <h3 style="color: #667eea; margin-bottom: 1rem;">💡 Recomendaciones:</h3>
+      <ul style="text-align: left; color: #666; list-style-position: inside;">
+        <li>Recuperación activa (caminata ligera, yoga)</li>
+        <li>Hidratación adecuada</li>
+        <li>Alimentación balanceada</li>
+        <li>Sueño de calidad (7-9 horas)</li>
+      </ul>
+    </div>
+    
+    <button class="btn-generar-rutina" (click)="regenerarRutina()" 
+            style="background: linear-gradient(135deg, #888 0%, #666 100%);">
+      🔄 Volver al Inicio
+    </button>
+  </div>
 
-    <!-- CASO 1: HAY EJERCICIOS → RUTINA NORMAL -->
-    <div *ngIf="rutina.ejercicios.length > 0">
-      <h2>Rutina Optimizada</h2>
-      <p *ngIf="rutina.descripcion">{{ rutina.descripcion }}</p>
-      
-      <div class="muscle-groups" *ngIf="rutina.muscleGroups && rutina.muscleGroups.length > 0" 
-           style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-        <strong style="color: #667eea;">🎯 Grupos musculares:</strong>
-        <span style="margin-left: 0.5rem; font-size: 1.1rem;">{{ rutina.muscleGroups.join(' + ') }}</span>
-      </div>
-
-      <div class="stats-rutina" *ngIf="rutina.xpTotalEstimado">
-        <div class="stat">
-          <span class="label">XP Estimado:</span>
-          <span class="value">{{ rutina.xpTotalEstimado | number:'1.0-0' }}</span>
-        </div>
-        <div class="stat">
-          <span class="label">Ejercicios:</span>
-          <span class="value">{{ rutina.ejercicios.length }}</span>
-        </div>
-        <div class="stat">
-          <span class="label">Tiempo:</span>
-          <span class="value">{{ rutina.tiempoTotal || rutina.tiempoPlaneado }} min</span>
-        </div>
-      </div>
-
-      <div class="info-energia">
-        <strong>Energía disponible:</strong>
-        <span class="valor-energia" [class.baja]="energiaRestante() < 30">
-          {{ energiaRestante() }} / {{ rutina.energiaMax }}
-        </span>
-      </div>
-
-      <!-- Resumen de cargas -->
-      <div class="resumen-cargas" *ngIf="rutina.ejercicios && rutina.ejercicios.length > 0">
-        <h3 style="font-size: 1rem; color: #60a5fa; margin-bottom: 12px;">📊 Resumen de Cargas</h3>
-        <div class="cargas-stats">
-          <div class="carga-stat">
-            <span class="carga-label">Ejercicios con peso:</span>
-            <span class="carga-value">{{ contarEjerciciosConPeso() }} / {{ rutina.ejercicios.length }}</span>
-          </div>
-          <div class="carga-stat" *ngIf="obtenerPesoPromedio() > 0">
-            <span class="carga-label">Peso promedio:</span>
-            <span class="carga-value peso-destacado">{{ obtenerPesoPromedio() | number:'1.1-1' }}kg</span>
-          </div>
-          <div class="carga-stat">
-            <span class="carga-label">RIR promedio:</span>
-            <span class="carga-value">{{ obtenerRIRPromedio() | number:'1.0-0' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
-        💪 COMENZAR ENTRENAMIENTO
-      </button>
+  <!-- CASO 1: HAY EJERCICIOS → RUTINA NORMAL DEL DÍA ACTUAL -->
+  <div class="card-inicial" *ngIf="!esDescansoProgramado && rutinaDelDia && rutina.ejercicios.length > 0">
+    <h2>Rutina Optimizada</h2>
+    <p *ngIf="rutina.descripcion">{{ rutina.descripcion }}</p>
+    
+    <div class="muscle-groups" *ngIf="rutina.muscleGroups && rutina.muscleGroups.length > 0" 
+         style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+      <strong style="color: #667eea;">🎯 Grupos musculares:</strong>
+      <span style="margin-left: 0.5rem; font-size: 1.1rem;">{{ rutina.muscleGroups.join(' + ') }}</span>
     </div>
 
-    <!-- CASO 2: DÍA DE DESCANSO → MENSAJE ESPECIAL -->
-    <div *ngIf="rutina.ejercicios.length === 0" style="text-align: center; padding: 2rem 1rem;">
-      <div style="font-size: 4rem; margin-bottom: 1rem;">😴</div>
-      <h2 style="color: #667eea; margin-bottom: 1rem;">¡Día de Descanso!</h2>
-      
-      <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6; color: #12d1eb;">
-        Hoy no hay entrenamiento programado. Tu cuerpo necesita recuperarse para rendir al máximo mañana.
-      </p>
-
-      <div style="background: linear-gradient(135deg, #667eea11, #764ba211); padding: 0.4rem; border-radius: 10px; margin: 1.5rem auto; max-width: 600px;">
-        <p style="margin: 1rem 0 0; font-style: italic; color: #667eea;">Recuerda: los músculos crecen mientras descansas 💪
-        </p>
+    <div class="stats-rutina" *ngIf="rutina.xpTotalEstimado">
+      <div class="stat">
+        <span class="label">XP Estimado:</span>
+        <span class="value">{{ rutina.xpTotalEstimado | number:'1.0-0' }}</span>
       </div>
-
-      <p style="margin-top: 2rem; color: #888;">
-        Mañana volvemos con todo. ¡Recarga energías!
-      </p>
+      <div class="stat">
+        <span class="label">Ejercicios:</span>
+        <span class="value">{{ rutina.ejercicios.length }}</span>
+      </div>
+      <div class="stat">
+        <span class="label">Tiempo:</span>
+        <span class="value">{{ rutina.tiempoTotal || rutina.tiempoPlaneado }} min</span>
+      </div>
     </div>
 
+    <div class="info-energia">
+      <strong>Energía disponible:</strong>
+      <span class="valor-energia" [class.baja]="energiaRestante() < 30">
+        {{ energiaRestante() }} / {{ rutina.energiaMax }}
+      </span>
+    </div>
+
+    <!-- Resumen de cargas -->
+    <div class="resumen-cargas" *ngIf="rutina.ejercicios && rutina.ejercicios.length > 0">
+      <h3 style="font-size: 1rem; color: #60a5fa; margin-bottom: 12px;">📊 Resumen de Cargas</h3>
+      <div class="cargas-stats">
+        <div class="carga-stat">
+          <span class="carga-label">Ejercicios con peso:</span>
+          <span class="carga-value">{{ contarEjerciciosConPeso() }} / {{ rutina.ejercicios.length }}</span>
+        </div>
+        <div class="carga-stat" *ngIf="obtenerPesoPromedio() > 0">
+          <span class="carga-label">Peso promedio:</span>
+          <span class="carga-value peso-destacado">{{ obtenerPesoPromedio() | number:'1.1-1' }}kg</span>
+        </div>
+        <div class="carga-stat">
+          <span class="carga-label">RIR promedio:</span>
+          <span class="carga-value">{{ obtenerRIRPromedio() | number:'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
+      💪 COMENZAR MISIÓN
+    </button>
   </div>
 </div>
 

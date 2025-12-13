@@ -311,12 +311,24 @@ export class RutinasService {
         const trainingDays = perfilConfig.frecuencia;
         const staminaPerDay = 100; // Stamina fija por día
 
+        // Obtener el inicio de la semana (Lunes)
+        const today = new Date();
+        const currentDayOfWeek = today.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+        const daysToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + daysToMonday);
+        monday.setHours(0, 0, 0, 0);
+
         // Generar una rutina para cada día de entrenamiento
         for (let dayIndex = 0; dayIndex < trainingDays; dayIndex++) {
             const muscleGroups = muscleGroupSplits[dayIndex];
             const dayName = daysOfWeek[dayIndex];
             
-            console.log(`[RutinasService] Generando ${dayName} - Grupos: ${muscleGroups.join(' + ')}`);
+            // Calcular fecha programada para este día
+            const scheduledDate = new Date(monday);
+            scheduledDate.setDate(monday.getDate() + dayIndex);
+            
+            console.log(`[RutinasService] Generando ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Grupos: ${muscleGroups.join(' + ')}`);
 
             // Día de entrenamiento con grupos musculares específicos
             const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
@@ -350,6 +362,7 @@ export class RutinasService {
                 descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (SRPG: ${profile.sRpg}, RIR ${perfilConfig.rir}). ${ejercicios.length} ejercicios, XP: ${Math.round(optimalPath.totalXP)}`,
                 cycleType: 'daily-session',
                 goal: 'hypertrophy',
+                scheduledDate, // ✅ Asignar fecha programada
                 ejercicios,
                 tiempoTotal: optimalPath.totalTime,
                 fatigaTotal: optimalPath.totalFatigue,
@@ -374,12 +387,19 @@ export class RutinasService {
 
         // Agregar días de descanso
         for (let dayIndex = trainingDays; dayIndex < 7; dayIndex++) {
+            // Calcular fecha programada para este día de descanso
+            const scheduledDate = new Date(monday);
+            scheduledDate.setDate(monday.getDate() + dayIndex);
+            
+            console.log(`[RutinasService] ${daysOfWeek[dayIndex]} (${scheduledDate.toLocaleDateString('es-ES')}) - Descanso`);
+            
             const restRutina = new this.rutinaModel({
                 usuarioId: new Types.ObjectId(usuarioId),
                 nombre: `${daysOfWeek[dayIndex]} - Descanso`,
                 descripcion: `Recuperación activa - ${perfilConfig.perfil}`,
                 cycleType: 'daily-session',
                 goal: 'hypertrophy',
+                scheduledDate, // ✅ Asignar fecha programada
                 ejercicios: [],
                 tiempoTotal: 0,
                 fatigaTotal: 0,

@@ -149,6 +149,9 @@ export class Rutina {
     @Prop()
     quarterEndDate?: Date; // Fin del ciclo trimestral
 
+    @Prop()
+    scheduledDate?: Date; // Fecha programada para la rutina (para rutinas semanales)
+
     // ========== DÍAS DE LA SEMANA ==========
     @Prop({
         type: [String],
