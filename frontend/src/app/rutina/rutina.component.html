@@ -139,10 +139,6 @@
 
   <!-- DURANTE EL ENTRENAMIENTO -->
   <div class="durante" *ngIf="sesionActiva">
-    <div class="cronometro">
-      Tiempo transcurrido: <strong>{{ tiempoTranscurrido() }}</strong> minutos
-    </div>
-
     <button class="btn-finalizar" (click)="finalizarEntrenamiento()">
       Finalizar entrenamiento
     </button>
