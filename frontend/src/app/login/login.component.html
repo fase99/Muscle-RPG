@@ -3,11 +3,9 @@
         <div class="login-header">
             <div class="logo">💪</div>
             <h1>MUSCLE RPG</h1>
-            <!-- <p class="subtitle">{{ isLoginMode ? 'ACCESO AL PERFIL OPERATIVO' : 'REGISTRO DE NUEVO USUARIO' }}</p> -->
         </div>
 
         <form (ngSubmit)="onSubmit()" class="login-form">
-            <!-- Campos de registro -->
             <div *ngIf="!isLoginMode">
                 <div class="form-group">
                     <label for="nombre">NOMBRE *</label>
@@ -34,14 +32,12 @@
                 </div>
             </div>
 
-            <!-- Email (común para login y registro) -->
             <div class="form-group">
                 <label for="email">EMAIL *</label>
                 <input type="email" id="email" name="email" [(ngModel)]="email" 
                        placeholder="correo@ejemplo.com" autocomplete="email" required />
             </div>
 
-            <!-- Password (común para login y registro) -->
             <div class="form-group">
                 <label for="password">CONTRASEÑA *</label>
                 <div class="password-input">

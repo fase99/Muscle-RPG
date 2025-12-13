@@ -12,16 +12,13 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    // Verificar si el email ya existe
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
       throw new ConflictException('El email ya está registrado');
     }
 
-    // Crear usuario (el password se hashea automáticamente en UsersService)
     const user = await this.usersService.create(registerDto);
 
-    // No devolver el password
     const userObj = user.toObject();
     const { password, ...result } = userObj;
     return {
@@ -43,12 +40,10 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Verificar y desbloquear logros (en background, no bloquea el login)
     this.achievementsService.checkAndUnlockAchievements(user._id.toString()).catch(err => {
       console.error('Error al verificar logros:', err);
     });
 
-    // No devolver el password
     const userObj = user.toObject();
     const { password, ...result } = userObj;
     

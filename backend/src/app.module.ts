@@ -30,7 +30,7 @@ export class AppModule implements OnModuleInit {
       process.exit(1);
     }
     const mongoUri = process.env.MONGODB_URI;
-    console.log('🔗 MongoDB Atlas URI:', mongoUri.replace(/:[^:@]+@/, ':****@')); // Hide password
+    console.log('🔗 MongoDB Atlas URI:', mongoUri.replace(/:[^:@]+@/, ':****@'));
     
     this.connection.on('connected', () => {
       console.log('✅ MongoDB connected successfully');

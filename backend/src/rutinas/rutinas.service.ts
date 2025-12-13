@@ -19,10 +19,6 @@ export class RutinasService {
         private dynamicProgramming: DynamicProgrammingService,
     ) { }
 
-    /**
-     * GENERA UNA RUTINA DIARIA OPTIMIZADA USANDO GRAFOS (NIVEL 1)
-     * Este es el endpoint principal para generar la "Misión Diaria" del usuario
-     */
     async generateDailyRoutine(
         usuarioId: string,
         maxTime: number = 120,
@@ -32,7 +28,6 @@ export class RutinasService {
         
         const startTime = Date.now();
 
-        // 1. Obtener datos del usuario y perfil
         const user = await this.userModel.findById(usuarioId).exec();
         if (!user) throw new NotFoundException('Usuario no encontrado');
 
@@ -43,40 +38,36 @@ export class RutinasService {
             );
         }
 
-        // Usar el nivel directamente del perfil (ya calculado durante el profiling)
         console.log(`[RutinasService] 🔍 Datos del perfil:`, {
             sRpg: profile.sRpg,
             level: profile.level,
             profileId: profile._id,
         });
         
-        // Usar el nivel guardado en el perfil en lugar de recalcularlo
         const perfilConfig = this.getConfigPorNivel(profile.level);
         console.log(`[RutinasService] 📊 Usando perfil guardado: ${profile.level} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
 
-        // 2. Usar el optimizador de grafos para encontrar el camino óptimo
+
         const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
             usuarioId,
             maxTime,
             availableStamina,
-            perfilConfig.rir, // Pasar el RIR del perfil
+            perfilConfig.rir,
         );
 
-        // 3. Calcular Volume Landmarks
         const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
 
-        // 4. Crear la rutina en la base de datos
         const ejercicios = optimalPath.nodes.map(node => ({
             externalId: node.externalId,
             nombre: node.name,
             series: node.series,
             repeticiones: node.repeticiones,
-            peso: 0, // Se calcula en tiempo real según el 1RM del usuario
+            peso: 0,
             costoTiempo: node.costoTiempo,
             costoFatiga: node.costoFatiga,
             estimuloXP: node.estimuloXP,
             completado: false,
-            rir: perfilConfig.rir, // Usar el RIR del perfil
+            rir: perfilConfig.rir,
             muscleTargets: node.muscleTargets,
             notas: `${perfilConfig.perfil} (SRPG: ${profile.sRpg}) - RIR ${perfilConfig.rir} - ${node.series} series x ${node.repeticiones} reps`,
         }));

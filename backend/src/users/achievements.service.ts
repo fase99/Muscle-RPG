@@ -17,7 +17,6 @@ interface AchievementDefinition {
 @Injectable()
 export class AchievementsService {
   private achievementDefinitions: AchievementDefinition[] = [
-    // ========== LOGROS DE ENTRENAMIENTO ==========
     {
       type: AchievementType.WORKOUT_STREAKS,
       name: 'Week Warrior 🔥',
@@ -32,13 +31,11 @@ export class AchievementsService {
       description: 'Completa 5 rutinas',
       icon: '💪',
       condition: (user) => {
-        // Esta será actualizada por rutinas service
         return (user.ejerciciosCompletados?.length || 0) >= 5;
       },
       xpReward: 25,
     },
 
-    // ========== LOGROS DE ATRIBUTOS ==========
     {
       type: AchievementType.ATTRIBUTE_MILESTONE,
       name: 'Strength Master 💎',
@@ -62,7 +59,6 @@ export class AchievementsService {
       xpReward: 60,
     },
 
-    // ========== LOGROS DE PROGRESIÓN ==========
     {
       type: AchievementType.LEVEL_MILESTONE,
       name: 'Rising Star ⭐',
@@ -80,7 +76,6 @@ export class AchievementsService {
       xpReward: 30,
     },
 
-    // ========== LOGROS DE PERFIL ==========
     {
       type: AchievementType.PROFILE_COMPLETED,
       name: 'Health Conscious 🏥',
@@ -105,7 +100,6 @@ export class AchievementsService {
       xpReward: 75,
     },
 
-    // ========== LOGROS ESPECIALES ==========
     {
       type: AchievementType.CONSISTENCY,
       name: 'Iron Will 🛡️',
@@ -125,9 +119,6 @@ export class AchievementsService {
     private profileModel: Model<ProfileDocument>,
   ) {}
 
-  /**
-   * Verifica y desbloquea logros para un usuario
-   */
   async checkAndUnlockAchievements(userId: string): Promise<Achievement[]> {
     const user = await this.userModel.findById(userId);
     if (!user) {
@@ -141,19 +132,16 @@ export class AchievementsService {
     const unlockedAchievements: Achievement[] = [];
 
     for (const definition of this.achievementDefinitions) {
-      // Verificar si ya tiene el logro
       const existingAchievement = await this.achievementModel.findOne({
         userId,
         type: definition.type,
       });
 
       if (existingAchievement) {
-        continue; // Ya tiene este logro
+        continue;
       }
 
-      // Verificar condición
       if (definition.condition(user, profile)) {
-        // Crear el logro
         const achievement = await this.achievementModel.create({
           userId,
           type: definition.type,
@@ -166,7 +154,6 @@ export class AchievementsService {
           },
         });
 
-        // Actualizar usuario con XP y contar logros
         await this.userModel.findByIdAndUpdate(userId, {
           $inc: {
             experiencia: definition.xpReward,
@@ -181,16 +168,10 @@ export class AchievementsService {
     return unlockedAchievements;
   }
 
-  /**
-   * Obtiene todos los logros de un usuario
-   */
   async getUserAchievements(userId: string): Promise<Achievement[]> {
     return this.achievementModel.find({ userId }).sort({ unlockedAt: -1 });
   }
 
-  /**
-   * Obtiene el próximo logro a desbloquear
-   */
   async getNextAchievement(userId: string): Promise<Achievement | null> {
     const user = await this.userModel.findById(userId);
     if (!user) {
@@ -207,7 +188,6 @@ export class AchievementsService {
 
     for (const definition of this.achievementDefinitions) {
       if (!unlockedTypes.has(definition.type)) {
-        // Retornar una versión "preview" del logro sin desbloqueado
         return new this.achievementModel({
           userId,
           type: definition.type,
@@ -223,19 +203,14 @@ export class AchievementsService {
     return null;
   }
 
-  /**
-   * Incrementa contador de ejercicios completados (para logro de rutinas)
-   */
   async recordWorkoutCompletion(userId: string): Promise<Achievement[]> {
     const user = await this.userModel.findById(userId);
     if (!user) {
       return [];
     }
 
-    // Incrementar contador de ejercicios completados
     const completedCount = ((user as UserDocument).ejerciciosCompletados?.length || 0) + 1;
 
-    // Si completó 5 ejercicios, desbloquear logro
     if (completedCount === 5) {
       const existingAchievement = await this.achievementModel.findOne({
         userId,
@@ -252,7 +227,6 @@ export class AchievementsService {
           xpReward: 25,
         });
 
-        // Actualizar usuario
         await this.userModel.findByIdAndUpdate(userId, {
           $inc: {
             experiencia: 25,

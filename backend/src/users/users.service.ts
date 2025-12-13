@@ -96,7 +96,6 @@ export class UsersService {
 
         user.experiencia += xpGanada;
 
-        // Sistema de nivelación
         while (user.experiencia >= user.experienciaMaxima) {
             user.experiencia -= user.experienciaMaxima;
             user.nivel += 1;
@@ -107,11 +106,6 @@ export class UsersService {
         return this.findOne(id);
     }
 
-    /**
-     * Actualizar stamina del usuario
-     * @param id ID del usuario
-     * @param staminaCost Costo de stamina a restar (negativo para recuperar)
-     */
     async updateStamina(id: string, staminaCost: number): Promise<User> {
         const user = await this.userModel.findById(id);
         if (!user) {
@@ -123,11 +117,6 @@ export class UsersService {
         return this.findOne(id);
     }
 
-    /**
-     * Marcar ejercicio como completado y actualizar historial
-     * @param id ID del usuario
-     * @param exerciseId ID del ejercicio completado
-     */
     async completeExercise(id: string, exerciseId: string): Promise<User> {
         const user = await this.userModel.findById(id);
         if (!user) {
@@ -142,10 +131,6 @@ export class UsersService {
         return this.findOne(id);
     }
 
-    /**
-     * Obtener historial de ejercicios completados
-     * @param id ID del usuario
-     */
     async getCompletedExercises(id: string): Promise<string[]> {
         const user = await this.userModel.findById(id);
         if (!user) {
@@ -191,11 +176,6 @@ export class UsersService {
         return bcrypt.compare(plainPassword, hashedPassword);
     }
 
-    // ========== MÉTODOS DE RELACIÓN CON PROFILE ==========
-
-    /**
-     * Obtiene un usuario con su perfil de perfilamiento poblado
-     */
     async findOneWithProfile(userId: string): Promise<any> {
         const user = await this.userModel
             .findById(userId)
@@ -210,24 +190,15 @@ export class UsersService {
         return user;
     }
 
-    /**
-     * Obtiene el perfil asociado a un usuario
-     */
     async getProfileByUserId(userId: string): Promise<Profile | null> {
         return this.profileModel.findOne({ userId }).exec();
     }
 
-    /**
-     * Verifica si un usuario tiene perfil de perfilamiento
-     */
     async hasProfile(userId: string): Promise<boolean> {
         const profile = await this.profileModel.findOne({ userId }).exec();
         return !!profile;
     }
 
-    /**
-     * Actualiza la referencia al perfil en el usuario
-     */
     async linkProfileToUser(userId: string, profileId: string): Promise<User> {
         const updatedUser = await this.userModel
             .findByIdAndUpdate(
@@ -245,9 +216,6 @@ export class UsersService {
         return updatedUser;
     }
 
-    /**
-     * Obtiene estadísticas del usuario basadas en sus rutinas completadas
-     */
     async getUserStats(userId: string): Promise<any> {
         const user = await this.userModel
             .findById(userId)
@@ -258,14 +226,11 @@ export class UsersService {
             throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
         }
 
-        // Obtener rutinas del usuario desde la colección de rutinas
         const rutinas = await this.userModel.db.collection('rutinas')
             .find({ usuarioId: userId })
             .toArray();
 
-        // Calcular estadísticas
         const stats = {
-            // Datos personales
             personalData: {
                 nombre: `${user.nombre} ${user.apellido}`,
                 email: user.email,
@@ -275,7 +240,6 @@ export class UsersService {
                 experienciaMaxima: user.experienciaMaxima,
             },
             
-            // Datos del perfil
             profileData: user.profileId ? {
                 level: (user.profileId as any).level,
                 weight: (user.profileId as any).weight,
@@ -284,10 +248,8 @@ export class UsersService {
                 trainingExperience: (user.profileId as any).trainingExperience,
             } : null,
 
-            // Atributos actuales
             atributos: user.atributos,
 
-            // Estadísticas de rutinas
             rutinasStats: {
                 totalRutinas: rutinas.length,
                 rutinasCompletadas: rutinas.filter((r: any) => r.completada).length,
@@ -303,7 +265,6 @@ export class UsersService {
                 )).size,
             },
 
-            // Métricas calculadas
             metricas: [
                 {
                     icon: '🏋️',
@@ -343,16 +304,12 @@ export class UsersService {
                 }
             ],
 
-            // Análisis de atributos
             atributosAnalisis: this.analizarAtributos(user.atributos),
         };
 
         return stats;
     }
 
-    /**
-     * Analiza los atributos del usuario y genera descripción
-     */
     private analizarAtributos(atributos: any): any {
         const attrs = [
             { key: 'STR', value: atributos.STR, label: 'Fuerza' },
@@ -363,10 +320,8 @@ export class UsersService {
             { key: 'END', value: atributos.END, label: 'Durabilidad' },
         ];
 
-        // Encontrar el atributo más alto
         const maxAttr = attrs.reduce((max, attr) => attr.value > max.value ? attr : max, attrs[0]);
         
-        // Calcular promedio
         const avg = attrs.reduce((sum, attr) => sum + attr.value, 0) / attrs.length;
 
         let perfil = 'BALANCED';
