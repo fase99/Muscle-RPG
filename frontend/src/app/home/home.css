@@ -1,7 +1,10 @@
 .home-container {
-  min-height: calc(100vh - 180px);
+  min-height: calc(100vh - 300px);
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Hero Section */
