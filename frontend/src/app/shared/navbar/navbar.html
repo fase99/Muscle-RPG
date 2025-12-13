@@ -39,7 +39,7 @@
       <span class="level-number">{{ level }}</span>
     </div>
 
-    <span class="username">{{ authService.getUsername() }}</span>
+    <span class="username">{{ authService.getUsername().toLocaleUpperCase() }}</span>
 
     <button class="logout-btn" (click)="authService.logout()" title="Cerrar sesión">
        🚪
