@@ -8,7 +8,6 @@
   min-height: 100vh;
 }
 
-/* === SELECTOR DE DÍAS === */
 .selector-dias {
   margin: 1.5rem auto;
   max-width: 900px;
@@ -40,7 +39,6 @@
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* === HEADER DEL DÍA === */
 .header-dia {
   text-align: center;
   padding: 32px 20px;
@@ -57,7 +55,6 @@
   color: #60a5fa;
 }
 
-/* === ENERGÍA === */
 .energia {
   font-size: 1.3rem;
   font-weight: 500;
@@ -78,7 +75,6 @@
   font-weight: bold;
 }
 
-/* === ESTADO INICIAL === */
 .estado-inicial,
 .generar-rutina {
   display: flex;
@@ -256,7 +252,6 @@
   font-size: 1.05rem;
 }
 
-/* === INFO ENERGÍA === */
 .info-energia {
   margin: 20px 0;
   font-size: 1.2rem;
@@ -274,7 +269,6 @@
   color: #fb7185;
 }
 
-/* === BOTONES === */
 .btn-comenzar,
 .btn-finalizar {
   padding: 18px 40px;
@@ -316,7 +310,6 @@
   margin: 30px 0;
 }
 
-/* === LISTA DE EJERCICIOS === */
 .ejercicios {
   display: flex;
   flex-direction: column;
@@ -373,7 +366,6 @@
   font-size: 0.98rem;
 }
 
-/* === CHECK === */
 .check {
   background: #10b981;
   color: white;
@@ -383,7 +375,6 @@
   font-size: 0.9rem;
 }
 
-/* === RESUMEN === */
 .resumen {
   background: #161b22;
   border: 1px solid #30363d;
@@ -409,7 +400,6 @@
   color: #93c5fd;
 }
 
-/* === PESO Y CARGA === */
 .peso-destacado {
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
@@ -440,7 +430,6 @@
   margin-top: 8px;
 }
 
-/* === RESUMEN DE CARGAS === */
 .resumen-cargas {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -475,7 +464,6 @@
   color: #60a5fa;
 }
 
-/* === VISTA PREVIA DE PRÓXIMOS DÍAS === */
 .proximos-dias-container {
   margin: 2rem auto;
   max-width: 900px;

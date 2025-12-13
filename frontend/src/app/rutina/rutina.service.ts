@@ -7,11 +7,11 @@ export interface Ejercicio {
   externalId?: string;
   series: number;
   repeticiones: number;
-  sets?: number;  // alias para series
-  reps?: string;  // alias para repeticiones
+  sets?: number;  
+  reps?: string; 
   peso?: number;
   intensidad?: number;
-  tiempo: number;     // minutos (incluye descansos entre series)
+  tiempo: number;     
   costoTiempo?: number;
   costoFatiga?: number;
   estimuloXP?: number;
@@ -29,8 +29,8 @@ export interface Rutina {
   dia: string;
   nombre?: string;
   descripcion?: string;
-  scheduledDate?: Date | string; // Fecha programada para la rutina
-  tiempoPlaneado: number;  // siempre 120
+  scheduledDate?: Date | string; 
+  tiempoPlaneado: number; 
   tiempoTotal?: number;
   energiaMax: number;
   fatigaTotal?: number;
@@ -52,9 +52,6 @@ export class RutinaService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Genera una rutina diaria optimizada desde el backend
-   */
   generateDailyRoutine(
     userId: string,
     availableTime: number = 120,
@@ -67,9 +64,6 @@ export class RutinaService {
     });
   }
 
-  /**
-   * Genera una rutina semanal completa (7 días)
-   */
   generateWeeklyRoutine(
     userId: string,
     availableTime: number = 120
@@ -80,23 +74,14 @@ export class RutinaService {
     });
   }
 
-  /**
-   * Planifica un ciclo trimestral
-   */
   planQuarterlyCycle(userId: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/plan/quarterly/${userId}`, {});
   }
 
-  /**
-   * Obtiene las rutinas del usuario
-   */
   getUserRoutines(userId: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/user/${userId}`);
   }
 
-  /**
-   * Marca un ejercicio como completado
-   */
   markExerciseComplete(
     rutinaId: string,
     exerciseIndex: number,
@@ -108,17 +93,10 @@ export class RutinaService {
     );
   }
 
-  /**
-   * Marca una rutina como completada
-   */
   completeRoutine(rutinaId: string): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${rutinaId}/completar`, {});
   }
 
-  /**
-   * Envía los datos de finalización de la rutina al backend
-   * Guarda el historial, calcula XP y actualiza el perfil del usuario
-   */
   completeWorkout(completeData: {
     userId: string;
     rutinaId?: string;
@@ -140,9 +118,6 @@ export class RutinaService {
     return this.http.post(`${this.baseUrl}/complete`, completeData);
   }
 
-  /**
-   * Mock de rutina para desarrollo (mantener como fallback)
-   */
   obtenerRutinaMock(): Rutina {
     const ejercicios: Ejercicio[] = [
       { nombre: "Sentadilla Libre",           series: 4, sets: 4, reps: "8-10", repeticiones: 10, intensidad: 78, tiempo: 19, energia: 24, hecho: false },

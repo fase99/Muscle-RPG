@@ -1,6 +1,5 @@
 <div class="container">
 
-  <!-- HEADER DEL DÍA + ENERGÍA -->
   <header class="header-dia">
     <h1>{{ rutinaGenerada ? rutina.dia : 'Muscle RPG - Misión Diaria' }}</h1>
 
@@ -15,16 +14,10 @@
     </div>
   </header>
 
-  <!-- ERROR MESSAGE -->
   <div class="error-message" *ngIf="errorMessage" style="background: #ff4444; color: white; padding: 1rem; margin: 1rem; border-radius: 8px;">
     ⚠️ {{ errorMessage }}
   </div>
 
-  <!-- SELECTOR DE DÍAS DESHABILITADO - Solo se muestra la rutina de HOY según el paper -->
-  <!-- Sección VII.D: "genera una sesión personalizada para cada día, diseñada específicamente según el estado real del usuario en ese momento" -->
-  
-
-  <!-- VISTA PREVIA DE PRÓXIMOS DÍAS -->
   <div *ngIf="rutinaGenerada && proximasRutinas.length > 0" class="proximos-dias-container">
     <h3 style="text-align: center; color: #667eea; margin: 1.5rem 0 1rem 0; font-size: 1.1rem;">
       📅 Próximos entrenamientos
@@ -57,7 +50,6 @@
     </div>
   </div>
 
-  <!-- BOTÓN GENERAR RUTINA (cuando no hay rutina generada) -->
   <div class="generar-rutina" *ngIf="!rutinaGenerada && !loading">
     <div class="card-generar">
       <h2>📅 Misión Diaria</h2>
@@ -91,16 +83,12 @@
     </div>
   </div>
 
-  <!-- LOADING STATE -->
   <div class="loading" *ngIf="loading" style="text-align: center; padding: 3rem;">
     <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
     <p style="margin-top: 1rem; color: #666;">Generando tu rutina óptima... 🤖</p>
   </div>
 
-<!-- ESTADO INICIAL: ENTRENAMIENTO O DESCANSO -->
 <div class="estado-inicial" *ngIf="rutinaGenerada && !sesionActiva && !sesionFinalizada">
-  
-  <!-- CASO ESPECIAL: DÍA DE DESCANSO PROGRAMADO -->
   <div *ngIf="esDescansoProgramado" class="card-descanso" style="max-width: 600px; margin: 2rem auto; padding: 3rem; background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border-radius: 16px; text-align: center;">
     <div style="font-size: 4rem; margin-bottom: 1rem;">😴</div>
     <h2 style="color: #667eea; margin-bottom: 1rem;">Día de Descanso</h2>
@@ -124,13 +112,12 @@
     </button>
   </div>
 
-  <!-- CASO 1: HAY EJERCICIOS → RUTINA NORMAL DEL DÍA ACTUAL -->
   <div class="card-inicial" *ngIf="!esDescansoProgramado && rutinaDelDia && rutina.ejercicios.length > 0">
     <h2>Rutina Optimizada</h2>
     <p *ngIf="rutina.descripcion">{{ rutina.descripcion }}</p>
     
     <div class="muscle-groups" *ngIf="rutina.muscleGroups && rutina.muscleGroups.length > 0" 
-         style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+          style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
       <strong style="color: #667eea;">🎯 Grupos musculares:</strong>
       <span style="margin-left: 0.5rem; font-size: 1.1rem;">{{ rutina.muscleGroups.join(' + ') }}</span>
     </div>
@@ -157,7 +144,6 @@
       </span>
     </div>
 
-    <!-- Resumen de cargas -->
     <div class="resumen-cargas" *ngIf="rutina.ejercicios && rutina.ejercicios.length > 0">
       <h3 style="font-size: 1rem; color: #60a5fa; margin-bottom: 12px;">📊 Resumen de Cargas</h3>
       <div class="cargas-stats">
@@ -182,14 +168,12 @@
   </div>
 </div>
 
-  <!-- DURANTE EL ENTRENAMIENTO -->
   <div class="durante" *ngIf="sesionActiva">
     <button class="btn-finalizar" (click)="finalizarEntrenamiento()">
       Finalizar entrenamiento
     </button>
   </div>
 
-  <!-- LISTA DE EJERCICIOS -->
   <div class="ejercicios" *ngIf="sesionActiva || sesionFinalizada">
     <div
       *ngFor="let ej of rutina.ejercicios; let i = index"
@@ -217,7 +201,7 @@
           📝 {{ ej.notas }}
         </div>
         <div class="muscles" *ngIf="ej.targetMuscles && ej.targetMuscles.length > 0" 
-             style="font-size: 0.75rem; color: #667eea; margin-top: 0.25rem;">
+              style="font-size: 0.75rem; color: #667eea; margin-top: 0.25rem;">
           🎯 {{ ej.targetMuscles.join(', ') }}
         </div>
       </div>
@@ -226,7 +210,6 @@
     </div>
   </div>
 
-  <!-- RESUMEN FINAL -->
   <div class="resumen" *ngIf="sesionFinalizada">
     <h3>Entrenamiento completado</h3>
 
