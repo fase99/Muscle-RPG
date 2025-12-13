@@ -40,7 +40,10 @@ export class GraphBuilderService {
   ) {}
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   async buildFullGraph(): Promise<GraphNode[]> {
@@ -98,7 +101,10 @@ export class GraphBuilderService {
   }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   async getCandidateExercises(userLevel: number, completedExercises: string[]): Promise<GraphNode[]> {
@@ -124,7 +130,10 @@ export class GraphBuilderService {
   }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   async getNodeById(exerciseId: string): Promise<GraphNode | null> {
@@ -133,7 +142,10 @@ export class GraphBuilderService {
   }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   async getUnlockedExercises(exerciseId: string): Promise<GraphNode[]> {
