@@ -75,10 +75,12 @@
     <p style="margin-top: 1rem; color: #666;">Generando tu rutina óptima... 🤖</p>
   </div>
 
-  <!-- ESTADO INICIAL (cuando la rutina está generada pero no iniciada) -->
-  <div class="estado-inicial" *ngIf="rutinaGenerada && !sesionActiva && !sesionFinalizada">
-    <div class="card-inicial">
+<!-- ESTADO INICIAL: ENTRENAMIENTO O DESCANSO -->
+<div class="estado-inicial" *ngIf="rutinaGenerada && !sesionActiva && !sesionFinalizada">
+  <div class="card-inicial">
 
+    <!-- CASO 1: HAY EJERCICIOS → RUTINA NORMAL -->
+    <div *ngIf="rutina.ejercicios.length > 0">
       <h2>Rutina Optimizada</h2>
       <p *ngIf="rutina.descripcion">{{ rutina.descripcion }}</p>
       
@@ -132,10 +134,29 @@
       <button class="btn-comenzar" (click)="comenzarEntrenamiento()">
         💪 COMENZAR ENTRENAMIENTO
       </button>
-
-      
     </div>
+
+    <!-- CASO 2: DÍA DE DESCANSO → MENSAJE ESPECIAL -->
+    <div *ngIf="rutina.ejercicios.length === 0" style="text-align: center; padding: 2rem 1rem;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">😴</div>
+      <h2 style="color: #667eea; margin-bottom: 1rem;">¡Día de Descanso!</h2>
+      
+      <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6; color: #12d1eb;">
+        Hoy no hay entrenamiento programado. Tu cuerpo necesita recuperarse para rendir al máximo mañana.
+      </p>
+
+      <div style="background: linear-gradient(135deg, #667eea11, #764ba211); padding: 0.4rem; border-radius: 10px; margin: 1.5rem auto; max-width: 600px;">
+        <p style="margin: 1rem 0 0; font-style: italic; color: #667eea;">Recuerda: los músculos crecen mientras descansas 💪
+        </p>
+      </div>
+
+      <p style="margin-top: 2rem; color: #888;">
+        Mañana volvemos con todo. ¡Recarga energías!
+      </p>
+    </div>
+
   </div>
+</div>
 
   <!-- DURANTE EL ENTRENAMIENTO -->
   <div class="durante" *ngIf="sesionActiva">
@@ -150,7 +171,7 @@
       *ngFor="let ej of rutina.ejercicios; let i = index"
       class="ejercicio"
       [class.hecho]="ej.hecho"
-      (click)="marcarEjercicio(ej)"
+      (click)="marcarEjercicio(ej, i)"
       [style.cursor]="sesionFinalizada ? 'default' : 'pointer'"
       [style.opacity]="sesionFinalizada && !ej.hecho ? 0.5 : 1">
 

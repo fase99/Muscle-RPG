@@ -115,6 +115,31 @@ export class RutinaService {
   }
 
   /**
+   * Envía los datos de finalización de la rutina al backend
+   * Guarda el historial, calcula XP y actualiza el perfil del usuario
+   */
+  completeWorkout(completeData: {
+    userId: string;
+    rutinaId?: string;
+    ejercicios: {
+      externalId: string;
+      nombre: string;
+      series: number;
+      repeticiones: number;
+      pesoPlaneado: number;
+      pesoReal: number;
+      rirPlaneado: number;
+      rirReal: number;
+      completado: boolean;
+      notas?: string;
+    }[];
+    duration: number;
+    staminaUsada?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/complete`, completeData);
+  }
+
+  /**
    * Mock de rutina para desarrollo (mantener como fallback)
    */
   obtenerRutinaMock(): Rutina {

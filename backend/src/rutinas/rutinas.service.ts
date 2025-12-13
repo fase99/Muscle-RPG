@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Rutina, RutinaDocument } from '../schemas/rutina.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Profile, ProfileDocument } from '../schemas/profile.schema';
+import { WorkoutHistory, WorkoutHistoryDocument } from '../schemas/workout-history.schema';
 import { GraphOptimizerService } from './graph-optimizer.service';
 import { DynamicProgrammingService } from './dynamic-programming.service';
 
@@ -13,6 +14,7 @@ export class RutinasService {
         @InjectModel(Rutina.name) private rutinaModel: Model<RutinaDocument>,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(Profile.name) private profileModel: Model<ProfileDocument>,
+        @InjectModel(WorkoutHistory.name) private workoutHistoryModel: Model<WorkoutHistoryDocument>,
         private graphOptimizer: GraphOptimizerService,
         private dynamicProgramming: DynamicProgrammingService,
     ) { }
@@ -539,6 +541,173 @@ export class RutinasService {
 
         await rutina.save();
         return rutina;
+    }
+
+    /**
+     * COMPLETA UNA RUTINA Y ACTUALIZA EL HISTORIAL Y PERFIL DEL USUARIO
+     * Este método se llama cuando el usuario finaliza su sesión de entrenamiento
+     * 
+     * @param usuarioId - ID del usuario
+     * @param completeWorkoutDto - Datos de la sesión completada
+     * @returns WorkoutHistory guardado y datos actualizados del usuario
+     */
+    async completeWorkout(usuarioId: string, completeWorkoutDto: {
+        rutinaId?: string;
+        ejercicios: {
+            externalId: string;
+            nombre: string;
+            series: number;
+            repeticiones: number;
+            pesoPlaneado: number;
+            pesoReal: number;
+            rirPlaneado: number;
+            rirReal: number;
+            completado: boolean;
+            notas?: string;
+        }[];
+        duration: number; // Duración en minutos
+        staminaUsada?: number;
+    }): Promise<{
+        workoutHistory: WorkoutHistory;
+        xpGanada: number;
+        totalVolumeLifted: number;
+        newProfileLevel?: string;
+        levelUp?: boolean;
+    }> {
+        console.log(`[RutinasService] 🏁 Completando entrenamiento para usuario ${usuarioId}`);
+
+        // 1. Obtener datos del usuario y perfil
+        const user = await this.userModel.findById(usuarioId).exec();
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        const profile = await this.profileModel.findOne({ userId: usuarioId }).exec();
+        if (!profile) {
+            throw new NotFoundException('Perfil no encontrado');
+        }
+
+        // 2. Calcular volumen total levantado: Σ(peso × series × reps)
+        const totalVolumeLifted = completeWorkoutDto.ejercicios.reduce((total, ejercicio) => {
+            if (ejercicio.completado && ejercicio.pesoReal > 0) {
+                return total + (ejercicio.pesoReal * ejercicio.series * ejercicio.repeticiones);
+            }
+            return total;
+        }, 0);
+
+        console.log(`[RutinasService] 📊 Volumen total levantado: ${totalVolumeLifted}kg`);
+
+        // 3. Calcular XP ganada basada en el volumen levantado
+        // Fórmula: XP = volumeLifted × multiplicador de nivel
+        const nivelMultiplicador = this.getNivelMultiplicador(profile.level);
+        const xpGanada = Math.round(totalVolumeLifted * nivelMultiplicador);
+
+        console.log(`[RutinasService] ⭐ XP ganada: ${xpGanada} (volumen: ${totalVolumeLifted}kg × ${nivelMultiplicador})`);
+
+        // 4. Contar ejercicios completados
+        const ejerciciosCompletados = completeWorkoutDto.ejercicios.filter(e => e.completado).length;
+        const ejerciciosTotales = completeWorkoutDto.ejercicios.length;
+
+        // 5. Guardar en WorkoutHistory
+        const workoutHistory = await this.workoutHistoryModel.create({
+            userId: new Types.ObjectId(usuarioId),
+            rutinaId: completeWorkoutDto.rutinaId ? new Types.ObjectId(completeWorkoutDto.rutinaId) : undefined,
+            date: new Date(),
+            duration: completeWorkoutDto.duration,
+            completed: ejerciciosCompletados === ejerciciosTotales,
+            ejercicios: completeWorkoutDto.ejercicios,
+            totalVolumeLifted,
+            xpGanada,
+            staminaUsada: completeWorkoutDto.staminaUsada,
+            ejerciciosCompletados,
+            ejerciciosTotales,
+            perfilNivel: profile.level,
+            userLevel: user.nivel || 1,
+        });
+
+        console.log(`[RutinasService] 💾 Historial guardado con ID: ${workoutHistory._id}`);
+
+        // 6. Actualizar perfil del usuario
+        // Incrementar XP acumulada y volumen total
+        const xpAnterior = profile.sRpg || 0;
+        const nuevoSRPG = xpAnterior + (xpGanada * 0.01); // Incremento gradual del SRPG
+
+        // Actualizar el campo de volumen total si existe
+        if (profile.schema.path('totalVolumeLifted')) {
+            (profile as any).totalVolumeLifted = ((profile as any).totalVolumeLifted || 0) + totalVolumeLifted;
+        }
+
+        profile.sRpg = nuevoSRPG;
+
+        // 7. Verificar si sube de nivel
+        let levelUp = false;
+        let newLevel = profile.level;
+
+        const nivelAnterior = profile.level;
+        const nivelCalculado = this.calcularNivelDesdeSRPG(nuevoSRPG);
+
+        if (nivelCalculado !== nivelAnterior) {
+            profile.level = nivelCalculado;
+            newLevel = nivelCalculado;
+            levelUp = true;
+            console.log(`[RutinasService] 🎉 ¡LEVEL UP! ${nivelAnterior} → ${nivelCalculado} (SRPG: ${nuevoSRPG})`);
+        }
+
+        await profile.save();
+
+        // 8. Actualizar XP del usuario (modelo User)
+        user.experiencia = (user.experiencia || 0) + xpGanada;
+        
+        // Verificar si el usuario sube de nivel en el modelo User
+        const xpParaSiguienteNivel = this.calcularXPParaNivel(user.nivel || 1);
+        if (user.experiencia >= xpParaSiguienteNivel) {
+            user.nivel = (user.nivel || 1) + 1;
+            console.log(`[RutinasService] 🎊 Usuario subió al nivel ${user.nivel}`);
+        }
+
+        await user.save();
+
+        console.log(`[RutinasService] ✅ Entrenamiento completado exitosamente`);
+
+        return {
+            workoutHistory: workoutHistory.toObject(),
+            xpGanada,
+            totalVolumeLifted,
+            newProfileLevel: levelUp ? newLevel : undefined,
+            levelUp,
+        };
+    }
+
+    /**
+     * Obtiene el multiplicador de XP según el nivel del perfil
+     */
+    private getNivelMultiplicador(nivel: string): number {
+        const nivelNormalizado = nivel.toLowerCase();
+        
+        if (nivelNormalizado.includes('básico') || nivelNormalizado.includes('basico')) {
+            return 1.0; // Básico: 1.0x XP
+        } else if (nivelNormalizado.includes('intermedio')) {
+            return 1.2; // Intermedio: 1.2x XP
+        } else if (nivelNormalizado.includes('avanzado')) {
+            return 1.5; // Avanzado: 1.5x XP
+        }
+        
+        return 1.0; // Por defecto
+    }
+
+    /**
+     * Calcula el nivel del perfil desde el SRPG
+     */
+    private calcularNivelDesdeSRPG(srpg: number): string {
+        if (srpg <= 35) return 'Básico';
+        if (srpg <= 65) return 'Intermedio';
+        return 'Avanzado';
+    }
+
+    /**
+     * Calcula la XP necesaria para alcanzar un nivel específico
+     * Fórmula: XP = 100 × nivel²
+     */
+    private calcularXPParaNivel(nivel: number): number {
+        return 100 * Math.pow(nivel, 2);
     }
 
     async remove(id: string): Promise<void> {
