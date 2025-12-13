@@ -6,7 +6,6 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { Profile, ProfileDocument } from '../schemas/profile.schema';
 import { ExerciseDbService } from '../exercises/exercisedb.service';
 
-// ========== INTERFACES DEL MODELO ==========
 
 interface ExerciseNode {
   id: string;
@@ -55,9 +54,7 @@ export class GraphOptimizerService {
   ) {}
 
   /**
-   * MÉTODO PRINCIPAL: GENERACIÓN DE SESIÓN DIARIA (MICROCICLO)
-   * Genera una sesión de ejercicios óptima usando algoritmo Greedy sobre un Grafo Dirigido
-   * 
+ 
    * @param userStamina - Energía disponible del usuario (ej: 80)
    * @param timeLimit - Tiempo máximo en minutos (fijo: 120)
    * @param targetMuscle - Grupo muscular objetivo (ej: 'Pecho', 'Espalda', 'chest', 'back')
@@ -82,7 +79,6 @@ export class GraphOptimizerService {
     console.log(`  - Nodos disponibles: ${availableNodes.length}`);
 
     // PASO 1: FILTRADO INICIAL
-    // Solo considerar ejercicios que coincidan con targetMuscle y estén desbloqueados por userLevel
     const filteredNodes = this.filterNodesByTargetMuscle(availableNodes, targetMuscle, userLevel);
     console.log(`[GraphOptimizer.generateSession] Ejercicios filtrados: ${filteredNodes.length}`);
 
@@ -105,9 +101,7 @@ export class GraphOptimizerService {
     return selectedPath;
   }
 
-  /**
-   * FILTRADO INICIAL: Solo ejercicios que coincidan con targetMuscle y nivel permitido
-   */
+ 
   private filterNodesByTargetMuscle(
     nodes: ExerciseNode[],
     targetMuscle: string,
@@ -180,14 +174,7 @@ export class GraphOptimizerService {
     return filtered;
   }
 
-  /**
-   * SELECCIÓN GREEDY DEL CAMINO ÓPTIMO
-   * Algoritmo:
-   * 1. Calcular ratio XP/(Tiempo+Fatiga) para cada candidato
-   * 2. Ordenar por mejor ratio
-   * 3. Seleccionar secuencialmente mientras se cumplan restricciones
-   * 4. IMPORTANTE: No repetir nodos (usar Set<string>)
-   */
+ 
   private greedyPathSelection(
     candidates: ExerciseNode[],
     maxStamina: number,
@@ -269,18 +256,14 @@ export class GraphOptimizerService {
     return selectedPath;
   }
 
-  /**
-   * Calcula el ratio de eficiencia: XP/(Tiempo+Fatiga)
-   */
+ 
   private calculateEfficiencyRatio(node: ExerciseNode): number {
     const denominator = node.costoTiempo + node.costoFatiga;
     if (denominator === 0) return 0;
     return node.estimuloXP / denominator;
   }
 
-  /**
-   * Obtiene el músculo principal de un nodo
-   */
+
   private getPrimaryMuscle(node: ExerciseNode): string {
     if (node.targetMuscles && node.targetMuscles.length > 0) {
       return node.targetMuscles[0];
@@ -294,9 +277,7 @@ export class GraphOptimizerService {
     return maxAttr.attr;
   }
 
-  /**
-   * Calcula el porcentaje que representa un músculo en el total de XP
-   */
+
   private calculateMusclePercentage(
     distribution: Map<string, number>,
     muscle: string,
@@ -308,20 +289,7 @@ export class GraphOptimizerService {
     return totalXP > 0 ? newValue / totalXP : 0;
   }
 
-  /**
-   * NIVEL 1: OPTIMIZACIÓN DE SESIÓN DIARIA (GRAFO DAG)
-   * Encuentra el camino óptimo de ejercicios que maximiza XP
-   * sujeto a restricciones de tiempo y Stamina
-   * 
-   * @param userId - ID del usuario
-   * @param maxTime - Límite temporal en minutos (por defecto 120 = 2 horas)
-   * @param availableStamina - Stamina disponible (se obtiene del usuario si no se proporciona)
-   * @param targetRIR - RIR objetivo según perfil del usuario:
-   *                    - Básico (SRPG ≤ 35): RIR=3 (3 reps en reserva)
-   *                    - Intermedio (36 ≤ SRPG ≤ 65): RIR=2 (2 reps en reserva)
-   *                    - Avanzado (SRPG > 65): RIR=0-1 (al fallo o muy cerca)
-   * @param targetMuscleGroups - Grupos musculares a trabajar en esta sesión (opcional)
-   */
+
   async optimizeSesionDiaria(
     userId: string,
     maxTime: number = 120,      // Límite temporal (2 horas)
@@ -365,13 +333,7 @@ export class GraphOptimizerService {
     return optimalPath;
   }
 
-  /**
-   * Construye el grafo de ejercicios disponibles basado en:
-   * - Nivel del usuario
-   * - Ejercicios ya dominados (prerequisites cumplidos)
-   * - Parámetros del perfil (RIR, carga estimada)
-   * - Grupos musculares objetivo (obligatorio para rutinas semanales)
-   */
+  
   private async buildExerciseGraph(
     user: UserDocument,
     profile: ProfileDocument,
@@ -472,9 +434,7 @@ export class GraphOptimizerService {
     return { ...baseAttributes, ...groupMapping };
   }
 
-  /**
-   * Construye el grafo usando las reglas de la base de datos (método original)
-   */
+
   private async buildGraphFromRules(
     user: UserDocument,
     profile: ProfileDocument,
@@ -558,10 +518,6 @@ export class GraphOptimizerService {
 
   /**
    * Encuentra el camino óptimo usando Programación Dinámica (0/1 Knapsack)
-   * MAXIMIZA: XP_sesion = Σ(EstímuloXP_i · μ_RIR)
-   * SUJETO A:
-   *   - Σ CostoTime_i ≤ T_max (120 min)
-   *   - Σ CostoFatiga_i ≤ S_actual (Stamina del día)
    */
   private findOptimalPath(
     exercises: ExerciseNode[],
@@ -685,10 +641,7 @@ export class GraphOptimizerService {
     };
   }
 
-  /**
-   * Verifica si agregar un ejercicio sobreentrenarí un grupo muscular
-   * Límite estricto: máximo 60% del trabajo total en un grupo muscular
-   */
+
   private wouldOverworkMuscleStrict(
     currentWork: Record<string, number>,
     newWork: Record<string, number>,
@@ -724,16 +677,6 @@ export class GraphOptimizerService {
     return Math.max(0, 1 - (stdDev / avg));
   }
 
-  /**
-   * Obtiene el número de series según el perfil del usuario (profile.level)
-   * El número de series se ajusta según el nivel de entrenamiento para
-   * balancear volumen y capacidad de recuperación
-   * 
-   * Según metodología de perfilamiento:
-   * - Básico (SRPG ≤ 35): 3 series - Prioriza adaptación neuronal
-   * - Intermedio (36 ≤ SRPG ≤ 65): 4 series - Balance volumen-intensidad
-   * - Avanzado (SRPG > 65): 5 series - Máximo volumen de trabajo
-   */
   private getSeriesForProfile(profile: ProfileDocument): number {
     switch (profile.level) {
       case 'Básico':
@@ -754,18 +697,7 @@ export class GraphOptimizerService {
     return 10; // Valor medio del rango de hipertrofia
   }
 
-  /**
-   * Calcula el multiplicador de XP y fatiga basado en el RIR (Repeticiones en Reserva)
-   * RIR más bajo = mayor intensidad = mayor XP y fatiga
-   * 
-   * Según paper científico de perfilamiento:
-   * - RIR 3 (Básico): 0.85x - Series alejadas del fallo, menor estímulo
-   * - RIR 2 (Intermedio): 1.0x - Balance entre estímulo y fatiga
-   * - RIR 0-1 (Avanzado): 1.2x - Series al fallo, máximo estímulo mecánico
-   * 
-   * El RIR actúa como regulador inverso: menor RIR → mayor fatiga sistémica (φj)
-   * y mayor estímulo mecánico para hipertrofia
-   */
+
   private calculateRIRMultiplier(rir: number): number {
     // RIR 0-1 (al fallo - Avanzado): 1.2x
     // RIR 2 (Intermedio): 1.0x
@@ -800,19 +732,7 @@ export class GraphOptimizerService {
     return false;
   }
 
-  /**
-   * NIVEL 2: CÁLCULO DE VOLUME LANDMARKS (MEV/MAV/MRV)
-   * Determina los hitos de volumen según el nivel del usuario
-   * 
-   * Definiciones según literatura científica:
-   * - MEV (Minimum Effective Volume): Volumen mínimo para generar adaptación
-   * - MAV (Maximum Adaptive Volume): Volumen óptimo para hipertrofia
-   * - MRV (Maximum Recoverable Volume): Volumen máximo que el usuario puede recuperar
-   * 
-   * Los valores se ajustan según:
-   * 1. Perfil del usuario (Básico/Intermedio/Avanzado basado en SRPG)
-   * 2. Composición corporal (μ_comp) - Mejor composición permite más volumen
-   */
+ 
   calculateVolumeLandmarks(profile: ProfileDocument): VolumeLandmarks {
     let MEV: number, MAV: number, MRV: number;
 

@@ -8,10 +8,7 @@ export class RutinasController {
 
     // ========== NUEVOS ENDPOINTS - MUSCLE RPG v2.0 ==========
 
-    /**
-     * GENERA UNA RUTINA DIARIA OPTIMIZADA (NIVEL 1: GRAFOS DAG)
-     * POST /rutinas/generate/daily
-     */
+
     @Post('generate/daily')
     @HttpCode(HttpStatus.CREATED)
     async generateDailyRoutine(@Body() generateDto: GenerateRoutineDto) {
@@ -32,10 +29,7 @@ export class RutinasController {
         };
     }
 
-    /**
-     * GENERA UNA RUTINA SEMANAL COMPLETA (7 DÍAS)
-     * POST /rutinas/generate/weekly
-     */
+
     @Post('generate/weekly')
     @HttpCode(HttpStatus.CREATED)
     async generateWeeklyRoutine(@Body() generateDto: GenerateRoutineDto) {
@@ -61,12 +55,7 @@ export class RutinasController {
         };
     }
 
-    /**
-     * COMPLETA UNA RUTINA DE ENTRENAMIENTO
-     * POST /rutinas/complete
-     * 
-     * Registra la sesión completada en el historial, calcula XP y actualiza el perfil del usuario
-     */
+   
     @Post('complete')
     @HttpCode(HttpStatus.OK)
     async completeWorkout(@Body() completeWorkoutDto: {
@@ -105,10 +94,7 @@ export class RutinasController {
         };
     }
 
-    /**
-     * PLANIFICA UN CICLO TRIMESTRAL (NIVEL 2: PROGRAMACIÓN DINÁMICA)
-     * POST /rutinas/plan/quarterly/:userId
-     */
+    
     @Post('plan/quarterly/:userId')
     @HttpCode(HttpStatus.CREATED)
     async planQuarterlyCycle(@Param('userId') userId: string) {
@@ -126,10 +112,7 @@ export class RutinasController {
         };
     }
 
-    /**
-     * EVALÚA EL CICLO TRIMESTRAL COMPLETADO
-     * GET /rutinas/evaluate/quarterly/:userId
-     */
+   
     @Get('evaluate/quarterly/:userId')
     async evaluateQuarterlyCycle(@Param('userId') userId: string) {
         const evaluacion = await this.rutinasService.evaluateQuarterlyCycle(userId);

@@ -13,10 +13,7 @@ export interface ExerciseHistoryEntry {
     estimated1RM?: number; // 1RM estimado (opcional)
 }
 
-/**
- * Interface para la sesión preparada del ejercicio
- * Contiene toda la información necesaria para ejecutar el ejercicio
- */
+
 export interface PreparedExerciseSession {
     // Datos visuales
     exerciseId: string;
@@ -43,19 +40,7 @@ export interface PreparedExerciseSession {
     notes?: string;         // Notas adicionales
 }
 
-/**
- * LoadManagementService
- * 
- * Servicio especializado para preparar sesiones de ejercicio completas,
- * incluyendo:
- * - Recuperación de datos visuales (GIFs, instrucciones)
- * - Cálculo de 1RM personalizado por ejercicio
- * - Asignación de carga según perfil del usuario
- * - Determinación de RIR (Repeticiones en Reserva)
- * 
- * Implementa la Fórmula de Epley:
- * 1RM = w × (1 + r/30)
- */
+
 @Injectable()
 export class LoadManagementService {
     private readonly logger = new Logger(LoadManagementService.name);
@@ -69,14 +54,7 @@ export class LoadManagementService {
         private readonly exerciseDbService: ExerciseDbService,
     ) {}
 
-    /**
-     * Prepara una sesión completa de ejercicio con todos los datos necesarios
-     * 
-     * @param userProfile - Perfil del usuario con métricas
-     * @param exerciseHistory - Historial de entrenamientos previos
-     * @param exerciseId - ID del ejercicio a preparar
-     * @returns Sesión preparada con datos visuales y de carga
-     */
+
     async prepareExerciseSession(
         userProfile: Profile,
         exerciseHistory: ExerciseHistoryEntry[],
@@ -141,12 +119,7 @@ export class LoadManagementService {
         return session;
     }
 
-    /**
-     * Recupera datos visuales del ejercicio desde ExerciseDbService
-     * 
-     * @param exerciseId - ID del ejercicio
-     * @returns Datos del ejercicio (nombre, GIF, instrucciones)
-     */
+
     private async fetchExerciseVisualData(exerciseId: string): Promise<{
         exerciseId: string;
         name: string;
@@ -176,15 +149,7 @@ export class LoadManagementService {
         };
     }
 
-    /**
-     * Calcula el 1RM estimado usando la Fórmula de Epley
-     * 
-     * Fórmula: 1RM = w × (1 + r/30)
-     * 
-     * @param history - Historial de ejercicios del usuario
-     * @param exerciseId - ID del ejercicio
-     * @returns 1RM estimado y flag si es nuevo
-     */
+    
     private calculate1RM(
         history: ExerciseHistoryEntry[],
         exerciseId: string,
@@ -227,13 +192,7 @@ export class LoadManagementService {
         };
     }
 
-    /**
-     * Aplica la Fórmula de Epley para estimar 1RM
-     * 
-     * @param weight - Peso levantado (kg)
-     * @param reps - Repeticiones completadas
-     * @returns 1RM estimado
-     */
+
     private calculateEpley1RM(weight: number, reps: number): number {
         if (reps === 1) {
             return weight; // Ya es 1RM
@@ -243,13 +202,7 @@ export class LoadManagementService {
         return Math.round(epley * 10) / 10; // Redondear a 1 decimal
     }
 
-    /**
-     * Determina parámetros de carga según el nivel del usuario
-     * Basado en el paper de referencia
-     * 
-     * @param level - Nivel del usuario (Básico/Intermedio/Avanzado)
-     * @returns Parámetros de intensidad y RIR
-     */
+   
     private determineLoadParameters(level: string): {
         intensity: number;
         rir: number;
@@ -282,37 +235,19 @@ export class LoadManagementService {
         }
     }
 
-    /**
-     * Redondea el peso al múltiplo más cercano de 2.5kg
-     * Para simular discos de gimnasio reales
-     * 
-     * @param weight - Peso a redondear
-     * @returns Peso redondeado
-     */
+ 
     private roundToPlateIncrement(weight: number): number {
         return Math.round(weight / this.PLATE_INCREMENT) * this.PLATE_INCREMENT;
     }
 
-    /**
-     * Determina el nivel del usuario según su Score RPG
-     * 
-     * @param srpg - Score RPG del perfil
-     * @returns Nivel (Básico/Intermedio/Avanzado)
-     */
+   
     private getUserLevel(srpg: number): string {
         if (srpg < 45) return 'Básico';
         if (srpg < 65) return 'Intermedio';
         return 'Avanzado';
     }
 
-    /**
-     * Genera notas descriptivas para la sesión
-     * 
-     * @param weight - Peso objetivo
-     * @param params - Parámetros de carga
-     * @param isNew - Si es ejercicio nuevo
-     * @returns Texto de notas
-     */
+
     private generateSessionNotes(
         weight: number,
         params: { intensity: number; rir: number },
@@ -325,15 +260,7 @@ export class LoadManagementService {
         return `${weight}kg @ RIR ${params.rir} (${params.intensity * 100}% 1RM) - Hipertrofia`;
     }
 
-    /**
-     * Procesa múltiples ejercicios en batch
-     * Útil para preparar una rutina completa
-     * 
-     * @param userProfile - Perfil del usuario
-     * @param exerciseHistory - Historial completo
-     * @param exerciseIds - IDs de ejercicios a preparar
-     * @returns Mapa de sesiones preparadas
-     */
+  
     async prepareMultipleExercises(
         userProfile: Profile,
         exerciseHistory: ExerciseHistoryEntry[],
@@ -353,14 +280,7 @@ export class LoadManagementService {
         return sessions;
     }
 
-    /**
-     * Actualiza el 1RM después de completar un set
-     * Para tracking progresivo
-     * 
-     * @param weight - Peso completado
-     * @param reps - Repeticiones completadas
-     * @returns Nuevo 1RM estimado
-     */
+    
     updateEstimated1RM(weight: number, reps: number): number {
         return this.calculateEpley1RM(weight, reps);
     }

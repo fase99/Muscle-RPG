@@ -221,12 +221,7 @@ export class RutinasService {
         }
     }
 
-    /**
-     * Define la división de grupos musculares según la frecuencia de entrenamiento
-     * Retorna un array con los grupos musculares a trabajar cada día
-     * 
-     * Soporta frecuencias de 2 a 5 días/semana según el perfil del usuario
-     */
+ 
     private getMuscleGroupSplit(frecuencia: number): string[][] {
         switch (frecuencia) {
             case 2:
@@ -273,11 +268,7 @@ export class RutinasService {
         }
     }
 
-    /**
-     * GENERA UNA RUTINA SEMANAL (7 DÍAS) OPTIMIZADA USANDO GRAFOS
-     * Genera una sesión diaria para cada día de la semana con diferentes grupos musculares
-     * Respeta las restricciones según el nivel del usuario (SRPG)
-     */
+
     async generateWeeklyRoutine(
         usuarioId: string,
         maxTimePerSession: number = 120,
@@ -422,11 +413,7 @@ export class RutinasService {
         return { rutinas: weekRoutines };
     }
 
-    /**
-     * Distribuye los días de entrenamiento a lo largo de la semana con descanso intercalado
-     * @param trainingDays Número de días de entrenamiento (2-5)
-     * @returns Array de 7 elementos (true = entrenamiento, false = descanso)
-     */
+  
     private distributeTrainingDays(trainingDays: number): boolean[] {
         const schedule = new Array(7).fill(false);
         
@@ -451,9 +438,7 @@ export class RutinasService {
         return schedule;
     }
 
-    /**
-     * PLANIFICA UN CICLO TRIMESTRAL USANDO PROGRAMACIÓN DINÁMICA (NIVEL 2)
-     */
+   
     async planQuarterlyCycle(usuarioId: string): Promise<any> {
         console.log(`[RutinasService] Planificando ciclo trimestral para usuario ${usuarioId}`);
 
@@ -494,16 +479,11 @@ export class RutinasService {
         };
     }
 
-    /**
-     * EVALÚA EL CICLO TRIMESTRAL COMPLETADO
-     */
+ 
     async evaluateQuarterlyCycle(usuarioId: string): Promise<any> {
         return this.dynamicProgramming.evaluarCicloCompleto(usuarioId);
     }
 
-    /**
-     * Obtiene el día de la semana actual en español
-     */
     private getDayOfWeek(): string {
         const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         return days[new Date().getDay()];
@@ -595,14 +575,7 @@ export class RutinasService {
         return rutina;
     }
 
-    /**
-     * COMPLETA UNA RUTINA Y ACTUALIZA EL HISTORIAL Y PERFIL DEL USUARIO
-     * Este método se llama cuando el usuario finaliza su sesión de entrenamiento
-     * 
-     * @param usuarioId - ID del usuario
-     * @param completeWorkoutDto - Datos de la sesión completada
-     * @returns WorkoutHistory guardado y datos actualizados del usuario
-     */
+ 
     async completeWorkout(usuarioId: string, completeWorkoutDto: {
         rutinaId?: string;
         ejercicios: {
@@ -728,9 +701,7 @@ export class RutinasService {
         };
     }
 
-    /**
-     * Obtiene el multiplicador de XP según el nivel del perfil
-     */
+  
     private getNivelMultiplicador(nivel: string): number {
         const nivelNormalizado = nivel.toLowerCase();
         
@@ -745,19 +716,14 @@ export class RutinasService {
         return 1.0; // Por defecto
     }
 
-    /**
-     * Calcula el nivel del perfil desde el SRPG
-     */
+   
     private calcularNivelDesdeSRPG(srpg: number): string {
         if (srpg <= 35) return 'Básico';
         if (srpg <= 65) return 'Intermedio';
         return 'Avanzado';
     }
 
-    /**
-     * Calcula la XP necesaria para alcanzar un nivel específico
-     * Fórmula: XP = 100 × nivel²
-     */
+  
     private calcularXPParaNivel(nivel: number): number {
         return 100 * Math.pow(nivel, 2);
     }
