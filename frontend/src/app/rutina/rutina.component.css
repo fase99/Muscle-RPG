@@ -474,3 +474,120 @@
   font-size: 1rem;
   color: #60a5fa;
 }
+
+/* === VISTA PREVIA DE PRÓXIMOS DÍAS === */
+.proximos-dias-container {
+  margin: 2rem auto;
+  max-width: 900px;
+}
+
+.proximos-dias-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0.5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.proximos-dias-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.proximos-dias-scroll::-webkit-scrollbar-track {
+  background: #161b22;
+  border-radius: 4px;
+}
+
+.proximos-dias-scroll::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.proximos-dias-scroll::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}
+
+.proxima-dia-card {
+  min-width: 200px;
+  max-width: 220px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #252a3a 100%);
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 1rem;
+  scroll-snap-align: start;
+  transition: all 0.3s ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.proxima-dia-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.proxima-dia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
+}
+
+.proxima-dia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #30363d;
+}
+
+.proxima-dia-nombre {
+  font-weight: 600;
+  color: #c9d1d9;
+  font-size: 0.95rem;
+}
+
+.proxima-dia-fecha {
+  font-size: 0.85rem;
+  color: #8b949e;
+  background: #21262d;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.proxima-dia-body {
+  min-height: 80px;
+}
+
+.proxima-dia-tipo {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #667eea;
+}
+
+.proxima-dia-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.proxima-dia-stats span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.proxima-dia-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #30363d;
+  text-align: center;
+}

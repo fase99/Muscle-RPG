@@ -25,6 +25,7 @@ export class RutinaComponent implements OnInit, OnDestroy {
   // === Rutina semanal ===
   rutinaSemanal: Rutina[] = [];
   rutinaDelDia: Rutina | null = null; // Solo la rutina de HOY
+  proximasRutinas: Rutina[] = []; // Próximos 4 días para vista previa
   diaActual: number = 0;
   diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   esDescansoProgramado = false; // Si hoy es día de descanso
@@ -244,6 +245,15 @@ ngOnDestroy() {
   }
 
   /**
+   * Elimina la hora de una fecha para comparar solo día/mes/año
+   */
+  private getDateWithoutTime(date: Date): Date {
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    return dateOnly;
+  }
+
+  /**
    * FILTRADO DE RUTINA DIARIA según Modelo Teórico del Paper
    * Sección VII.D: "genera una sesión personalizada para cada día"
    * Solo se debe mostrar la rutina programada para HOY
@@ -294,16 +304,38 @@ ngOnDestroy() {
       
       console.log('[RutinaComponent] ⚠️ No hay rutina programada para hoy - Día de descanso');
     }
+    
+    // Obtener las próximas rutinas para vista previa
+    this.getUpcomingRoutines();
   }
   
   /**
-   * Elimina la hora de una fecha para comparar solo día/mes/año
+   * Obtiene las próximas 4 rutinas a partir de mañana para vista previa
    */
-  private getDateWithoutTime(date: Date): Date {
-    const dateOnly = new Date(date);
-    dateOnly.setHours(0, 0, 0, 0);
-    return dateOnly;
+  private getUpcomingRoutines(): void {
+    this.proximasRutinas = [];
+    
+    if (!this.rutinaSemanal || this.rutinaSemanal.length === 0) {
+      console.log('[RutinaComponent] ⚠️ No hay rutinas semanales disponibles');
+      return;
+    }
+    
+    const currentDayIndex = this.diaActual;
+    
+    console.log('[RutinaComponent] 📅 Obteniendo próximas rutinas. Día actual index:', currentDayIndex);
+    
+    // Obtener los próximos 5 días (circular - si llega al domingo, continúa desde el lunes)
+    for (let i = 1; i <= 5; i++) {
+      const nextIndex = (currentDayIndex + i) % this.rutinaSemanal.length;
+      this.proximasRutinas.push(this.rutinaSemanal[nextIndex]);
+    }
+    
+    console.log('[RutinaComponent] 📅 Próximas rutinas encontradas:', this.proximasRutinas.length);
+    this.proximasRutinas.forEach((r, i) => {
+      console.log(`  ${i + 1}. ${r.nombre} - ${r.ejercicios.length} ejercicios`);
+    });
   }
+  
   
   /**
    * Verifica si una rutina está disponible para el día actual
@@ -315,6 +347,36 @@ ngOnDestroy() {
     const schedDate = this.getDateWithoutTime(new Date(routineDate));
     
     return today.getTime() === schedDate.getTime();
+  }
+  
+  /**
+   * Obtiene el nombre del día de la semana de una fecha
+   */
+  getDayName(date?: Date | string): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return days[d.getDay()];
+  }
+  
+  /**
+   * Formatea una fecha como DD/MM
+   */
+  formatShortDate(date?: Date | string): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}/${month}`;
+  }
+  
+  /**
+   * Extrae el nombre del grupo muscular de la rutina
+   */
+  getMuscleGroupName(nombre?: string): string {
+    if (!nombre) return 'Entrenamiento';
+    const parts = nombre.split(' - ');
+    return parts[1] || parts[0] || 'Entrenamiento';
   }
 
   // === Convertir RIR a % de intensidad aproximado ===
