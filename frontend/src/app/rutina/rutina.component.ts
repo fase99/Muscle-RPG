@@ -200,6 +200,13 @@ ngOnDestroy() {
     console.warn('[RutinaComponent] ⚠️ Cambio de día deshabilitado. Solo se muestra la rutina del día actual.');
   }
 
+  /**
+   * Redirige al usuario a la página de inicio
+   */
+  volverAlInicio() {
+    this.router.navigate(['/home']);
+  }
+
   private convertirRutinaBackend(rutinaBackend: any): Rutina {
     const ejercicios = rutinaBackend.ejercicios.map((ej: any) => ({
       nombre: ej.nombre || `Ejercicio ${ej.externalId}`,

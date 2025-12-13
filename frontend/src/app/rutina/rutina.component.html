@@ -23,15 +23,6 @@
   <!-- SELECTOR DE DÍAS DESHABILITADO - Solo se muestra la rutina de HOY según el paper -->
   <!-- Sección VII.D: "genera una sesión personalizada para cada día, diseñada específicamente según el estado real del usuario en ese momento" -->
   
-  <!-- MENSAJE INFORMATIVO: Solo se muestra la misión de hoy -->
-  <div *ngIf="rutinaGenerada" style="text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); margin: 1rem auto; max-width: 600px; border-radius: 12px; border-left: 4px solid #667eea;">
-    <p style="margin: 0; color: #667eea; font-weight: 600;">
-      🎯 Misión del Día - Modelo de Optimización Diaria
-    </p>
-    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #ffffff;">
-      El sistema solo muestra la rutina programada para HOY basada en tu estado actual
-    </p>
-  </div>
 
   <!-- VISTA PREVIA DE PRÓXIMOS DÍAS -->
   <div *ngIf="rutinaGenerada && proximasRutinas.length > 0" class="proximos-dias-container">
@@ -127,7 +118,7 @@
       </ul>
     </div>
     
-    <button class="btn-generar-rutina" (click)="regenerarRutina()" 
+    <button class="btn-generar-rutina" (click)="volverAlInicio()" 
             style="background: linear-gradient(135deg, #2849da 0%, #666 100%);">
       🔄 Volver al Inicio
     </button>

@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateMetricsDto } from './dto/update-metrics.dto';
 import { profilingService } from './profiling.services';
 import { AchievementsService } from './achievements.service';
+import { RutinasService } from '../rutinas/rutinas.service';
 
 
 @Controller('users')
@@ -12,6 +13,8 @@ export class UsersController {
         private readonly usersService: UsersService,
         private readonly profilingService: profilingService,
         private readonly achievementsService: AchievementsService,
+        @Inject(forwardRef(() => RutinasService))
+        private readonly rutinasService: RutinasService,
     ) { }
 
     @Post()
@@ -109,7 +112,21 @@ export class UsersController {
             console.log('========== PERFIL CREADO EXITOSAMENTE ==========');
             console.log('Resultado:', JSON.stringify(result, null, 2));
             
-            return result;
+            // Generar automáticamente la rutina semanal
+            try {
+                console.log('========== GENERANDO RUTINA SEMANAL AUTOMÁTICAMENTE ==========');
+                const rutinaSemanal = await this.rutinasService.generateWeeklyRoutine(createProfileDto.userId, 120);
+                console.log(`✅ Rutina semanal generada: ${rutinaSemanal.rutinas.length} días`);
+                
+                return {
+                    ...result,
+                    rutinaSemanal: rutinaSemanal.rutinas
+                };
+            } catch (rutinaError) {
+                console.error('⚠️ Error generando rutina semanal:', rutinaError);
+                // Retornar el perfil aunque falle la generación de rutina
+                return result;
+            }
         } catch (err) {
             console.error('========== ERROR CREANDO PERFIL ==========');
             console.error('Error completo:', err);

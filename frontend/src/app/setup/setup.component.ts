@@ -3,7 +3,7 @@ import { CommonModule, DecimalPipe, UpperCasePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
@@ -24,7 +24,8 @@ export class SetupComponent implements OnInit {
   constructor(
     private fb: FormBuilder, 
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.profileForm = this.fb.group({
       // Paso 1: Datos Personales (sin edad, ya se obtiene del usuario)
@@ -164,12 +165,25 @@ export class SetupComponent implements OnInit {
 
       this.http.post('http://localhost:3000/users/profile', payload)
         .subscribe({
-          next: (response) => {
+          next: (response: any) => {
             this.result = response;
             console.log('Tu Perfil RPG:', this.result);
             
             // Refrescar el usuario en el AuthService para que el perfil se muestre
             this.authService.refreshUser();
+            
+            // Mostrar mensaje de éxito
+            if (response.rutinaSemanal) {
+              console.log('✅ Rutina semanal generada automáticamente:', response.rutinaSemanal.length, 'días');
+              alert(`¡Perfil creado exitosamente!\n\nSe ha generado tu rutina semanal con ${response.rutinaSemanal.length} días.\nSerás redirigido a tu rutina.`);
+            } else {
+              alert('¡Perfil creado exitosamente!\nSerás redirigido a tu rutina.');
+            }
+            
+            // Redirigir a la página de rutinas después de 2 segundos
+            setTimeout(() => {
+              this.router.navigate(['/rutina']);
+            }, 2000);
           },
           error: (err) => {
             console.error('Error calculando clase:', err);

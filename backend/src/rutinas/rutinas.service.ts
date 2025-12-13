@@ -319,104 +319,136 @@ export class RutinasService {
         monday.setDate(today.getDate() + daysToMonday);
         monday.setHours(0, 0, 0, 0);
 
-        // Generar una rutina para cada día de entrenamiento
-        for (let dayIndex = 0; dayIndex < trainingDays; dayIndex++) {
-            const muscleGroups = muscleGroupSplits[dayIndex];
+        // Distribuir días de entrenamiento con descanso intercalado
+        const trainingSchedule = this.distributeTrainingDays(trainingDays);
+        console.log(`[RutinasService] Distribución de entrenamiento:`, trainingSchedule);
+
+        // Generar rutinas para toda la semana
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
             const dayName = daysOfWeek[dayIndex];
-            
-            // Calcular fecha programada para este día
             const scheduledDate = new Date(monday);
             scheduledDate.setDate(monday.getDate() + dayIndex);
             
-            console.log(`[RutinasService] Generando ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Grupos: ${muscleGroups.join(' + ')}`);
+            const isTrainingDay = trainingSchedule[dayIndex];
+            
+            if (isTrainingDay) {
+                // Día de entrenamiento
+                const trainingDayNumber = trainingSchedule.slice(0, dayIndex + 1).filter(d => d).length - 1;
+                const muscleGroups = muscleGroupSplits[trainingDayNumber];
+                
+                console.log(`[RutinasService] Generando ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Grupos: ${muscleGroups.join(' + ')}`);
 
-            // Día de entrenamiento con grupos musculares específicos
-            const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
-                usuarioId,
-                maxTimePerSession,
-                staminaPerDay,
-                perfilConfig.rir,
-                muscleGroups, // Pasar los grupos musculares del día
-            );
+                // Día de entrenamiento con grupos musculares específicos
+                const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
+                    usuarioId,
+                    maxTimePerSession,
+                    staminaPerDay,
+                    perfilConfig.rir,
+                    muscleGroups, // Pasar los grupos musculares del día
+                );
 
-            const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
+                const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
 
-            const ejercicios = optimalPath.nodes.map(node => ({
-                externalId: node.externalId,
-                nombre: node.name,
-                series: node.series,
-                repeticiones: node.repeticiones,
-                peso: 0,
-                costoTiempo: node.costoTiempo,
-                costoFatiga: node.costoFatiga,
-                estimuloXP: node.estimuloXP,
-                completado: false,
-                rir: perfilConfig.rir, // Usar el RIR del perfil
-                muscleTargets: node.muscleTargets,
-                notas: `${muscleGroups.join(' + ')} - RIR ${perfilConfig.rir} - ${node.series} series x ${node.repeticiones} reps`,
-            }));
+                const ejercicios = optimalPath.nodes.map(node => ({
+                    externalId: node.externalId,
+                    nombre: node.name,
+                    series: node.series,
+                    repeticiones: node.repeticiones,
+                    peso: 0,
+                    costoTiempo: node.costoTiempo,
+                    costoFatiga: node.costoFatiga,
+                    estimuloXP: node.estimuloXP,
+                    completado: false,
+                    rir: perfilConfig.rir,
+                    muscleTargets: node.muscleTargets,
+                    notas: `${muscleGroups.join(' + ')} - RIR ${perfilConfig.rir} - ${node.series} series x ${node.repeticiones} reps`,
+                }));
 
-            const rutina = new this.rutinaModel({
-                usuarioId: new Types.ObjectId(usuarioId),
-                nombre: `${dayName} - ${muscleGroups.join(' + ')}`,
-                descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (SRPG: ${profile.sRpg}, RIR ${perfilConfig.rir}). ${ejercicios.length} ejercicios, XP: ${Math.round(optimalPath.totalXP)}`,
-                cycleType: 'daily-session',
-                goal: 'hypertrophy',
-                scheduledDate, // ✅ Asignar fecha programada
-                ejercicios,
-                tiempoTotal: optimalPath.totalTime,
-                fatigaTotal: optimalPath.totalFatigue,
-                xpTotalEstimado: optimalPath.totalXP,
-                volumeLandmarks,
-                currentVolume: ejercicios.reduce((sum, e) => sum + e.series, 0),
-                diasSemana: [dayName],
-                duracionEstimada: optimalPath.totalTime,
-                activa: true,
-                algorithmVersion: '2.0-DAG',
-                algorithmMetadata: {
-                    graphNodesEvaluated: optimalPath.nodes.length,
-                    pathsConsidered: 1,
-                    optimizationTime: 0,
-                    muscleGroups, // Guardar los grupos musculares trabajados
-                },
-            });
+                const rutina = new this.rutinaModel({
+                    usuarioId: new Types.ObjectId(usuarioId),
+                    nombre: `${dayName} - ${muscleGroups.join(' + ')}`,
+                    descripcion: `${muscleGroups.join(' + ')} - Perfil ${perfilConfig.perfil} (SRPG: ${profile.sRpg}, RIR ${perfilConfig.rir}). ${ejercicios.length} ejercicios, XP: ${Math.round(optimalPath.totalXP)}`,
+                    cycleType: 'daily-session',
+                    goal: 'hypertrophy',
+                    scheduledDate,
+                    ejercicios,
+                    tiempoTotal: optimalPath.totalTime,
+                    fatigaTotal: optimalPath.totalFatigue,
+                    xpTotalEstimado: optimalPath.totalXP,
+                    volumeLandmarks,
+                    currentVolume: ejercicios.reduce((sum, e) => sum + e.series, 0),
+                    diasSemana: [dayName],
+                    duracionEstimada: optimalPath.totalTime,
+                    activa: true,
+                    algorithmVersion: '2.0-DAG',
+                    algorithmMetadata: {
+                        graphNodesEvaluated: optimalPath.nodes.length,
+                        pathsConsidered: 1,
+                        optimizationTime: 0,
+                        muscleGroups,
+                    },
+                });
 
-            const saved = await rutina.save();
-            weekRoutines.push(saved);
+                const saved = await rutina.save();
+                weekRoutines.push(saved);
+            } else {
+                // Día de descanso
+                console.log(`[RutinasService] ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Descanso`);
+                
+                const restRutina = new this.rutinaModel({
+                    usuarioId: new Types.ObjectId(usuarioId),
+                    nombre: `${dayName} - Descanso`,
+                    descripcion: `Recuperación activa - ${perfilConfig.perfil}`,
+                    cycleType: 'daily-session',
+                    goal: 'hypertrophy',
+                    scheduledDate,
+                    ejercicios: [],
+                    tiempoTotal: 0,
+                    fatigaTotal: 0,
+                    xpTotalEstimado: 0,
+                    currentVolume: 0,
+                    diasSemana: [dayName],
+                    duracionEstimada: 0,
+                    activa: true,
+                    algorithmVersion: '2.0-DAG',
+                });
+                const saved = await restRutina.save();
+                weekRoutines.push(saved);
+            }
         }
 
-        // Agregar días de descanso
-        for (let dayIndex = trainingDays; dayIndex < 7; dayIndex++) {
-            // Calcular fecha programada para este día de descanso
-            const scheduledDate = new Date(monday);
-            scheduledDate.setDate(monday.getDate() + dayIndex);
-            
-            console.log(`[RutinasService] ${daysOfWeek[dayIndex]} (${scheduledDate.toLocaleDateString('es-ES')}) - Descanso`);
-            
-            const restRutina = new this.rutinaModel({
-                usuarioId: new Types.ObjectId(usuarioId),
-                nombre: `${daysOfWeek[dayIndex]} - Descanso`,
-                descripcion: `Recuperación activa - ${perfilConfig.perfil}`,
-                cycleType: 'daily-session',
-                goal: 'hypertrophy',
-                scheduledDate, // ✅ Asignar fecha programada
-                ejercicios: [],
-                tiempoTotal: 0,
-                fatigaTotal: 0,
-                xpTotalEstimado: 0,
-                currentVolume: 0,
-                diasSemana: [daysOfWeek[dayIndex]],
-                duracionEstimada: 0,
-                activa: true,
-                algorithmVersion: '2.0-DAG',
-            });
-            const saved = await restRutina.save();
-            weekRoutines.push(saved);
-        }
-
-        console.log(`[RutinasService] ✅ Rutina semanal generada: ${trainingDays} días de entrenamiento + ${7 - trainingDays} días de descanso`);
+        console.log(`[RutinasService] ✅ Rutina semanal generada con distribución optimizada`);
 
         return { rutinas: weekRoutines };
+    }
+
+    /**
+     * Distribuye los días de entrenamiento a lo largo de la semana con descanso intercalado
+     * @param trainingDays Número de días de entrenamiento (2-5)
+     * @returns Array de 7 elementos (true = entrenamiento, false = descanso)
+     */
+    private distributeTrainingDays(trainingDays: number): boolean[] {
+        const schedule = new Array(7).fill(false);
+        
+        if (trainingDays >= 7) {
+            return new Array(7).fill(true); // Entrenar todos los días
+        }
+        
+        // Patrones de distribución óptimos según frecuencia
+        const patterns: { [key: number]: number[] } = {
+            2: [0, 3],           // Lun, Jue
+            3: [0, 2, 4],        // Lun, Mié, Vie
+            4: [0, 2, 3, 5],     // Lun, Mié, Jue, Sáb
+            5: [0, 1, 3, 4, 6],  // Lun, Mar, Jue, Vie, Dom
+            6: [0, 1, 2, 4, 5, 6] // Lun, Mar, Mié, Vie, Sáb, Dom
+        };
+        
+        const pattern = patterns[trainingDays] || [];
+        pattern.forEach(dayIndex => {
+            schedule[dayIndex] = true;
+        });
+        
+        return schedule;
     }
 
     /**
