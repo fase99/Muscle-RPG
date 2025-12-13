@@ -355,22 +355,28 @@ ngOnDestroy() {
   }
 
   // === Marcar ejercicios ===
-  marcarEjercicio(ej: any, index: number) {
-    if (this.sesionFinalizada || !this.sesionActiva) return;
-    if (ej.hecho) return;
+marcarEjercicio(ej: any, index: number) {
+  if (this.sesionFinalizada || !this.sesionActiva) return;
+  if (ej.hecho) return;
 
-    ej.hecho = true;
+  const costo = ej.energia ?? 0;
+  const energiaDisponible = this.energiaRestante();
 
-    // Mantener gasto de energía
-    this.energiaGastada += ej.energia ?? 0;
-
-    // Actualizar en WorkoutStateService
-    const pesoReal = ej.peso || 0;
-    const rirReal = ej.rir || 2;
-
-    this.workoutState.completeExercise(index, pesoReal, rirReal, ej.notas);
-    console.log(`[RutinaComponent] ✅ Ejercicio ${index} marcado como completado en WorkoutStateService`);
+  // ❌ No hay energía suficiente
+  if (costo > energiaDisponible) {
+    this.errorMessage = '😴 No tienes energía suficiente para este ejercicio';
+    return;
   }
+
+  ej.hecho = true;
+  this.energiaGastada += costo;
+
+  // Actualizar WorkoutState
+  const pesoReal = ej.peso || 0;
+  const rirReal = ej.rir || 2;
+  this.workoutState.completeExercise(index, pesoReal, rirReal, ej.notas);
+}
+
 
   // === Tiempo transcurrido (del PRIMERO) ===
   tiempoTranscurrido(): number {
@@ -384,9 +390,10 @@ ngOnDestroy() {
   }
 
   // === Stamina o energía restante (mezcla lógica 1 + 2) ===
-  energiaRestante(): number {
-    return this.rutina.energiaMax - this.energiaGastada;
-  }
+energiaRestante(): number {
+  const max = this.rutina?.energiaMax || 100;
+  return Math.max(0, max - this.energiaGastada);
+}
 
   // === Métodos para resumen de cargas ===
   contarEjerciciosConPeso(): number {
