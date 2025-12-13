@@ -359,22 +359,21 @@ marcarEjercicio(ej: any, index: number) {
   if (this.sesionFinalizada || !this.sesionActiva) return;
   if (ej.hecho) return;
 
-  const costo = ej.energia ?? 0;
-  const energiaDisponible = this.energiaRestante();
+  const costoEjercicio = ej.energia ?? 0;
+  const energiaRestanteActual = this.energiaRestante();  // Usa la función segura
 
-  // ❌ No hay energía suficiente
-  if (costo > energiaDisponible) {
-    this.errorMessage = '😴 No tienes energía suficiente para este ejercicio';
-    return;
-  }
+  // Nunca gastar más de lo que queda
+  const gastoReal = Math.min(costoEjercicio, energiaRestanteActual);
 
+  this.energiaGastada += gastoReal;
   ej.hecho = true;
-  this.energiaGastada += costo;
 
-  // Actualizar WorkoutState
+  // Actualizar WorkoutStateService...
   const pesoReal = ej.peso || 0;
   const rirReal = ej.rir || 2;
   this.workoutState.completeExercise(index, pesoReal, rirReal, ej.notas);
+
+  console.log(`Ejercicio marcado. Energía gastada: +${gastoReal} (quedan ${this.energiaRestante()})`);
 }
 
 
