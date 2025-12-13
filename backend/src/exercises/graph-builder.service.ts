@@ -5,15 +5,14 @@ import { RpgExerciseRule, RpgExerciseRuleDocument } from './schemas/rpg-exercise
 import { ExerciseDbService, ExerciseDbExercise } from './exercisedb.service';
 
 export interface GraphNode {
-  // Datos RPG (Para el Algoritmo de Optimización)
   id: string;
-  xp: number; // Ganancia de hipertrofia (g_j)
-  fatigue: number; // Costo de stamina (f_j)
-  executionTime: number; // Tiempo de ejecución en minutos (t_j)
-  level: number; // Nivel requerido
-  prerequisites: string[]; // IDs de ejercicios prerequisitos
-  unlocks: string[]; // IDs de ejercicios que desbloquea
-  muscleTargets: { // Vector de músculos objetivo (v⃗_i)
+  xp: number;
+  fatigue: number;
+  executionTime: number;
+  level: number;
+  prerequisites: string[];
+  unlocks: string[];
+  muscleTargets: {
     STR: number;
     AGI: number;
     STA: number;
@@ -21,8 +20,6 @@ export interface GraphNode {
     DEX: number;
     END: number;
   };
-
-  // Datos Visuales (Para el Frontend)
   name: string;
   gifUrl: string;
   targetMuscle: string;
@@ -42,10 +39,12 @@ export class GraphBuilderService {
     private exerciseDbService: ExerciseDbService,
   ) {}
 
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
   async buildFullGraph(): Promise<GraphNode[]> {
     try {
-      // 1. Obtener Reglas RPG desde MongoDB (Nodos lógicos y Aristas)
       this.logger.log('Obteniendo reglas RPG desde MongoDB...');
       const rpgRules = await this.rpgRuleModel.find().exec();
 
@@ -56,19 +55,15 @@ export class GraphBuilderService {
 
       this.logger.log(`${rpgRules.length} reglas RPG encontradas`);
 
-      // 2. Extraer los IDs externos que necesitamos
       const idsToFetch = rpgRules.map((r) => r.externalId);
 
-      // 3. Obtener datos visuales de la API Externa
       this.logger.log(`Obteniendo datos de ExerciseDB para ${idsToFetch.length} ejercicios...`);
       const externalData = await this.exerciseDbService.getExercisesByIds(idsToFetch);
 
-      // 4. FUSIÓN (Merge): Crear el objeto final para el algoritmo y el Frontend
       const graphNodes: GraphNode[] = rpgRules.map((rule) => {
         const details = externalData.find((ex) => ex.exerciseId === rule.externalId);
 
         return {
-          // Datos RPG (Para el Algoritmo de Optimización)
           id: rule.externalId,
           xp: rule.baseXP,
           fatigue: rule.fatigueCost,
@@ -84,8 +79,6 @@ export class GraphBuilderService {
             DEX: 0,
             END: 0,
           },
-
-          // Datos Visuales (Para el Frontend)
           name: details?.name || '',
           gifUrl: details?.gifUrl || '',
           targetMuscle: details?.targetMuscles?.[0] || 'unknown',
@@ -104,20 +97,18 @@ export class GraphBuilderService {
     }
   }
 
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
   async getCandidateExercises(userLevel: number, completedExercises: string[]): Promise<GraphNode[]> {
     const fullGraph = await this.buildFullGraph();
 
-    // Filtrar candidatos según:
-    // 1. Nivel requerido <= nivel del usuario
-    // 2. Todos los prerequisitos están en completedExercises
     const candidates = fullGraph.filter((node) => {
-      // Verificar nivel
       if (node.level > userLevel) {
         return false;
       }
 
-      // Verificar prerequisitos
       const hasAllPrerequisites = node.prerequisites.every((preId) =>
         completedExercises.includes(preId),
       );
@@ -132,13 +123,19 @@ export class GraphBuilderService {
     return candidates;
   }
 
+<<<<<<< Updated upstream
  
+=======
+>>>>>>> Stashed changes
   async getNodeById(exerciseId: string): Promise<GraphNode | null> {
     const fullGraph = await this.buildFullGraph();
     return fullGraph.find((node) => node.id === exerciseId) || null;
   }
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
   async getUnlockedExercises(exerciseId: string): Promise<GraphNode[]> {
     const node = await this.getNodeById(exerciseId);
     if (!node || !node.unlocks.length) {

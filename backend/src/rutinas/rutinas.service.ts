@@ -47,7 +47,10 @@ export class RutinasService {
         const perfilConfig = this.getConfigPorNivel(profile.level);
         console.log(`[RutinasService] 📊 Usando perfil guardado: ${profile.level} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
             usuarioId,
             maxTime,
@@ -105,15 +108,6 @@ export class RutinasService {
         return savedRutina;
     }
 
-    /**
-     * Determina el perfil del usuario basado en su SRPG (Score RPG del Profile)
-     * Retorna: { perfil, frecuenciaMin, frecuenciaMax, rir, objetivo }
-     * 
-     * Perfiles según paper:
-     * - Básico (SRPG ≤ 35): 2-3 sesiones semanales, RIR=3 (adaptación neuronal)
-     * - Intermedio (36 ≤ SRPG ≤ 65): 3-4 sesiones semanales, RIR=2 (sobrecarga progresiva)
-     * - Avanzado (SRPG > 65): 4-5 sesiones semanales, RIR=0-1 (hipertrofia máxima)
-     */
     private determinarPerfilUsuario(srpg: number): { 
         perfil: string; 
         frecuenciaMin: number;
@@ -123,43 +117,35 @@ export class RutinasService {
         descripcion: string;
     } {
         if (srpg <= 35) {
-            // Perfil Básico (Principiante)
             return {
                 perfil: 'Básico',
                 frecuenciaMin: 2,
                 frecuenciaMax: 3,
-                frecuencia: 3, // Usar el máximo por defecto
+                frecuencia: 3,
                 rir: 3,
                 descripcion: 'Adaptación neuronal y aprendizaje técnico. Minimizar riesgo de lesión.'
             };
         } else if (srpg <= 65) {
-            // Perfil Intermedio
             return {
                 perfil: 'Intermedio',
                 frecuenciaMin: 3,
                 frecuenciaMax: 4,
-                frecuencia: 4, // Usar el máximo por defecto
+                frecuencia: 4,
                 rir: 2,
                 descripcion: 'Sobrecarga progresiva y hipertrofia funcional. Balance volumen-intensidad.'
             };
         } else {
-            // Perfil Avanzado
             return {
                 perfil: 'Avanzado',
                 frecuenciaMin: 4,
                 frecuenciaMax: 5,
-                frecuencia: 5, // Usar el máximo por defecto
-                rir: 1, // RIR 0-1 (usamos 1 como promedio)
+                frecuencia: 5,
+                rir: 1,
                 descripcion: 'Hipertrofia máxima con alto volumen. Series al fallo o muy cerca.'
             };
         }
     }
 
-    /**
-     * Obtiene la configuración de entrenamiento basada en el nivel del perfil guardado
-     * Este método usa directamente el nivel calculado durante el profiling (Básico/Intermedio/Avanzado)
-     * en lugar de recalcularlo desde el SRPG
-     */
     private getConfigPorNivel(nivel: string): { 
         perfil: string; 
         frecuenciaMin: number;
@@ -168,7 +154,6 @@ export class RutinasService {
         rir: number; 
         descripcion: string;
     } {
-        // Normalizar el nivel por si viene con mayúsculas/minúsculas diferentes
         const nivelNormalizado = nivel.toLowerCase();
 
         if (nivelNormalizado.includes('básico') || nivelNormalizado.includes('basico')) {
@@ -199,7 +184,6 @@ export class RutinasService {
                 descripcion: 'Hipertrofia máxima con alto volumen. Series al fallo o muy cerca.'
             };
         } else {
-            // Por defecto, usar Básico si el nivel no es reconocido
             console.warn(`[RutinasService] ⚠️ Nivel no reconocido: ${nivel}, usando Básico por defecto`);
             return {
                 perfil: 'Básico',
@@ -212,45 +196,39 @@ export class RutinasService {
         }
     }
 
- 
     private getMuscleGroupSplit(frecuencia: number): string[][] {
         switch (frecuencia) {
             case 2:
-                // 2 días/semana (Básico - mínimo) - Full body muy simplificado
                 return [
-                    ['chest', 'back', 'shoulders'],  // Día 1: Tren superior
-                    ['legs', 'core'],                 // Día 2: Tren inferior
+                    ['chest', 'back', 'shoulders'],
+                    ['legs', 'core'],
                 ];
             
             case 3:
-                // 3 días/semana (Básico - máximo) - Full body dividido
                 return [
-                    ['chest', 'shoulders', 'triceps'],  // Día 1: Push
-                    ['back', 'biceps'],                  // Día 2: Pull
-                    ['legs', 'core'],                    // Día 3: Piernas + Core
+                    ['chest', 'shoulders', 'triceps'],
+                    ['back', 'biceps'],
+                    ['legs', 'core'],
                 ];
             
             case 4:
-                // 4 días/semana (Intermedio) - Upper/Lower split
                 return [
-                    ['chest', 'triceps'],      // Día 1: Pecho + Tríceps
-                    ['back', 'biceps'],        // Día 2: Espalda + Bíceps
-                    ['legs', 'core'],          // Día 3: Piernas + Core
-                    ['shoulders', 'triceps', 'biceps'], // Día 4: Hombros + Brazos
+                    ['chest', 'triceps'],
+                    ['back', 'biceps'],
+                    ['legs', 'core'],
+                    ['shoulders', 'triceps', 'biceps'],
                 ];
             
             case 5:
-                // 5 días/semana (Avanzado) - Bro split
                 return [
-                    ['chest'],                  // Día 1: Pecho
-                    ['back'],                   // Día 2: Espalda
-                    ['legs'],                   // Día 3: Piernas
-                    ['shoulders'],              // Día 4: Hombros
-                    ['biceps', 'triceps', 'core'], // Día 5: Brazos + Core
+                    ['chest'],
+                    ['back'],
+                    ['legs'],
+                    ['shoulders'],
+                    ['biceps', 'triceps', 'core'],
                 ];
             
             default:
-                // Fallback a 3 días
                 return [
                     ['chest', 'shoulders', 'triceps'],
                     ['back', 'biceps'],
@@ -276,36 +254,30 @@ export class RutinasService {
             );
         }
 
-        // Usar el nivel directamente del perfil (ya calculado durante el profiling)
         const perfilConfig = this.getConfigPorNivel(profile.level);
         console.log(`[RutinasService] Perfil: ${profile.level} (SRPG: ${profile.sRpg})`);
         console.log(`[RutinasService] Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana, RIR: ${perfilConfig.rir}`);
         console.log(`[RutinasService] ${perfilConfig.descripcion}`);
 
-        // Definir división de grupos musculares según frecuencia
         const muscleGroupSplits = this.getMuscleGroupSplit(perfilConfig.frecuencia);
         console.log(`[RutinasService] División muscular:`, muscleGroupSplits);
 
         const weekRoutines: Rutina[] = [];
         const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         
-        // Calcular stamina disponible por día
         const trainingDays = perfilConfig.frecuencia;
-        const staminaPerDay = 100; // Stamina fija por día
+        const staminaPerDay = 100;
 
-        // Obtener el inicio de la semana (Lunes)
         const today = new Date();
-        const currentDayOfWeek = today.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+        const currentDayOfWeek = today.getDay();
         const daysToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
         const monday = new Date(today);
         monday.setDate(today.getDate() + daysToMonday);
         monday.setHours(0, 0, 0, 0);
 
-        // Distribuir días de entrenamiento con descanso intercalado
         const trainingSchedule = this.distributeTrainingDays(trainingDays);
         console.log(`[RutinasService] Distribución de entrenamiento:`, trainingSchedule);
 
-        // Generar rutinas para toda la semana
         for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
             const dayName = daysOfWeek[dayIndex];
             const scheduledDate = new Date(monday);
@@ -314,19 +286,17 @@ export class RutinasService {
             const isTrainingDay = trainingSchedule[dayIndex];
             
             if (isTrainingDay) {
-                // Día de entrenamiento
                 const trainingDayNumber = trainingSchedule.slice(0, dayIndex + 1).filter(d => d).length - 1;
                 const muscleGroups = muscleGroupSplits[trainingDayNumber];
                 
                 console.log(`[RutinasService] Generando ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Grupos: ${muscleGroups.join(' + ')}`);
 
-                // Día de entrenamiento con grupos musculares específicos
                 const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
                     usuarioId,
                     maxTimePerSession,
                     staminaPerDay,
                     perfilConfig.rir,
-                    muscleGroups, // Pasar los grupos musculares del día
+                    muscleGroups,
                 );
 
                 const volumeLandmarks = this.graphOptimizer.calculateVolumeLandmarks(profile);
@@ -374,7 +344,6 @@ export class RutinasService {
                 const saved = await rutina.save();
                 weekRoutines.push(saved);
             } else {
-                // Día de descanso
                 console.log(`[RutinasService] ${dayName} (${scheduledDate.toLocaleDateString('es-ES')}) - Descanso`);
                 
                 const restRutina = new this.rutinaModel({
@@ -404,21 +373,19 @@ export class RutinasService {
         return { rutinas: weekRoutines };
     }
 
-  
     private distributeTrainingDays(trainingDays: number): boolean[] {
         const schedule = new Array(7).fill(false);
         
         if (trainingDays >= 7) {
-            return new Array(7).fill(true); // Entrenar todos los días
+            return new Array(7).fill(true);
         }
         
-        // Patrones de distribución óptimos según frecuencia
         const patterns: { [key: number]: number[] } = {
-            2: [0, 3],           // Lun, Jue
-            3: [0, 2, 4],        // Lun, Mié, Vie
-            4: [0, 2, 3, 5],     // Lun, Mié, Jue, Sáb
-            5: [0, 1, 3, 4, 6],  // Lun, Mar, Jue, Vie, Dom
-            6: [0, 1, 2, 4, 5, 6] // Lun, Mar, Mié, Vie, Sáb, Dom
+            2: [0, 3],
+            3: [0, 2, 4],
+            4: [0, 2, 3, 5],
+            5: [0, 1, 3, 4, 6],
+            6: [0, 1, 2, 4, 5, 6]
         };
         
         const pattern = patterns[trainingDays] || [];
@@ -429,13 +396,11 @@ export class RutinasService {
         return schedule;
     }
 
-   
     async planQuarterlyCycle(usuarioId: string): Promise<any> {
         console.log(`[RutinasService] Planificando ciclo trimestral para usuario ${usuarioId}`);
 
         const cycle = await this.dynamicProgramming.planQuarterlyCycle(usuarioId);
 
-        // Guardar el plan del ciclo en una rutina especial tipo 'quarterly-cycle'
         const quarterlyCycleRutina = new this.rutinaModel({
             usuarioId: new Types.ObjectId(usuarioId),
             nombre: `Ciclo Trimestral - ${cycle.startDate.toLocaleDateString()}`,
@@ -453,7 +418,7 @@ export class RutinasService {
                 volumeTotal: d.estado.volumen,
                 xpGained: d.ganancia,
                 fatigueLevel: d.estado.fatiga,
-                adherence: 0, // Se actualizará en tiempo real
+                adherence: 0,
                 action: d.accion.tipo,
             })),
             activa: true,
@@ -470,7 +435,6 @@ export class RutinasService {
         };
     }
 
- 
     async evaluateQuarterlyCycle(usuarioId: string): Promise<any> {
         return this.dynamicProgramming.evaluarCicloCompleto(usuarioId);
     }
@@ -479,8 +443,6 @@ export class RutinasService {
         const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         return days[new Date().getDay()];
     }
-
-    // ========== MÉTODOS LEGACY (mantenidos para compatibilidad) ==========
 
     async create(createRutinaDto: {
         usuarioId: string;

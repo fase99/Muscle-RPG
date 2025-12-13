@@ -11,10 +11,10 @@ interface ExerciseNode {
   id: string;
   externalId: string;
   name: string;
-  costoTiempo: number;       // t_j (minutos)
-  costoFatiga: number;        // f_j (stamina)
-  estimuloXP: number;         // g_j (XP/Hipertrofia)
-  rir: number;                // Repeticiones en Reserva
+  costoTiempo: number;
+  costoFatiga: number;
+  estimuloXP: number;
+  rir: number;
   muscleTargets: {
     STR: number;
     AGI: number;
@@ -23,11 +23,11 @@ interface ExerciseNode {
     DEX: number;
     END: number;
   };
-  prerequisites?: string[];    // IDs de ejercicios previos requeridos (opcional)
+  prerequisites?: string[];
   series: number;
   repeticiones: number;
-  targetMuscles?: string[];   // Músculos objetivo reales (del JSON)
-  bodyParts?: string[];       // Partes del cuerpo (del JSON)
+  targetMuscles?: string[];
+  bodyParts?: string[];
 }
 
 interface GraphPath {
@@ -35,13 +35,13 @@ interface GraphPath {
   totalXP: number;
   totalTime: number;
   totalFatigue: number;
-  muscleBalance: number;     // Balance de grupos musculares trabajados
+  muscleBalance: number;
 }
 
 interface VolumeLandmarks {
-  MEV: number;  // Minimum Effective Volume (series semanales)
-  MAV: number;  // Maximum Adaptive Volume
-  MRV: number;  // Maximum Recoverable Volume
+  MEV: number;
+  MAV: number;
+  MRV: number;
 }
 
 @Injectable()
@@ -53,15 +53,6 @@ export class GraphOptimizerService {
     private exerciseDbService: ExerciseDbService,
   ) {}
 
-  /**
- 
-   * @param userStamina - Energía disponible del usuario (ej: 80)
-   * @param timeLimit - Tiempo máximo en minutos (fijo: 120)
-   * @param targetMuscle - Grupo muscular objetivo (ej: 'Pecho', 'Espalda', 'chest', 'back')
-   * @param userLevel - Nivel del usuario (1-8)
-   * @param availableNodes - Lista de ejercicios/nodos del grafo disponibles
-   * @returns Array ordenado de ExerciseNode[] representando la ruta óptima
-   */
   async generateSession(
     userStamina: number,
     timeLimit: number = 120,
@@ -78,7 +69,6 @@ export class GraphOptimizerService {
     console.log(`  - Nivel de usuario: ${userLevel}`);
     console.log(`  - Nodos disponibles: ${availableNodes.length}`);
 
-    // PASO 1: FILTRADO INICIAL
     const filteredNodes = this.filterNodesByTargetMuscle(availableNodes, targetMuscle, userLevel);
     console.log(`[GraphOptimizer.generateSession] Ejercicios filtrados: ${filteredNodes.length}`);
 
@@ -87,7 +77,6 @@ export class GraphOptimizerService {
       return [];
     }
 
-    // PASO 2: RECORRIDO DEL GRAFO CON ALGORITMO GREEDY
     const selectedPath = this.greedyPathSelection(
       filteredNodes,
       userStamina,
@@ -101,7 +90,6 @@ export class GraphOptimizerService {
     return selectedPath;
   }
 
- 
   private filterNodesByTargetMuscle(
     nodes: ExerciseNode[],
     targetMuscle: string,
@@ -109,7 +97,7 @@ export class GraphOptimizerService {
   ): ExerciseNode[] {
     const normalizedTarget = targetMuscle.toLowerCase().trim();
     
-    // Mapeo de nombres en español/inglés
+  
     const muscleAliases: Record<string, string[]> = {
       'chest': ['chest', 'pecho', 'pectoral'],
       'back': ['back', 'espalda', 'dorsal'],
@@ -120,7 +108,6 @@ export class GraphOptimizerService {
       'core': ['core', 'abdomen', 'abs'],
     };
 
-    // Encontrar aliases del target
     let targetAliases: string[] = [normalizedTarget];
     for (const [key, aliases] of Object.entries(muscleAliases)) {
       if (aliases.includes(normalizedTarget)) {
@@ -130,12 +117,7 @@ export class GraphOptimizerService {
     }
 
     const filtered = nodes.filter(node => {
-      // Verificar nivel (si el nodo tiene prerequisites, usar esa lógica)
-      // Por simplicidad, asumimos que si está en availableNodes ya está desbloqueado
-      
-      // Verificar coincidencia con targetMuscle
       if (node.targetMuscles && node.targetMuscles.length > 0) {
-        // Buscar en targetMuscles del nodo
         const hasMatch = node.targetMuscles.some(muscle => 
           targetAliases.some(alias => muscle.toLowerCase().includes(alias))
         );
@@ -143,14 +125,12 @@ export class GraphOptimizerService {
       }
 
       if (node.bodyParts && node.bodyParts.length > 0) {
-        // Buscar en bodyParts del nodo
         const hasMatch = node.bodyParts.some(part => 
           targetAliases.some(alias => part.toLowerCase().includes(alias))
         );
         if (hasMatch) return true;
       }
 
-      // Fallback: verificar en muscleTargets (atributos RPG)
       const rpgMapping: Record<string, string[]> = {
         'chest': ['STR'],
         'back': ['STR'],
@@ -174,7 +154,6 @@ export class GraphOptimizerService {
     return filtered;
   }
 
- 
   private greedyPathSelection(
     candidates: ExerciseNode[],
     maxStamina: number,
@@ -182,7 +161,7 @@ export class GraphOptimizerService {
     targetMuscle: string,
   ): ExerciseNode[] {
     const selectedPath: ExerciseNode[] = [];
-    const visitedIds = new Set<string>(); // Restricción de unicidad
+    const visitedIds = new Set<string>();
     
     let currentTime = 0;
     let currentFatigue = 0;
@@ -199,27 +178,22 @@ export class GraphOptimizerService {
 
     candidatesWithRatio.sort((a, b) => b.ratio - a.ratio);
 
-    // Iterar hasta que no se puedan agregar más ejercicios
     for (const { node, ratio } of candidatesWithRatio) {
-      // RESTRICCIÓN DE UNICIDAD: Verificar si ya fue visitado
       if (visitedIds.has(node.id)) {
         console.log(`[GraphOptimizer.greedyPathSelection] ⏭️ Ejercicio ${node.name} ya seleccionado (unicidad)`);
         continue;
       }
 
-      // RESTRICCIÓN DE TIEMPO: Verificar si agregar excede timeLimit
       if (currentTime + node.costoTiempo > maxTime) {
         console.log(`[GraphOptimizer.greedyPathSelection] ⏱️ Ejercicio ${node.name} excedería tiempo (${currentTime + node.costoTiempo} > ${maxTime})`);
         continue;
       }
 
-      // RESTRICCIÓN DE STAMINA: Verificar si agregar excede userStamina
       if (currentFatigue + node.costoFatiga > maxStamina) {
         console.log(`[GraphOptimizer.greedyPathSelection] 💤 Ejercicio ${node.name} excedería stamina (${currentFatigue + node.costoFatiga} > ${maxStamina})`);
         continue;
       }
 
-      // RESTRICCIÓN DE BALANCE: Máximo 40% por grupo muscular
       const primaryMuscle = this.getPrimaryMuscle(node);
       const currentMusclePercentage = this.calculateMusclePercentage(
         muscleDistribution,
@@ -233,13 +207,11 @@ export class GraphOptimizerService {
         continue;
       }
 
-      // AGREGAR NODO A LA RUTA
       selectedPath.push(node);
       visitedIds.add(node.id);
       currentTime += node.costoTiempo;
       currentFatigue += node.costoFatiga;
 
-      // Actualizar distribución muscular
       const currentValue = muscleDistribution.get(primaryMuscle) || 0;
       muscleDistribution.set(primaryMuscle, currentValue + node.estimuloXP);
 
@@ -247,7 +219,6 @@ export class GraphOptimizerService {
       console.log(`[GraphOptimizer.greedyPathSelection]    Total: ${selectedPath.length} ejercicios | Tiempo: ${currentTime}min | Fatiga: ${currentFatigue.toFixed(1)}`);
     }
 
-    // CONDICIÓN DE PARADA: Ya iteramos todos los candidatos
     console.log(`[GraphOptimizer.greedyPathSelection] 🏁 Selección completada`);
     console.log(`[GraphOptimizer.greedyPathSelection] Ejercicios seleccionados: ${selectedPath.length}`);
     console.log(`[GraphOptimizer.greedyPathSelection] Tiempo total: ${currentTime}/${maxTime} min`);
@@ -256,13 +227,11 @@ export class GraphOptimizerService {
     return selectedPath;
   }
 
- 
   private calculateEfficiencyRatio(node: ExerciseNode): number {
     const denominator = node.costoTiempo + node.costoFatiga;
     if (denominator === 0) return 0;
     return node.estimuloXP / denominator;
   }
-
 
   private getPrimaryMuscle(node: ExerciseNode): string {
     if (node.targetMuscles && node.targetMuscles.length > 0) {
@@ -271,12 +240,10 @@ export class GraphOptimizerService {
     if (node.bodyParts && node.bodyParts.length > 0) {
       return node.bodyParts[0];
     }
-    // Fallback: usar el atributo RPG con mayor valor
     const maxAttr = Object.entries(node.muscleTargets)
       .reduce((max, [attr, val]) => val > max.val ? { attr, val } : max, { attr: 'STR', val: 0 });
     return maxAttr.attr;
   }
-
 
   private calculateMusclePercentage(
     distribution: Map<string, number>,
@@ -292,14 +259,13 @@ export class GraphOptimizerService {
 
   async optimizeSesionDiaria(
     userId: string,
-    maxTime: number = 120,      // Límite temporal (2 horas)
-    availableStamina?: number,  // Stamina disponible (se obtiene del usuario si no se proporciona)
-    targetRIR: number = 2,      // RIR objetivo según perfil (3=Básico, 2=Intermedio, 0-1=Avanzado)
-    targetMuscleGroups?: string[], // Grupos musculares a trabajar en esta sesión (ej: ['chest', 'triceps'])
+    maxTime: number = 120,
+    availableStamina?: number,
+    targetRIR: number = 2,
+    targetMuscleGroups?: string[],
   ): Promise<GraphPath> {
     console.log('[GraphOptimizer] Iniciando optimización de sesión diaria...');
     
-    // 1. Obtener datos del usuario y perfil
     const user = await this.userModel.findById(userId).exec();
     if (!user) throw new Error('Usuario no encontrado');
 
@@ -313,13 +279,10 @@ export class GraphOptimizerService {
       console.log(`[GraphOptimizer] Grupos musculares objetivo: ${targetMuscleGroups.join(', ')}`);
     }
 
-    // 2. Construir el grafo de ejercicios disponibles
     const availableExercises = await this.buildExerciseGraph(user, profile, targetRIR, targetMuscleGroups);
     
     console.log(`[GraphOptimizer] Ejercicios disponibles: ${availableExercises.length}`);
 
-    // 3. Resolver el problema de optimización usando Programación Dinámica
-    // Este es el algoritmo de "Knapsack con múltiples restricciones"
     const optimalPath = this.findOptimalPath(
       availableExercises,
       maxTime,
@@ -333,7 +296,6 @@ export class GraphOptimizerService {
     return optimalPath;
   }
 
-  
   private async buildExerciseGraph(
     user: UserDocument,
     profile: ProfileDocument,
@@ -342,19 +304,13 @@ export class GraphOptimizerService {
   ): Promise<ExerciseNode[]> {
     console.log(`[GraphOptimizer] Construyendo grafo de ejercicios...`);
     
-    // Si hay grupos musculares objetivo, obtener ejercicios directamente desde ExerciseDB
     if (targetMuscleGroups && targetMuscleGroups.length > 0) {
       return this.buildGraphFromExerciseDb(user, profile, targetRIR, targetMuscleGroups);
     }
     
-    // Fallback: usar reglas de la BD (para rutinas diarias sin split)
     return this.buildGraphFromRules(user, profile, targetRIR);
   }
 
-  /**
-   * Construye el grafo usando ejercicios reales de data-exercises/exercises.json
-   * filtrados por grupo muscular
-   */
   private async buildGraphFromExerciseDb(
     user: UserDocument,
     profile: ProfileDocument,
@@ -365,12 +321,10 @@ export class GraphOptimizerService {
     
     const nodes: ExerciseNode[] = [];
     
-    // Obtener ejercicios por cada grupo muscular
     for (const muscleGroup of targetMuscleGroups) {
       const exercises = await this.exerciseDbService.getExercisesByMuscleGroup(muscleGroup);
       console.log(`[GraphOptimizer] Encontrados ${exercises.length} ejercicios para ${muscleGroup}`);
       
-      // Limitar a los primeros 30 ejercicios por grupo (para evitar demasiados)
       const limitedExercises = exercises.slice(0, 30);
       
       for (const exercise of limitedExercises) {
@@ -387,7 +341,6 @@ export class GraphOptimizerService {
         const xpBasePorSerie = 15;
         const estimuloXP = xpBasePorSerie * series * muRIR;
         
-        // Mapear grupo muscular a atributos RPG para balance
         const muscleTargets = this.mapMuscleGroupToRPG(muscleGroup);
         
         const node: ExerciseNode = {
@@ -413,9 +366,6 @@ export class GraphOptimizerService {
     return nodes;
   }
 
-  /**
-   * Mapea un grupo muscular a atributos RPG para el balance
-   */
   private mapMuscleGroupToRPG(muscleGroup: string): { STR: number; AGI: number; STA: number; INT: number; DEX: number; END: number } {
     const baseAttributes = { STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0 };
     
@@ -440,7 +390,6 @@ export class GraphOptimizerService {
     profile: ProfileDocument,
     targetRIR: number,
   ): Promise<ExerciseNode[]> {
-    // Obtener reglas de ejercicios según nivel del usuario
     const levelMap = {
       'Básico': [1, 2, 3],
       'Intermedio': [1, 2, 3, 4, 5],
@@ -458,12 +407,10 @@ export class GraphOptimizerService {
     const nodes: ExerciseNode[] = [];
     const completedExercises = new Set(user.ejerciciosCompletados);
 
-    // Obtener todos los IDs de ejercicios para cargar nombres en batch
     const exerciseIds = exerciseRules.map(rule => rule.externalId);
     console.log(`[GraphOptimizer] Obteniendo nombres para ${exerciseIds.length} ejercicios desde ExerciseDB...`);
 
     for (const rule of exerciseRules) {
-      // Verificar prerequisites - IGNORAR SI ESTÁ VACÍO
       const prerequisitesMet = rule.prerequisites.length === 0 || 
         rule.prerequisites.every(prereq => completedExercises.has(prereq));
 
@@ -472,36 +419,30 @@ export class GraphOptimizerService {
         continue;
       }
 
-      // Obtener nombre real del ejercicio desde data-exercises/exercises.json
       const exerciseName = await this.exerciseDbService.getExerciseName(rule.externalId);
 
-      // Usar el RIR del perfil (pasado como parámetro)
       const series = this.getSeriesForProfile(profile);
       const repeticiones = this.getRepetitionsForHypertrophy();
 
-      // Ajustar costos y XP según RIR y perfil
       const muRIR = this.calculateRIRMultiplier(targetRIR);
       
-      // Tiempo: 2-3 minutos por serie (descanso incluido)
-      const tiempoPorSerie = 2.5; // minutos
+      const tiempoPorSerie = 2.5;
       const costoTiempo = tiempoPorSerie * series;
       
-      // Fatiga: depende del RIR (más bajo = más fatiga)
-      const fatigaBasePorSerie = 8; // stamina por serie
+      const fatigaBasePorSerie = 8;
       const costoFatiga = fatigaBasePorSerie * series * muRIR;
       
-      // XP: recompensa por el estímulo mecánico
-      const xpBasePorSerie = 15; // XP por serie
+      const xpBasePorSerie = 15;
       const estimuloXP = xpBasePorSerie * series * muRIR;
       
       const node: ExerciseNode = {
         id: rule._id.toString(),
         externalId: rule.externalId,
-        name: exerciseName, // Nombre real desde exercises.json
+        name: exerciseName,
         costoTiempo,
         costoFatiga,
         estimuloXP,
-        rir: targetRIR, // Usar el RIR del perfil
+        rir: targetRIR,
         muscleTargets: rule.muscleTargets,
         prerequisites: rule.prerequisites,
         series,
@@ -511,14 +452,11 @@ export class GraphOptimizerService {
       nodes.push(node);
     }
 
-    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} nodos (ejercicios disponibles desde BD)`);
+    console.log(`[GraphOptimizer] Grafo construido con ${nodes.length} nodos`);
     
     return nodes;
   }
 
-  /**
-   * Encuentra el camino óptimo usando Programación Dinámica (0/1 Knapsack)
-   */
   private findOptimalPath(
     exercises: ExerciseNode[],
     maxTime: number,
@@ -539,7 +477,6 @@ export class GraphOptimizerService {
       };
     }
 
-    // Filtrar ejercicios factibles individualmente
     const feasibleExercises = exercises.filter(ex => 
       ex.costoTiempo <= maxTime && ex.costoFatiga <= maxStamina
     );
@@ -556,41 +493,34 @@ export class GraphOptimizerService {
       };
     }
 
-    // Ordenar por eficiencia (XP por unidad de costo) con factor aleatorio
     const sortedExercises = [...feasibleExercises].sort((a, b) => {
       const costA = a.costoTiempo * 0.5 + a.costoFatiga * 0.5;
       const costB = b.costoTiempo * 0.5 + b.costoFatiga * 0.5;
       const effA = a.estimuloXP / costA;
       const effB = b.estimuloXP / costB;
       
-      // Agregar factor de variabilidad (+/- 15% aleatorio)
-      const randomFactorA = 0.85 + Math.random() * 0.3; // 0.85 a 1.15
+      const randomFactorA = 0.85 + Math.random() * 0.3;
       const randomFactorB = 0.85 + Math.random() * 0.3;
       
       return (effB * randomFactorB) - (effA * randomFactorA);
     });
 
-    // ALGORITMO GREEDY MEJORADO CON BALANCE MUSCULAR Y VARIABILIDAD
     const selectedNodes: ExerciseNode[] = [];
     let currentTime = 0;
     let currentFatigue = 0;
     let currentXP = 0;
     const muscleWork = { STR: 0, AGI: 0, STA: 0, INT: 0, DEX: 0, END: 0 };
     
-    // Usar ~75% del tiempo disponible para permitir flexibilidad
     const targetTime = maxTime * 0.75;
     const minExercises = 5;
     const maxExercises = 10;
 
-    // Intentar agregar ejercicios mientras se pueda
     for (const exercise of sortedExercises) {
-      // Verificar si ya alcanzamos el máximo de ejercicios
       if (selectedNodes.length >= maxExercises) {
         console.log(`[GraphOptimizer] Límite de ${maxExercises} ejercicios alcanzado`);
         break;
       }
 
-      // Verificar restricciones de recursos
       if (currentTime + exercise.costoTiempo > maxTime) {
         console.log(`[GraphOptimizer] Ejercicio ${exercise.name} excede tiempo`);
         continue;
@@ -600,27 +530,23 @@ export class GraphOptimizerService {
         continue;
       }
 
-      // Verificar balance muscular (máximo 60% por grupo muscular)
       const wouldOverwork = this.wouldOverworkMuscleStrict(muscleWork, exercise.muscleTargets, currentXP + exercise.estimuloXP);
       if (wouldOverwork && selectedNodes.length >= minExercises) {
         console.log(`[GraphOptimizer] Ejercicio ${exercise.name} causaría desbalance muscular`);
         continue;
       }
 
-      // AGREGAR EJERCICIO
       selectedNodes.push(exercise);
       currentTime += exercise.costoTiempo;
       currentFatigue += exercise.costoFatiga;
       currentXP += exercise.estimuloXP;
 
-      // Actualizar trabajo muscular
       for (const [muscle, value] of Object.entries(exercise.muscleTargets)) {
         muscleWork[muscle] += value * exercise.estimuloXP;
       }
 
       console.log(`[GraphOptimizer] ✓ Agregado: ${exercise.name} (XP: ${exercise.estimuloXP.toFixed(1)}, Total: ${selectedNodes.length})`);
 
-      // Parar si alcanzamos ~75% del tiempo y tenemos al menos minExercises
       if (selectedNodes.length >= minExercises && currentTime >= targetTime) {
         console.log(`[GraphOptimizer] Objetivo de tiempo (~75%) alcanzado con ${selectedNodes.length} ejercicios`);
         break;
@@ -647,7 +573,7 @@ export class GraphOptimizerService {
     newWork: Record<string, number>,
     newTotalXP: number,
   ): boolean {
-    const maxPercentage = 0.60; // 60% máximo por grupo muscular
+    const maxPercentage = 0.60;
 
     for (const [muscle, value] of Object.entries(newWork)) {
       if (value > 0) {
@@ -662,9 +588,6 @@ export class GraphOptimizerService {
     return false;
   }
 
-  /**
-   * Calcula el balance entre grupos musculares (0-1, donde 1 es perfecto balance)
-   */
   private calculateMuscleBalance(muscleWork: Record<string, number>): number {
     const values = Object.values(muscleWork).filter(v => v > 0);
     if (values.length === 0) return 0;
@@ -673,58 +596,44 @@ export class GraphOptimizerService {
     const variance = values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / values.length;
     const stdDev = Math.sqrt(variance);
 
-    // Normalizar: menos desviación estándar = mejor balance
     return Math.max(0, 1 - (stdDev / avg));
   }
 
   private getSeriesForProfile(profile: ProfileDocument): number {
     switch (profile.level) {
       case 'Básico':
-        return 3; // 3 series para principiantes
+        return 3;
       case 'Intermedio':
-        return 4; // 4 series para intermedios
+        return 4;
       case 'Avanzado':
-        return 5; // 5 series para avanzados
+        return 5;
       default:
         return 3;
     }
   }
 
-  /**
-   * Rango de repeticiones para hipertrofia (8-12)
-   */
   private getRepetitionsForHypertrophy(): number {
-    return 10; // Valor medio del rango de hipertrofia
+    return 10;
   }
 
-
   private calculateRIRMultiplier(rir: number): number {
-    // RIR 0-1 (al fallo - Avanzado): 1.2x
-    // RIR 2 (Intermedio): 1.0x
-    // RIR 3 (Básico): 0.85x
     if (rir <= 1) return 1.2;
     if (rir === 2) return 1.0;
     if (rir === 3) return 0.85;
     return 0.7;
   }
 
-  /**
-   * Verifica si un ejercicio coincide con los grupos musculares objetivo
-   * basándose en sus atributos RPG (STR, AGI, STA, etc.)
-   */
   private exerciseMatchesMuscleGroups(
     muscleTargets: Record<string, number>,
     targetGroups: string[],
     muscleGroupMap: Record<string, string[]>
   ): boolean {
-    // Para cada grupo muscular objetivo
     for (const group of targetGroups) {
       const rpgAttributes = muscleGroupMap[group];
       if (!rpgAttributes) continue;
 
-      // Verificar si el ejercicio trabaja alguno de los atributos de este grupo
       for (const attr of rpgAttributes) {
-        if (muscleTargets[attr] && muscleTargets[attr] > 0.3) { // Umbral del 30%
+        if (muscleTargets[attr] && muscleTargets[attr] > 0.3) {
           return true;
         }
       }
@@ -732,25 +641,24 @@ export class GraphOptimizerService {
     return false;
   }
 
- 
   calculateVolumeLandmarks(profile: ProfileDocument): VolumeLandmarks {
     let MEV: number, MAV: number, MRV: number;
 
     switch (profile.level) {
       case 'Básico':
-        MEV = 10;  // 10 series semanales mínimas (menor capacidad de trabajo)
-        MAV = 15;  // 15 series óptimas
-        MRV = 20;  // 20 series máximas recuperables
+        MEV = 10;
+        MAV = 15;
+        MRV = 20;
         break;
       
       case 'Intermedio':
-        MEV = 12;  // Mayor capacidad de trabajo que básico
+        MEV = 12;
         MAV = 18;
         MRV = 24;
         break;
       
       case 'Avanzado':
-        MEV = 15;  // Alta capacidad de trabajo y recuperación
+        MEV = 15;
         MAV = 22;
         MRV = 30;
         break;
@@ -761,8 +669,6 @@ export class GraphOptimizerService {
         MRV = 20;
     }
 
-    // Ajustar según composición corporal (μ_comp)
-    // Mejor composición (menor grasa, más músculo) = mejor recuperación
     const muComp = profile.compositionMultiplier || 1.0;
     
     return {
