@@ -27,8 +27,7 @@ export class SetupComponent implements OnInit {
     private authService: AuthService
   ) {
     this.profileForm = this.fb.group({
-      // Paso 1: Datos Personales
-      age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
+      // Paso 1: Datos Personales (sin edad, ya se obtiene del usuario)
       gender: ['1', Validators.required],
       weight: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
       height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
@@ -114,7 +113,7 @@ export class SetupComponent implements OnInit {
     
     switch (this.currentStep) {
       case 1:
-        return !!(formValue.age && formValue.gender !== null && formValue.weight && formValue.height);
+        return !!(formValue.gender !== null && formValue.weight && formValue.height);
       case 2:
         return formValue.experienceMonths !== '' && formValue.activityLevel;
       case 3:
@@ -131,8 +130,8 @@ export class SetupComponent implements OnInit {
       const formValue = this.profileForm.value;
       
       // Adaptar datos para el DTO del Backend (CreateProfileDto)
+      // La edad se obtiene del usuario autenticado en el backend
       const payload: any = {
-        age: Number(formValue.age),
         gender: Number(formValue.gender),
         experienceMonths: Number(formValue.experienceMonths),
         weight: Number(formValue.weight),
