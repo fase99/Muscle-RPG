@@ -17,23 +17,21 @@ export class PerfilComponent implements OnInit {
     userStats: any = null;
     loading = true;
 
-    // Modal states
     showPersonalModal = false;
     showPhysicalModal = false;
     showExperienceModal = false;
-    
-    // Edit forms
+
     editPersonalData = { nombre: '', apellido: '', edad: 0, email: '' };
     editPhysicalData = { weight: 0, height: 0 };
     editExperienceData = { experienceMonths: 0, nivelactividad: '' };
-    
+
     saving = false;
 
     constructor(
         public authService: AuthService,
         private userHttpService: UserHttpService,
         private http: HttpClient
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.authService.currentUser$.subscribe(user => {
@@ -60,14 +58,14 @@ export class PerfilComponent implements OnInit {
     }
 
     get name(): string {
-        return this.userStats?.personalData?.nombre?.toUpperCase() || 
-               this.user?.nombre?.toUpperCase() || 'USUARIO';
+        return this.userStats?.personalData?.nombre?.toUpperCase() ||
+            this.user?.nombre?.toUpperCase() || 'USUARIO';
     }
 
     get username(): string {
-        return this.user?.username || 
-               this.userStats?.personalData?.email?.split('@')[0] || 
-               this.user?.email?.split('@')[0] || 'user';
+        return this.user?.username ||
+            this.userStats?.personalData?.email?.split('@')[0] ||
+            this.user?.email?.split('@')[0] || 'user';
     }
 
     get level(): number {
@@ -75,9 +73,9 @@ export class PerfilComponent implements OnInit {
     }
 
     get profileLevel(): string {
-        return this.userStats?.profileData?.level || 
-               (this.user?.profileId as any)?.level || 
-               'SIN ASIGNAR';
+        return this.userStats?.profileData?.level ||
+            (this.user?.profileId as any)?.level ||
+            'SIN ASIGNAR';
     }
 
     get xpCurrent(): number {
@@ -89,19 +87,19 @@ export class PerfilComponent implements OnInit {
     }
 
     get dayStreak(): number {
-        return this.userStats?.rutinasStats?.diasEntrenamiento || 
-               this.user?.rachasDias || 0;
+        return this.userStats?.rutinasStats?.diasEntrenamiento ||
+            this.user?.rachasDias || 0;
     }
 
     get achievements(): number {
-        return this.userStats?.rutinasStats?.rutinasCompletadas || 
-               this.user?.logrosObtenidos || 0;
+        return this.userStats?.rutinasStats?.rutinasCompletadas ||
+            this.user?.logrosObtenidos || 0;
     }
 
     get attributes() {
-        const attrs = this.userStats?.atributos || 
-                      this.user?.atributos || 
-                      { STR: 50, AGI: 50, STA: 50, INT: 50, DEX: 50, END: 50 };
+        const attrs = this.userStats?.atributos ||
+            this.user?.atributos ||
+            { STR: 50, AGI: 50, STA: 50, INT: 50, DEX: 50, END: 50 };
         return [
             { key: 'STR', value: attrs.STR, max: 100 },
             { key: 'AGI', value: attrs.AGI, max: 100 },
@@ -126,31 +124,30 @@ export class PerfilComponent implements OnInit {
         if (this.userStats?.metricas && this.userStats.metricas.length > 0) {
             return this.userStats.metricas;
         }
-        // Métricas por defecto si el usuario no tiene ninguna
         return [
-            { 
-                icon: '🏋️', 
-                label: 'Rutinas Completadas', 
-                subLabel: 'Total de sesiones', 
-                value: '0', 
-                unit: 'sesiones', 
-                trend: 'Sin datos' 
+            {
+                icon: '🏋️',
+                label: 'Rutinas Completadas',
+                subLabel: 'Total de sesiones',
+                value: '0',
+                unit: 'sesiones',
+                trend: 'Sin datos'
             },
-            { 
-                icon: '📊', 
-                label: 'Ejercicios Realizados', 
-                subLabel: 'Ejercicios completados', 
-                value: '0', 
-                unit: 'ejercicios', 
-                trend: 'Comienza a entrenar' 
+            {
+                icon: '📊',
+                label: 'Ejercicios Realizados',
+                subLabel: 'Ejercicios completados',
+                value: '0',
+                unit: 'ejercicios',
+                trend: 'Comienza a entrenar'
             },
-            { 
-                icon: '⚡', 
-                label: 'XP Total', 
-                subLabel: 'Puntos de experiencia', 
-                value: '0', 
-                unit: 'XP', 
-                trend: 'Nivel 1' 
+            {
+                icon: '⚡',
+                label: 'XP Total',
+                subLabel: 'Puntos de experiencia',
+                value: '0',
+                unit: 'XP',
+                trend: 'Nivel 1'
             },
         ];
     }
@@ -166,9 +163,8 @@ export class PerfilComponent implements OnInit {
     get imc(): number {
         const weight = this.weight;
         const height = this.heightInMeters;
-        
+
         if (weight > 0 && height > 0) {
-            // IMC = peso(kg) / altura(m)^2
             return Math.round((weight / (height * height)) * 10) / 10;
         }
         return 0;
@@ -189,18 +185,14 @@ export class PerfilComponent implements OnInit {
 
     get height(): number {
         const h = this.userStats?.profileData?.height || 0;
-        // Si el valor es menor a 3, asumimos que está en metros y convertimos a cm
-        // Si es mayor o igual a 3, asumimos que ya está en cm
         if (h > 0 && h < 3) {
-            return Math.round(h * 100); // Convertir metros a cm
+            return Math.round(h * 100); 
         }
         return Math.round(h);
     }
 
     get heightInMeters(): number {
         const h = this.userStats?.profileData?.height || 0;
-        // Si el valor es menor a 3, ya está en metros
-        // Si es mayor, está en cm y lo convertimos a metros
         if (h > 0 && h < 3) {
             return h;
         } else if (h >= 3) {
@@ -254,8 +246,6 @@ export class PerfilComponent implements OnInit {
         return this.userStats?.rutinasStats?.tiempoTotalMinutos || 0;
     }
 
-    // === MODAL HANDLERS ===
-    
     openPersonalModal() {
         this.editPersonalData = {
             nombre: this.user?.nombre || '',
@@ -289,11 +279,9 @@ export class PerfilComponent implements OnInit {
         this.showExperienceModal = false;
     }
 
-    // === SAVE HANDLERS ===
-    
     savePersonalData() {
         if (!this.user?._id) return;
-        
+
         this.saving = true;
         this.userHttpService.updateUser(this.user._id, {
             nombre: this.editPersonalData.nombre,

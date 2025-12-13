@@ -7,7 +7,6 @@
     position: relative;
 }
 
-/* Loading Overlay */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -42,7 +41,6 @@
     letter-spacing: 0.5px;
 }
 
-/* Header */
 .header {
     display: flex;
     justify-content: space-between;
@@ -110,7 +108,6 @@
     color: #10b981;
 }
 
-/* Main Content */
 .content {
     display: grid;
     grid-template-columns: 320px 1fr;
@@ -119,7 +116,6 @@
     min-height: calc(100vh - 120px);
 }
 
-/* Left Panel */
 .left-panel {
     display: flex;
     flex-direction: column;
@@ -306,7 +302,6 @@
     letter-spacing: 0.5px;
 }
 
-/* Right Panel */
 .right-panel {
     display: flex;
     flex-direction: column;
@@ -356,7 +351,6 @@
     display: block;
 }
 
-/* Profile Data Grid */
 .profile-data-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -416,7 +410,6 @@
     text-transform: uppercase;
 }
 
-/* Edit buttons */
 .edit-btn {
     background: transparent;
     border: 1px solid rgba(59, 130, 246, 0.4);
@@ -449,7 +442,6 @@
     margin: 0;
 }
 
-/* Modal overlay */
 .modal-overlay {
     position: fixed;
     top: 0;

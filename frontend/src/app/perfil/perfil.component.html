@@ -68,7 +68,6 @@
 
                 <div class="radar-content">
                     <div class="profile-data-grid">
-                        <!-- Datos Personales -->
                         <div class="data-section">
                             <div class="data-section-header">
                                 <h3 class="data-section-title">📋 DATOS PERSONALES</h3>
@@ -90,7 +89,6 @@
                             </div>
                         </div>
 
-                        <!-- Datos Físicos -->
                         <div class="data-section">
                             <div class="data-section-header">
                                 <h3 class="data-section-title">💪 DATOS FÍSICOS</h3>
@@ -116,7 +114,6 @@
                             </div>
                         </div>
 
-                        <!-- Experiencia y Actividad -->
                         <div class="data-section">
                             <div class="data-section-header">
                                 <h3 class="data-section-title">🎯 EXPERIENCIA</h3>
@@ -143,7 +140,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Editar Datos Personales -->
     <div class="modal-overlay" *ngIf="showPersonalModal" (click)="closeModals()">
         <div class="modal" (click)="$event.stopPropagation()">
             <div class="modal-header">
@@ -177,7 +173,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Editar Datos Físicos -->
     <div class="modal-overlay" *ngIf="showPhysicalModal" (click)="closeModals()">
         <div class="modal" (click)="$event.stopPropagation()">
             <div class="modal-header">
@@ -206,7 +201,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Editar Experiencia -->
     <div class="modal-overlay" *ngIf="showExperienceModal" (click)="closeModals()">
         <div class="modal" (click)="$event.stopPropagation()">
             <div class="modal-header">
