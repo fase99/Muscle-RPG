@@ -5,16 +5,13 @@
 
   <div class="nav-links" *ngIf="authService.isAuthenticated() && !isLoginPage">
     <a routerLink="/home" routerLinkActive="active" class="nav-link"> Inicio </a>
-    <!-- <a routerLink="/ejercicios" routerLinkActive="active" class="nav-link"> Skill Tree </a> -->
     <a routerLink="/rutina" routerLinkActive="active" class="nav-link"> Rutina </a>
     <a routerLink="/perfil" routerLinkActive="active" class="nav-link"> Perfil </a>
   </div>
 
   <div class="user-info" *ngIf="authService.isAuthenticated() && !isLoginPage">
 
-    <!-- XP + STAMINA agrupadas en una columna -->
     <div class="stats-column">
-      <!-- XP -->
       <div class="xp-section">
         <span class="xp-label">XP</span>
         <div class="xp-bar">
@@ -23,7 +20,6 @@
         <span class="xp-text">{{ currentXP }} / {{ maxXP }}</span>
       </div>
 
-      <!-- STAMINA (debajo de XP) -->
       <div class="stamina-section">
         <span class="stamina-label">Energia </span>
         <div class="stamina-bar">
@@ -33,7 +29,6 @@
       </div>
     </div>
 
-    <!-- Level -->
     <div class="level-badge">
       <span class="level-label">LVL</span>
       <span class="level-number">{{ level }}</span>
@@ -42,7 +37,7 @@
     <span class="username">{{ authService.getUsername().toLocaleUpperCase() }}</span>
 
     <button class="logout-btn" (click)="authService.logout()" title="Cerrar sesión">
-       🚪
+      🚪
     </button>
   </div>
 </nav>

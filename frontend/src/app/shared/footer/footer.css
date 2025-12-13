@@ -30,7 +30,6 @@
   padding: 3rem 2rem 2rem;
 }
 
-/* Creators Section */
 .creators-section {
   margin-bottom: 2rem;
 }
@@ -177,7 +176,6 @@
   height: 16px;
 }
 
-/* Footer Bottom */
 .footer-bottom {
   padding-top: 1.5rem;
 }
@@ -196,7 +194,6 @@
   padding-bottom: 0.5rem;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
   .creators-grid {
     grid-template-columns: repeat(2, 1fr);

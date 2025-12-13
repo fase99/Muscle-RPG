@@ -26,12 +26,10 @@ export class Navbar implements OnInit {
       this.user = user;
     });
 
-    // Detectar si estamos en la página de login
     this.router.events.subscribe(() => {
       this.isLoginPage = this.router.url === '/login' || this.router.url === '/';
     });
 
-    // Inicializar el estado actual
     this.isLoginPage = this.router.url === '/login' || this.router.url === '/';
   }
 
@@ -50,9 +48,7 @@ export class Navbar implements OnInit {
   get xpPercentage(): number {
     return (this.currentXP / this.maxXP) * 100;
   }
-  // === NUEVOS GETTERS DE STAMINA (solo estos 3) ===
   get currentStamina(): number {
-    // Cambia los nombres de los campos si en tu UserFromDB se llaman diferente
     return this.user?.staminaActual  || 0;
   }
 

@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-/**
- * Estado de un ejercicio durante la sesión
- */
 export interface ExerciseProgress {
   externalId: string;
   nombre: string;
@@ -17,15 +14,12 @@ export interface ExerciseProgress {
   notas?: string;
 }
 
-/**
- * Estado completo de la sesión de entrenamiento
- */
 export interface WorkoutSession {
   userId: string;
   rutinaId?: string;
   ejercicios: ExerciseProgress[];
-  tiempoInicio: number; // timestamp
-  duracion: number; // minutos
+  tiempoInicio: number;
+  duracion: number; 
   staminaInicial: number;
   staminaUsada: number;
   activa: boolean;
@@ -33,34 +27,22 @@ export interface WorkoutSession {
 
 const STORAGE_KEY = 'muscle_rpg_workout_session';
 
-/**
- * Servicio para gestionar el estado de la sesión de entrenamiento
- * Mantiene la persistencia entre navegaciones y recargas de página
- */
 @Injectable({
   providedIn: 'root'
 })
 export class WorkoutStateService {
   
-  // Estado reactivo de la sesión actual
   private sessionSubject = new BehaviorSubject<WorkoutSession | null>(null);
   public session$: Observable<WorkoutSession | null> = this.sessionSubject.asObservable();
 
   constructor() {
-    // Restaurar sesión al iniciar el servicio
     this.restoreProgress();
   }
 
-  /**
-   * Obtiene el valor actual de la sesión (síncrono)
-   */
   getCurrentSession(): WorkoutSession | null {
     return this.sessionSubject.value;
   }
 
-  /**
-   * Inicia una nueva sesión de entrenamiento
-   */
   startSession(session: Omit<WorkoutSession, 'tiempoInicio' | 'duracion' | 'staminaUsada' | 'activa'>): void {
     const newSession: WorkoutSession = {
       ...session,
@@ -75,9 +57,6 @@ export class WorkoutStateService {
     console.log('[WorkoutStateService] 🏁 Sesión iniciada:', newSession);
   }
 
-  /**
-   * Actualiza el estado de un ejercicio específico
-   */
   updateExercise(index: number, updates: Partial<ExerciseProgress>): void {
     const session = this.sessionSubject.value;
     if (!session) {
@@ -103,9 +82,6 @@ export class WorkoutStateService {
     console.log('[WorkoutStateService] 📝 Ejercicio actualizado:', index, updates);
   }
 
-  /**
-   * Marca un ejercicio como completado
-   */
   completeExercise(index: number, pesoReal: number, rirReal: number, notas?: string): void {
     this.updateExercise(index, {
       completado: true,
@@ -115,9 +91,6 @@ export class WorkoutStateService {
     });
   }
 
-  /**
-   * Actualiza la duración y stamina usada de la sesión
-   */
   updateSessionStats(duracion: number, staminaUsada: number): void {
     const session = this.sessionSubject.value;
     if (!session) return;
@@ -132,9 +105,6 @@ export class WorkoutStateService {
     this.saveProgress();
   }
 
-  /**
-   * Finaliza la sesión actual
-   */
   endSession(): void {
     const session = this.sessionSubject.value;
     if (!session) return;
@@ -149,18 +119,12 @@ export class WorkoutStateService {
     console.log('[WorkoutStateService] 🏁 Sesión finalizada');
   }
 
-  /**
-   * Limpia la sesión actual (después de guardar en el backend)
-   */
   clearSession(): void {
     this.sessionSubject.next(null);
     localStorage.removeItem(STORAGE_KEY);
     console.log('[WorkoutStateService] 🗑️ Sesión limpiada');
   }
 
-  /**
-   * Guarda el progreso actual en localStorage
-   */
   saveProgress(): void {
     const session = this.sessionSubject.value;
     if (!session) {
@@ -177,9 +141,6 @@ export class WorkoutStateService {
     }
   }
 
-  /**
-   * Restaura el progreso desde localStorage
-   */
   restoreProgress(): void {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -190,7 +151,6 @@ export class WorkoutStateService {
 
       const session: WorkoutSession = JSON.parse(stored);
       
-      // Validar que la sesión no sea muy antigua (más de 24 horas)
       const horasTranscurridas = (Date.now() - session.tiempoInicio) / (1000 * 60 * 60);
       if (horasTranscurridas > 24) {
         console.log('[WorkoutStateService] ⏰ Sesión muy antigua, descartando');
@@ -206,9 +166,6 @@ export class WorkoutStateService {
     }
   }
 
-  /**
-   * Obtiene estadísticas de la sesión actual
-   */
   getSessionStats(): {
     ejerciciosCompletados: number;
     ejerciciosTotales: number;
@@ -239,9 +196,6 @@ export class WorkoutStateService {
     };
   }
 
-  /**
-   * Calcula el tiempo transcurrido en minutos
-   */
   getTiempoTranscurrido(): number {
     const session = this.sessionSubject.value;
     if (!session) return 0;

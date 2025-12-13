@@ -28,23 +28,18 @@ export class SetupComponent implements OnInit {
     private router: Router
   ) {
     this.profileForm = this.fb.group({
-      // Paso 1: Datos Personales (sin edad, ya se obtiene del usuario)
       gender: ['1', Validators.required],
       weight: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
       height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
       
-      // Paso 2: Historial de Entrenamiento
       experienceMonths: ['', [Validators.required, Validators.min(0)]],
       activityLevel: ['sedentary', Validators.required],
       
-      // Paso 3: Condiciones de Salud
       hasMedicalConditions: [false, Validators.required],
       
-      // Paso 4: Composición Corporal (opcional)
       metodoMedicion: ['estimacion'],
       knownBodyFat: [''],
       
-      // 7 Pliegues Cutáneos (opcional)
       pliegue_triceps: [''],
       pliegue_deltoides: [''],
       pliegue_pectoral: [''],
@@ -56,7 +51,6 @@ export class SetupComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Obtener el userId del usuario actual
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.userId = user._id;
@@ -80,7 +74,6 @@ export class SetupComponent implements OnInit {
     const metodo = event.target.value;
     this.usarMetodo7Pliegues = (metodo === '7pliegues');
     
-    // Limpiar campos según el método seleccionado
     if (metodo === 'estimacion') {
       this.profileForm.patchValue({
         knownBodyFat: '',
@@ -118,9 +111,9 @@ export class SetupComponent implements OnInit {
       case 2:
         return formValue.experienceMonths !== '' && formValue.activityLevel;
       case 3:
-        return true; // El checkbox siempre tiene valor (true/false)
+        return true; 
       case 4:
-        return true; // Paso 4 es opcional
+        return true; 
       default:
         return false;
     }
@@ -130,23 +123,19 @@ export class SetupComponent implements OnInit {
     if (this.profileForm.valid) {
       const formValue = this.profileForm.value;
       
-      // Adaptar datos para el DTO del Backend (CreateProfileDto)
-      // La edad se obtiene del usuario autenticado en el backend
       const payload: any = {
         gender: Number(formValue.gender),
         experienceMonths: Number(formValue.experienceMonths),
         weight: Number(formValue.weight),
-        height: Number(formValue.height) / 100, // Convertir cm a metros
+        height: Number(formValue.height) / 100, 
         nivelactividad: formValue.activityLevel,
         condicionmedica: formValue.hasMedicalConditions,
-        userId: this.userId // Agregar el userId para vincular el perfil al usuario
+        userId: this.userId 
       };
 
-      // Agregar datos opcionales según el método seleccionado
       if (formValue.metodoMedicion === 'conocido' && formValue.knownBodyFat) {
         payload.knownBodyFat = Number(formValue.knownBodyFat);
       } else if (formValue.metodoMedicion === '7pliegues') {
-        // Agregar los 7 pliegues si todos están completos
         if (formValue.pliegue_triceps && formValue.pliegue_deltoides && 
             formValue.pliegue_pectoral && formValue.pliegue_cintura &&
             formValue.pliegue_gluteo && formValue.pliegue_cuadriceps && 
@@ -169,10 +158,8 @@ export class SetupComponent implements OnInit {
             this.result = response;
             console.log('Tu Perfil RPG:', this.result);
             
-            // Refrescar el usuario en el AuthService para que el perfil se muestre
             this.authService.refreshUser();
             
-            // Mostrar mensaje de éxito
             if (response.rutinaSemanal) {
               console.log('✅ Rutina semanal generada automáticamente:', response.rutinaSemanal.length, 'días');
               alert(`¡Perfil creado exitosamente!\n\nSe ha generado tu rutina semanal con ${response.rutinaSemanal.length} días.\nSerás redirigido a tu rutina.`);
@@ -180,7 +167,6 @@ export class SetupComponent implements OnInit {
               alert('¡Perfil creado exitosamente!\nSerás redirigido a tu rutina.');
             }
             
-            // Redirigir a la página de rutinas después de 2 segundos
             setTimeout(() => {
               this.router.navigate(['/rutina']);
             }, 2000);

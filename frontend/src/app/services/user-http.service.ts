@@ -14,7 +14,7 @@ export interface ProfileFromDB {
   condicionmedica: boolean;
   knownBodyFat?: number;
   sRpg: number;
-  level: string; // Básico | Intermedio | Avanzado
+  level: string;
   estimatedBodyFat: number;
   compositionMultiplier: number;
   createdAt: Date;

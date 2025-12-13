@@ -11,7 +11,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Logo/Brand Section */
 .navbar-brand {
   display: flex;
   align-items: center;
@@ -31,7 +30,6 @@
   margin: 0;
 }
 
-/* Navigation Links */
 .nav-links {
   display: flex;
   gap: 2rem;
@@ -60,14 +58,12 @@
   background-color: #2563eb;
 }
 
-/* User Info Section */
 .user-info {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-/* Columna que agrupa XP + Energía (para que queden una debajo de la otra) */
 .stats-column {
   display: flex;
   flex-direction: column;
@@ -75,7 +71,6 @@
   align-items: flex-start;
 }
 
-/* XP y Stamina Section (mismo estilo, solo cambia el color) */
 .xp-section,
 .stamina-section {
   display: flex;
@@ -93,7 +88,6 @@
   text-align: right;
 }
 
-/* Barras de progreso */
 .xp-bar,
 .stamina-bar {
   width: 120px;
@@ -118,7 +112,6 @@
   transition: width 0.4s ease;
 }
 
-/* Texto al lado de las barras */
 .xp-text,
 .stamina-text {
   font-size: 0.75rem;
@@ -127,7 +120,6 @@
   white-space: nowrap;
 }
 
-/* Level Badge */
 .level-badge {
   display: flex;
   flex-direction: column;
@@ -147,7 +139,6 @@
   color: #f97316;
 }
 
-/* Username */
 .username {
   font-size: 2rem;
   font-weight: 600;
@@ -155,7 +146,6 @@
   white-space: nowrap;
 }
 
-/* Logout Button */
 .logout-btn {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
@@ -173,7 +163,6 @@
   transform: scale(1.05);
 }
 
-/* Avatar (si lo usas más adelante) */
 .avatar {
   width: 40px;
   height: 40px;

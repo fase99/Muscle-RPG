@@ -4,7 +4,6 @@
     <p class="subtitle">Sistema de Perfilamiento Multifactorial</p>
   </div>
 
-  <!-- Indicador de Progreso -->
   <div class="progress-indicator" *ngIf="!result">
     <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
       <span class="step-number">1</span>
@@ -29,7 +28,6 @@
   
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="!result">
     
-    <!-- PASO 1: BIOMETRÍA -->
     <div class="section" *ngIf="currentStep === 1">
       <h3>📊 Paso 1: Datos Biométricos</h3>
       <p class="section-description">Información básica para calcular tu índice de masa corporal y composición</p>
@@ -57,7 +55,6 @@
       </div>
     </div>
 
-    <!-- PASO 2: HISTORIAL DE ENTRENAMIENTO -->
     <div class="section" *ngIf="currentStep === 2">
       <h3>💪 Paso 2: Experiencia de Entrenamiento</h3>
       <p class="section-description">Tu historial determina el puntaje de experiencia (P<sub>exp</sub>)</p>
@@ -134,7 +131,6 @@
       </div>
     </div>
 
-    <!-- PASO 4: COMPOSICIÓN CORPORAL -->
     <div class="section" *ngIf="currentStep === 4">
       <h3>📏 Paso 4: Composición Corporal (Opcional)</h3>
       <p class="section-description">Mejora la precisión del cálculo con datos antropométricos</p>
@@ -148,14 +144,12 @@
         </select>
       </div>
 
-      <!-- Opción: PGC Conocido -->
       <div class="form-group" *ngIf="profileForm.get('metodoMedicion')?.value === 'conocido'">
         <label>Porcentaje de Grasa Corporal (%)</label>
         <input type="number" formControlName="knownBodyFat" placeholder="Ej: 18.5" step="0.1" min="3" max="60">
         <span class="hint">Si lo tienes de una medición con bioimpedancia, plicómetro, etc.</span>
       </div>
 
-      <!-- Opción: 7 Pliegues Cutáneos -->
       <div class="pliegues-container" *ngIf="profileForm.get('metodoMedicion')?.value === '7pliegues'">
         <div class="pliegues-intro">
           <span class="badge gold">Gold Standard</span>
@@ -209,7 +203,6 @@
       </div>
     </div>
 
-    <!-- Botones de Navegación -->
     <div class="navigation-buttons">
       <button type="button" class="btn-secondary" (click)="prevStep()" *ngIf="currentStep > 1">
         ← Anterior
@@ -227,7 +220,6 @@
     </div>
   </form>
 
-  <!-- RESULTADO DEL PERFILAMIENTO -->
   <div *ngIf="result" class="result-container">
     <div class="result-header">
       <h3>⚔️ Clasificación Completa</h3>
@@ -236,8 +228,8 @@
 
     <div class="class-card">
       <div class="class-badge-large" [class.basico]="result.level === 'Básico'" 
-                                     [class.intermedio]="result.level === 'Intermedio'"
-                                     [class.avanzado]="result.level === 'Avanzado'">
+                                      [class.intermedio]="result.level === 'Intermedio'"
+                                      [class.avanzado]="result.level === 'Avanzado'">
         <span class="level-icon">{{ result.level === 'Básico' ? '🛡️' : result.level === 'Intermedio' ? '⚔️' : '👑' }}</span>
         <span class="level-name">{{ result.level | uppercase }}</span>
       </div>
