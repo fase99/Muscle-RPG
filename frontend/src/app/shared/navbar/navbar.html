@@ -29,7 +29,7 @@
         <div class="stamina-bar">
           <div class="stamina-progress" [style.width.%]="staminaPercentage"></div>
         </div>
-        <span class="stamina-text">{{ currentStamina }} / {{ maxStamina }}</span>
+        <span class="stamina-text">{{ currentStamina | number:'1.0-2' }} / {{ maxStamina | number:'1.0-2' }}</span>
       </div>
     </div>
 
