@@ -102,7 +102,6 @@ export class UsersController {
             console.log('========== CREANDO PERFIL ==========');
             console.log('DTO recibido:', JSON.stringify(createProfileDto, null, 2));
             
-            // Validar que se proporcione el userId para vincular el perfil
             if (!createProfileDto.userId) {
                 throw new BadRequestException('El campo userId es requerido para crear un perfil');
             }
@@ -112,7 +111,6 @@ export class UsersController {
             console.log('========== PERFIL CREADO EXITOSAMENTE ==========');
             console.log('Resultado:', JSON.stringify(result, null, 2));
             
-            // Generar automáticamente la rutina semanal
             try {
                 console.log('========== GENERANDO RUTINA SEMANAL AUTOMÁTICAMENTE ==========');
                 const rutinaSemanal = await this.rutinasService.generateWeeklyRoutine(createProfileDto.userId, 120);
@@ -124,7 +122,6 @@ export class UsersController {
                 };
             } catch (rutinaError) {
                 console.error('⚠️ Error generando rutina semanal:', rutinaError);
-                // Retornar el perfil aunque falle la generación de rutina
                 return result;
             }
         } catch (err) {
@@ -139,8 +136,6 @@ export class UsersController {
             });
         }
     }
-
-    // ========== ENDPOINTS DE RELACIÓN USER-PROFILE ==========
 
     @Get(':id/with-profile')
     async getUserWithProfile(@Param('id') id: string) {
@@ -197,8 +192,6 @@ export class UsersController {
         };
     }
 
-    // ========== ENDPOINTS DE PERFILES ==========
-
     @Get('profiles/stats')
     async getProfileStats() {
         return this.profilingService.getProfileStats();
@@ -216,8 +209,6 @@ export class UsersController {
     ) {
         return this.profilingService.updateProfile(profileId, updateData);
     }
-
-    // ========== ENDPOINTS DE LOGROS ==========
 
     @Get(':id/achievements')
     async getUserAchievements(@Param('id') id: string) {
