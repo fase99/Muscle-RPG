@@ -47,13 +47,7 @@ export class RutinasService {
         const perfilConfig = this.getConfigPorNivel(profile.level);
         console.log(`[RutinasService] 📊 Usando perfil guardado: ${profile.level} (SRPG: ${profile.sRpg}), RIR: ${perfilConfig.rir}, Frecuencia: ${perfilConfig.frecuenciaMin}-${perfilConfig.frecuenciaMax} días/semana`);
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         const optimalPath = await this.graphOptimizer.optimizeSesionDiaria(
             usuarioId,
             maxTime,
