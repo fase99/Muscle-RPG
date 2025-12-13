@@ -42,10 +42,7 @@ export class GraphBuilderService {
     private exerciseDbService: ExerciseDbService,
   ) {}
 
-  /**
-   * Construye el Grafo Completo G=(V,E) con datos enriquecidos
-   * Fusiona las reglas RPG de MongoDB con los datos visuales de ExerciseDB
-   */
+ 
   async buildFullGraph(): Promise<GraphNode[]> {
     try {
       // 1. Obtener Reglas RPG desde MongoDB (Nodos lógicos y Aristas)
@@ -107,10 +104,7 @@ export class GraphBuilderService {
     }
   }
 
-  /**
-   * Obtiene ejercicios candidatos según el nivel del usuario y ejercicios completados
-   * Implementa la lógica de desbloqueo del grafo
-   */
+ 
   async getCandidateExercises(userLevel: number, completedExercises: string[]): Promise<GraphNode[]> {
     const fullGraph = await this.buildFullGraph();
 
@@ -138,17 +132,13 @@ export class GraphBuilderService {
     return candidates;
   }
 
-  /**
-   * Obtiene un nodo específico del grafo por ID
-   */
+ 
   async getNodeById(exerciseId: string): Promise<GraphNode | null> {
     const fullGraph = await this.buildFullGraph();
     return fullGraph.find((node) => node.id === exerciseId) || null;
   }
 
-  /**
-   * Obtiene todos los ejercicios que serían desbloqueados al completar un ejercicio dado
-   */
+
   async getUnlockedExercises(exerciseId: string): Promise<GraphNode[]> {
     const node = await this.getNodeById(exerciseId);
     if (!node || !node.unlocks.length) {

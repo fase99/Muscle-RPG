@@ -14,21 +14,14 @@ export class ExercisesController {
     private rpgRuleModel: Model<RpgExerciseRuleDocument>,
   ) {}
 
-  /**
-   * GET /exercises/graph
-   * Obtiene el grafo completo de ejercicios (datos RPG + datos visuales)
-   */
+  
   @Get('graph')
   async getFullGraph(): Promise<GraphNode[]> {
     this.logger.log('Solicitando grafo completo de ejercicios');
     return this.graphBuilder.buildFullGraph();
   }
 
-  /**
-   * GET /exercises/candidates
-   * Obtiene ejercicios candidatos según nivel de usuario y ejercicios completados
-   * Query params: level (number), completed (string[] separado por comas)
-   */
+
   @Get('candidates')
   async getCandidates(
     @Query('level') level: string,
@@ -41,31 +34,21 @@ export class ExercisesController {
     return this.graphBuilder.getCandidateExercises(userLevel, completedExercises);
   }
 
-  /**
-   * GET /exercises/:id
-   * Obtiene un ejercicio específico del grafo
-   */
+ 
   @Get(':id')
   async getExerciseById(@Param('id') id: string): Promise<GraphNode | null> {
     this.logger.log(`Solicitando ejercicio ${id}`);
     return this.graphBuilder.getNodeById(id);
   }
 
-  /**
-   * GET /exercises/:id/unlocks
-   * Obtiene qué ejercicios desbloquea este ejercicio
-   */
+
   @Get(':id/unlocks')
   async getUnlockedExercises(@Param('id') id: string): Promise<GraphNode[]> {
     this.logger.log(`Solicitando ejercicios desbloqueados por ${id}`);
     return this.graphBuilder.getUnlockedExercises(id);
   }
 
-  /**
-   * POST /exercises/seed
-   * Endpoint para poblar la base de datos con reglas RPG de ejemplo
-   * (Solo para desarrollo/testing)
-   */
+ 
   @Post('seed')
   async seedDatabase(): Promise<{ message: string; count: number }> {
     this.logger.log('Sembrando base de datos con reglas RPG de ejemplo...');

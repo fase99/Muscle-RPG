@@ -42,9 +42,7 @@ export class ExerciseDbService {
     };
   }
 
-  /**
-   * Obtiene todos los ejercicios del archivo local data-exercises/exercises.json
-   */
+
   private async getAllExercises(): Promise<ExerciseDbExercise[]> {
     // Verificar caché
     const now = Date.now();
@@ -92,9 +90,7 @@ export class ExerciseDbService {
     }
   }
 
-  /**
-   * Traer detalles de ejercicios por lista de IDs
-   */
+ 
   async getExercisesByIds(ids: string[]): Promise<ExerciseDbExercise[]> {
     const allExercises = await this.getAllExercises();
     
@@ -102,25 +98,19 @@ export class ExerciseDbService {
     return allExercises.filter(ex => ids.includes(ex.exerciseId));
   }
 
-  /**
-   * Obtener un ejercicio por ID específico
-   */
+ 
   async getExerciseById(id: string): Promise<ExerciseDbExercise | null> {
     const allExercises = await this.getAllExercises();
     return allExercises.find(ex => ex.exerciseId === id) || null;
   }
 
-  /**
-   * Obtener el nombre de un ejercicio por su ID
-   */
+ 
   async getExerciseName(id: string): Promise<string> {
     const exercise = await this.getExerciseById(id);
     return exercise?.name || `Exercise ${id}`;
   }
 
-  /**
-   * Obtener ejercicios que trabajan un grupo muscular específico
-   */
+
   async getExercisesByMuscleGroup(muscleGroup: string): Promise<ExerciseDbExercise[]> {
     const allExercises = await this.getAllExercises();
     
@@ -152,9 +142,7 @@ export class ExerciseDbService {
     });
   }
 
-  /**
-   * Datos mock para desarrollo/testing cuando la API no está disponible
-   */
+ 
   private getMockExercises(): ExerciseDbExercise[] {
     return [
       {
@@ -190,9 +178,7 @@ export class ExerciseDbService {
     ];
   }
 
-  /**
-   * Invalidar caché manualmente (útil para testing o actualizaciones)
-   */
+ 
   clearCache(): void {
     this.cachedExercises = null;
     this.cacheTimestamp = null;
