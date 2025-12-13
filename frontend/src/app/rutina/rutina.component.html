@@ -33,6 +33,39 @@
     </p>
   </div>
 
+  <!-- VISTA PREVIA DE PRÓXIMOS DÍAS -->
+  <div *ngIf="rutinaGenerada && proximasRutinas.length > 0" class="proximos-dias-container">
+    <h3 style="text-align: center; color: #667eea; margin: 1.5rem 0 1rem 0; font-size: 1.1rem;">
+      📅 Próximos entrenamientos
+    </h3>
+    <div class="proximos-dias-scroll">
+      <div *ngFor="let proximaRutina of proximasRutinas" class="proxima-dia-card">
+        <div class="proxima-dia-header">
+          <span class="proxima-dia-nombre">{{ getDayName(proximaRutina.scheduledDate) }}</span>
+          <span class="proxima-dia-fecha">{{ formatShortDate(proximaRutina.scheduledDate) }}</span>
+        </div>
+        <div class="proxima-dia-body">
+          <div class="proxima-dia-tipo" *ngIf="proximaRutina.ejercicios.length > 0">
+            <strong>{{ getMuscleGroupName(proximaRutina.nombre) }}</strong>
+          </div>
+          <div class="proxima-dia-tipo" *ngIf="proximaRutina.ejercicios.length === 0" style="color: #888;">
+            ☀️ Descanso
+          </div>
+          <div class="proxima-dia-stats" *ngIf="proximaRutina.ejercicios.length > 0">
+            <span>💪 {{ proximaRutina.ejercicios.length }} ejercicios</span>
+            <span>⏱️ {{ proximaRutina.tiempoTotal | number:'1.0-0' }} min</span>
+          </div>
+          <div class="proxima-dia-stats" *ngIf="proximaRutina.ejercicios.length === 0" style="font-size: 0.8rem; color: #999;">
+            Recuperación activa
+          </div>
+        </div>
+        <div class="proxima-dia-footer">
+          <span style="font-size: 0.75rem; color: #999;">🔒 Vista previa</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTÓN GENERAR RUTINA (cuando no hay rutina generada) -->
   <div class="generar-rutina" *ngIf="!rutinaGenerada && !loading">
     <div class="card-generar">
