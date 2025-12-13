@@ -17,8 +17,9 @@ export class CreateProfileDto{
     @IsOptional()
     userId?: string;
 
+    @IsOptional()
     @IsNumber()
-    age: number;
+    age?: number;
 
     @IsEnum(Genero)
     gender: Genero;
