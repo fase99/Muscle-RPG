@@ -39,7 +39,7 @@ export class GraphBuilderService {
     private exerciseDbService: ExerciseDbService,
   ) {}
 
-
+ 
   async buildFullGraph(): Promise<GraphNode[]> {
     try {
       this.logger.log('Obteniendo reglas RPG desde MongoDB...');
@@ -94,7 +94,6 @@ export class GraphBuilderService {
     }
   }
 
-
   async getCandidateExercises(userLevel: number, completedExercises: string[]): Promise<GraphNode[]> {
     const fullGraph = await this.buildFullGraph();
 
@@ -123,7 +122,7 @@ export class GraphBuilderService {
     return fullGraph.find((node) => node.id === exerciseId) || null;
   }
 
-
+  
   async getUnlockedExercises(exerciseId: string): Promise<GraphNode[]> {
     const node = await this.getNodeById(exerciseId);
     if (!node || !node.unlocks.length) {
